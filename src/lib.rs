@@ -243,51 +243,78 @@ pub async fn run() {
     setup_logging();
     let matches = parse_arguments();
 
-    if matches.get_flag("list-interfaces") {
-        println!("Available network interfaces:");
-        for iface in list_network_interfaces() {
-            println!("  {} - {} (Up: {}, IPs: {:?})",
-                     iface.name,
-                     iface.description,
-                     iface.is_up(),
-                     iface.ips);
-        }
+    if handle_pre_execution_commands(&matches) {
         return;
     }
 
-    let config = match process_config(&matches) {
+    let config = initialize_configuration(&matches);
+    let target_ip = parse_and_validate_ip(&config.target.ip);
+
+    perform_validations(&config, &target_ip).unwrap_or_else(|err| {
+        error!("Validation failed: {}", err);
+        std::process::exit(1);
+    });
+
+    let selected_interface = setup_network_interface(&config);
+
+    let stats = Arc::new(FloodStats::new(
+        config.export.enabled.then_some(config.export.clone()),
+    ));
+
+    setup_audit_log(&config, &target_ip, &selected_interface, &stats.session_id);
+
+    run_simulation(config, target_ip, selected_interface, stats).await;
+}
+
+fn handle_pre_execution_commands(matches: &clap::ArgMatches) -> bool {
+    if matches.get_flag("list-interfaces") {
+        println!("Available network interfaces:");
+        for iface in list_network_interfaces() {
+            println!(
+                "  {} - {} (Up: {}, IPs: {:?})",
+                iface.name,
+                iface.description,
+                iface.is_up(),
+                iface.ips
+            );
+        }
+        return true;
+    }
+    false
+}
+
+fn initialize_configuration(matches: &clap::ArgMatches) -> Config {
+    match process_config(matches) {
         Ok(config) => config,
         Err(e) => {
             error!("Failed to process config: {}", e);
             std::process::exit(1);
         }
-    };
-
-    let dry_run = config.safety.dry_run;
-
-    // Parse and validate target IP
-    let target_ip: IpAddr = config.target.ip.parse()
-        .expect("Invalid IP format");
-
-    // Enhanced validation
-    if let Err(e) = validate_comprehensive_security(&target_ip, &config.target.ports,
-                                                    config.attack.threads, config.attack.packet_rate) {
-        error!("Security Validation Error: {}", e);
-        std::process::exit(1);
     }
+}
 
-    if let Err(e) = validate_system_requirements(dry_run) {
-        error!("System Requirements Error: {}", e);
-        std::process::exit(1);
-    }
+fn parse_and_validate_ip(ip_str: &str) -> IpAddr {
+    ip_str.parse().expect("Invalid IP format")
+}
 
-    // Validate network interface
-    let selected_interface = if let Some(iface_name) = &config.target.interface {
+fn perform_validations(config: &Config, target_ip: &IpAddr) -> Result<(), String> {
+    validate_comprehensive_security(
+        target_ip,
+        &config.target.ports,
+        config.attack.threads,
+        config.attack.packet_rate,
+    )?;
+    validate_system_requirements(config.safety.dry_run)?;
+    Ok(())
+}
+
+fn setup_network_interface(config: &Config) -> Option<pnet::datalink::NetworkInterface> {
+    if let Some(iface_name) = &config.target.interface {
         match find_interface_by_name(iface_name) {
             Some(iface) => {
                 info!("Using specified interface: {}", iface.name);
                 Some(iface)
-            },
+            }
             None => {
                 error!("Interface '{}' not found", iface_name);
                 std::process::exit(1);
@@ -298,42 +325,56 @@ pub async fn run() {
             Some(iface) => {
                 info!("Using default interface: {}", iface.name);
                 Some(iface)
-            },
+            }
             None => {
                 warn!("No suitable network interface found");
                 None
             }
         }
-    };
+    }
+}
 
-    // Initialize system monitoring
-    let system_monitor = SystemMonitor::new(config.monitoring.system_monitoring);
-
-    // Initialize statistics with export config
-    let export_config = if config.export.enabled {
-        Some(config.export.clone())
-    } else {
-        None
-    };
-    let stats = Arc::new(FloodStats::new(export_config));
-
-    // Create audit log entry
+fn setup_audit_log(
+    config: &Config,
+    target_ip: &IpAddr,
+    selected_interface: &Option<pnet::datalink::NetworkInterface>,
+    session_id: &str,
+) {
     if config.safety.audit_logging {
-        if let Err(e) = create_audit_entry(&target_ip, &config.target.ports,
-                                          config.attack.threads, config.attack.packet_rate,
-                                          config.attack.duration,
-                                          selected_interface.as_ref().map(|i| i.name.as_str()),
-                                          &stats.session_id) {
+        if let Err(e) = create_audit_entry(
+            target_ip,
+            &config.target.ports,
+            config.attack.threads,
+            config.attack.packet_rate,
+            config.attack.duration,
+            selected_interface.as_ref().map(|i| i.name.as_str()),
+            session_id,
+        ) {
             error!("Audit Log Error: {}", e);
             std::process::exit(1);
         }
     }
+}
 
-    let (tx_ipv4, tx_ipv6, tx_l2) = setup_channels(dry_run, &selected_interface);
+async fn run_simulation(
+    config: Config,
+    target_ip: IpAddr,
+    selected_interface: Option<pnet::datalink::NetworkInterface>,
+    stats: Arc<FloodStats>,
+) {
     let running = Arc::new(AtomicBool::new(true));
+    let system_monitor = Arc::new(SystemMonitor::new(config.monitoring.system_monitoring));
+
+    spawn_monitoring_tasks(
+        &config,
+        stats.clone(),
+        system_monitor.clone(),
+        running.clone(),
+    );
+
+    let (tx_ipv4, tx_ipv6, tx_l2) = setup_channels(config.safety.dry_run, &selected_interface);
     let multi_port_target = Arc::new(MultiPortTarget::new(config.target.ports.clone()));
 
-    spawn_monitoring_tasks(&config, stats.clone(), Arc::new(system_monitor), running.clone());
     let handles = spawn_worker_threads(
         &config,
         stats.clone(),
@@ -343,36 +384,86 @@ pub async fn run() {
         tx_ipv4,
         tx_ipv6,
         tx_l2,
-        dry_run,
+        config.safety.dry_run,
     );
 
-    if dry_run {
-        info!("🔍 Starting Enhanced Router Flood SIMULATION v3.0 (DRY-RUN)");
+    print_simulation_start_info(&config, &target_ip, &selected_interface, &stats.session_id);
+
+    // Graceful shutdown handling
+    tokio::select! {
+        _ = tokio::signal::ctrl_c() => {
+            info!("🛑 Received Ctrl+C, shutting down gracefully...");
+            running.store(false, Ordering::Relaxed);
+        }
+        _ = async {
+            for handle in handles {
+                handle.await.unwrap();
+            }
+        } => {}
+    }
+
+    finalize_execution(&config, &stats).await;
+}
+
+fn print_simulation_start_info(
+    config: &Config,
+    target_ip: &IpAddr,
+    selected_interface: &Option<pnet::datalink::NetworkInterface>,
+    session_id: &str,
+) {
+    if config.safety.dry_run {
+        info!("🔍 Starting Enhanced Router Flood SIMULATION v{} (DRY-RUN)", env!("CARGO_PKG_VERSION"));
         info!("   ⚠️  DRY-RUN MODE: No actual packets will be sent!");
     } else {
-        info!("🚀 Starting Enhanced Router Flood Simulation v3.0");
+        info!("🚀 Starting Enhanced Router Flood Simulation v{}", env!("CARGO_PKG_VERSION"));
     }
-    info!("   Session ID: {}", stats.session_id);
+    info!("   Session ID: {}", session_id);
     info!("   Target: {} (Ports: {:?})", target_ip, config.target.ports);
     info!("   Threads: {}, Rate: {} pps/thread", config.attack.threads, config.attack.packet_rate);
     if let Some(d) = config.attack.duration {
         info!("   Duration: {} seconds", d);
     }
-    if let Some(iface) = &selected_interface {
+    if let Some(iface) = selected_interface {
         info!("   Interface: {}", iface.name);
     }
-    info!("   Protocols: UDP({:.0}%), TCP-SYN({:.0}%), TCP-ACK({:.0}%), ICMP({:.0}%), IPv6({:.0}%), ARP({:.0}%)",
-          config.target.protocol_mix.udp_ratio * 100.0,
-          config.target.protocol_mix.tcp_syn_ratio * 100.0,
-          config.target.protocol_mix.tcp_ack_ratio * 100.0,
-          config.target.protocol_mix.icmp_ratio * 100.0,
-          config.target.protocol_mix.ipv6_ratio * 100.0,
-          config.target.protocol_mix.arp_ratio * 100.0);
-    if dry_run {
+    info!(
+        "   Protocols: UDP({:.0}%), TCP-SYN({:.0}%), TCP-ACK({:.0}%), ICMP({:.0}%), IPv6({:.0}%), ARP({:.0}%)",
+        config.target.protocol_mix.udp_ratio * 100.0,
+        config.target.protocol_mix.tcp_syn_ratio * 100.0,
+        config.target.protocol_mix.tcp_ack_ratio * 100.0,
+        config.target.protocol_mix.icmp_ratio * 100.0,
+        config.target.protocol_mix.ipv6_ratio * 100.0,
+        config.target.protocol_mix.arp_ratio * 100.0
+    );
+    if config.safety.dry_run {
         info!("   📋 Mode: SIMULATION ONLY - Safe for testing configurations");
     }
     info!("   Press Ctrl+C to stop gracefully");
     println!();
+}
+
+async fn finalize_execution(config: &Config, stats: &Arc<FloodStats>) {
+    time::sleep(StdDuration::from_millis(100)).await;
+    if config.safety.dry_run {
+        info!("📈 Final Simulation Statistics (DRY-RUN):");
+    } else {
+        info!("📈 Final Statistics:");
+    }
+    stats.print_stats(None);
+
+    if config.export.enabled {
+        if let Err(e) = stats.export_stats(None).await {
+            error!("Failed to export final stats: {}", e);
+        }
+    }
+
+    if config.safety.dry_run {
+        info!("✅ Simulation completed successfully (NO PACKETS SENT)");
+        info!("📋 Dry-run mode: Configuration validated, packet generation tested");
+    } else {
+        info!("✅ Simulation completed successfully");
+    }
+}
 
 fn spawn_monitoring_tasks(
     config: &Config,
@@ -554,41 +645,4 @@ fn spawn_worker_threads(
         handles.push(handle);
     }
     handles
-}
-
-    // Set up graceful shutdown
-    tokio::select! {
-        _ = tokio::signal::ctrl_c() => {
-            info!("🛑 Received Ctrl+C, shutting down gracefully...");
-            running.store(false, Ordering::Relaxed);
-        }
-        _ = async {
-            for handle in handles {
-                handle.await.unwrap();
-            }
-        } => {}
-    }
-
-    // Final statistics and export
-    time::sleep(StdDuration::from_millis(100)).await;
-    if dry_run {
-        info!("📈 Final Simulation Statistics (DRY-RUN):");
-    } else {
-        info!("📈 Final Statistics:");
-    }
-    stats.print_stats(None);
-
-    // Final export if enabled
-    if config.export.enabled {
-        if let Err(e) = stats.export_stats(None).await {
-            error!("Failed to export final stats: {}", e);
-        }
-    }
-
-    if dry_run {
-        info!("✅ Simulation completed successfully (NO PACKETS SENT)");
-        info!("📋 Dry-run mode: Configuration validated, packet generation tested");
-    } else {
-        info!("✅ Simulation completed successfully");
-    }
 }

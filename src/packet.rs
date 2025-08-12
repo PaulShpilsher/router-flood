@@ -45,18 +45,18 @@ impl PacketBuilder {
             0,
             0,
             0,
-            rng.gen(),
-            rng.gen(),
-            rng.gen(),
-            rng.gen(),
+            rng.r#gen::<u16>(),
+            rng.r#gen::<u16>(),
+            rng.r#gen::<u16>(),
+            rng.r#gen::<u16>(),
         );
         let source_mac = MacAddr::new(
             0x02,
-            rng.gen(),
-            rng.gen(),
-            rng.gen(),
-            rng.gen(),
-            rng.gen(),
+            rng.r#gen::<u8>(),
+            rng.r#gen::<u8>(),
+            rng.r#gen::<u8>(),
+            rng.r#gen::<u8>(),
+            rng.r#gen::<u8>(),
         );
 
         Self {
@@ -78,7 +78,7 @@ impl PacketBuilder {
     }
 
     pub fn next_packet_type(&mut self) -> PacketType {
-        let rand_val = self.rng.gen::<f64>();
+        let rand_val = self.rng.r#gen::<f64>();
         let mut cumulative = 0.0;
 
         cumulative += self.protocol_mix.udp_ratio;
@@ -213,7 +213,7 @@ impl PacketBuilder {
         udp_packet.set_destination(target_port);
         udp_packet.set_length((8 + payload_size) as u16);
 
-        let payload: Vec<u8> = (0..payload_size).map(|_| self.rng.gen()).collect();
+        let payload: Vec<u8> = (0..payload_size).map(|_| self.rng.r#gen::<u8>()).collect();
         udp_packet.set_payload(&payload);
         udp_packet.set_checksum(pnet::packet::udp::ipv4_checksum(
             &udp_packet.to_immutable(),
@@ -243,9 +243,9 @@ impl PacketBuilder {
         let mut tcp_packet = MutableTcpPacket::new(ip_packet.payload_mut()).unwrap();
         tcp_packet.set_source(self.rng.gen_range(1024..65535));
         tcp_packet.set_destination(target_port);
-        tcp_packet.set_sequence(self.rng.gen());
+        tcp_packet.set_sequence(self.rng.r#gen::<u32>());
         tcp_packet.set_acknowledgement(if flags == TcpFlags::ACK {
-            self.rng.gen()
+            self.rng.r#gen::<u32>()
         } else {
             0
         });
@@ -280,7 +280,7 @@ impl PacketBuilder {
         icmp_packet.set_checksum(0);
 
         // Add payload
-        let payload: Vec<u8> = (0..payload_size).map(|_| self.rng.gen()).collect();
+        let payload: Vec<u8> = (0..payload_size).map(|_| self.rng.r#gen::<u8>()).collect();
         icmp_packet.set_payload(&payload);
 
         // Calculate and set ICMP checksum
@@ -305,7 +305,7 @@ impl PacketBuilder {
         let mut ip_packet = MutableIpv6Packet::new(&mut packet_buf).unwrap();
         ip_packet.set_version(6);
         ip_packet.set_traffic_class(0);
-        ip_packet.set_flow_label(self.rng.gen::<u32>() & 0xFFFFF);
+        ip_packet.set_flow_label(self.rng.r#gen::<u32>() & 0xFFFFF);
         ip_packet.set_payload_length((8 + payload_size) as u16);
         ip_packet.set_next_header(IpNextHeaderProtocols::Udp);
         ip_packet.set_hop_limit(self.rng.gen_range(32..128));
@@ -318,7 +318,7 @@ impl PacketBuilder {
         udp_packet.set_destination(target_port);
         udp_packet.set_length((8 + payload_size) as u16);
 
-        let payload: Vec<u8> = (0..payload_size).map(|_| self.rng.gen()).collect();
+        let payload: Vec<u8> = (0..payload_size).map(|_| self.rng.r#gen::<u8>()).collect();
         udp_packet.set_payload(&payload);
         udp_packet.set_checksum(pnet::packet::udp::ipv6_checksum(
             &udp_packet.to_immutable(),
@@ -341,7 +341,7 @@ impl PacketBuilder {
         let mut ip_packet = MutableIpv6Packet::new(&mut packet_buf).unwrap();
         ip_packet.set_version(6);
         ip_packet.set_traffic_class(0);
-        ip_packet.set_flow_label(self.rng.gen::<u32>() & 0xFFFFF);
+        ip_packet.set_flow_label(self.rng.r#gen::<u32>() & 0xFFFFF);
         ip_packet.set_payload_length(20);
         ip_packet.set_next_header(IpNextHeaderProtocols::Tcp);
         ip_packet.set_hop_limit(self.rng.gen_range(32..128));
@@ -352,7 +352,7 @@ impl PacketBuilder {
         let mut tcp_packet = MutableTcpPacket::new(ip_packet.payload_mut()).unwrap();
         tcp_packet.set_source(self.rng.gen_range(1024..65535));
         tcp_packet.set_destination(target_port);
-        tcp_packet.set_sequence(self.rng.gen());
+        tcp_packet.set_sequence(self.rng.r#gen::<u32>());
         tcp_packet.set_acknowledgement(0);
         tcp_packet.set_data_offset(5);
         tcp_packet.set_flags(TcpFlags::SYN);
@@ -376,7 +376,7 @@ impl PacketBuilder {
         let mut ip_packet = MutableIpv6Packet::new(&mut packet_buf).unwrap();
         ip_packet.set_version(6);
         ip_packet.set_traffic_class(0);
-        ip_packet.set_flow_label(self.rng.gen::<u32>() & 0xFFFFF);
+        ip_packet.set_flow_label(self.rng.r#gen::<u32>() & 0xFFFFF);
         ip_packet.set_payload_length((8 + payload_size) as u16);
         ip_packet.set_next_header(IpNextHeaderProtocols::Icmpv6);
         ip_packet.set_hop_limit(self.rng.gen_range(32..128));
@@ -389,7 +389,7 @@ impl PacketBuilder {
         icmp_packet.set_icmp_code(pnet::packet::icmp::IcmpCode(0));
         icmp_packet.set_checksum(0);
 
-        let payload: Vec<u8> = (0..payload_size).map(|_| self.rng.gen()).collect();
+        let payload: Vec<u8> = (0..payload_size).map(|_| self.rng.r#gen::<u8>()).collect();
         icmp_packet.set_payload(&payload);
 
         // ICMPv6 checksum calculation would be more complex in real implementation
@@ -438,7 +438,7 @@ impl PacketBuilder {
         ip_packet.set_next_level_protocol(protocol);
         ip_packet.set_source(self.source_ip);
         ip_packet.set_destination(target_ip);
-        ip_packet.set_identification(self.rng.gen());
+        ip_packet.set_identification(self.rng.r#gen::<u16>());
 
         // Occasionally set fragmentation flags
         if self.rng.gen_bool(0.1) {
