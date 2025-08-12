@@ -41,17 +41,18 @@ use audit::*;
 
 
 
-pub async fn run() {
-    // Initialize enhanced logging
+fn setup_logging() {
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::new(
             std::env::var("RUST_LOG").unwrap_or_else(|_| "info".into()),
         ))
         .with(tracing_subscriber::fmt::layer())
         .init();
+}
 
-    let matches = Command::new("Router Flood - Enhanced Network Stress Tester")
-        .version(env!("CARGO_PKG_VERSION"))  // Dynamically pulls from Cargo.toml
+fn parse_arguments() -> clap::ArgMatches {
+    Command::new("Router Flood - Enhanced Network Stress Tester")
+        .version(env!("CARGO_PKG_VERSION"))
         .about("Educational DDoS simulation for local network testing with multi-protocol support")
         .arg(
             Arg::new("target")
@@ -123,35 +124,16 @@ pub async fn run() {
                 .help("Simulate the attack without sending actual packets (safe testing)")
                 .action(clap::ArgAction::SetTrue),
         )
-        .get_matches();
+        .get_matches()
+}
 
-    // List interfaces if requested
-    if matches.get_flag("list-interfaces") {
-        println!("Available network interfaces:");
-        for iface in list_network_interfaces() {
-            println!("  {} - {} (Up: {}, IPs: {:?})",
-                     iface.name,
-                     iface.description,
-                     iface.is_up(),
-                     iface.ips);
-        }
-        return;
-    }
-
-    // Load configuration
+fn process_config(matches: &clap::ArgMatches) -> Result<Config, String> {
     let mut config = if let Some(config_path) = matches.get_one::<String>("config") {
-        match load_config(Some(config_path)) {
-            Ok(config) => config,
-            Err(e) => {
-                error!("Failed to load config: {}", e);
-                std::process::exit(1);
-            }
-        }
+        load_config(Some(config_path))?
     } else {
         get_default_config()
     };
 
-    // Override config with command line arguments
     if let Some(target) = matches.get_one::<String>("target") {
         config.target.ip = target.clone();
     }
@@ -189,7 +171,6 @@ pub async fn run() {
         };
     }
 
-    // Check for dry-run mode (CLI flag or config file)
     let cli_dry_run = matches.get_flag("dry-run");
     let dry_run = cli_dry_run || config.safety.dry_run;
     if dry_run {
@@ -200,6 +181,89 @@ pub async fn run() {
             info!("🔍 DRY-RUN MODE ENABLED (CONFIG) - No packets will be sent");
         }
     }
+
+    Ok(config)
+}
+
+fn setup_channels(
+    dry_run: bool,
+    selected_interface: &Option<pnet::datalink::NetworkInterface>,
+) -> (
+    Option<Arc<Mutex<pnet::transport::TransportSender>>>,
+    Option<Arc<Mutex<pnet::transport::TransportSender>>>,
+    Option<Arc<Mutex<Box<dyn pnet::datalink::DataLinkSender>>>>,
+) {
+    if !dry_run {
+        let tx_ipv4 = match transport::transport_channel(
+            4096,
+            transport::TransportChannelType::Layer3(pnet::packet::ip::IpNextHeaderProtocols::Ipv4),
+        ) {
+            Ok((tx, _)) => Some(Arc::new(Mutex::new(tx))),
+            Err(e) => {
+                error!("Failed to create IPv4 transport channel: {}", e);
+                std::process::exit(1);
+            }
+        };
+
+        let tx_ipv6 = match transport::transport_channel(
+            4096,
+            transport::TransportChannelType::Layer3(pnet::packet::ip::IpNextHeaderProtocols::Ipv6),
+        ) {
+            Ok((tx, _)) => Some(Arc::new(Mutex::new(tx))),
+            Err(e) => {
+                error!("Failed to create IPv6 transport channel: {}", e);
+                std::process::exit(1);
+            }
+        };
+
+        let tx_l2 = if let Some(iface) = selected_interface.clone() {
+            match pnet::datalink::channel(&iface, Default::default()) {
+                Ok(pnet::datalink::Channel::Ethernet(tx, _)) => Some(Arc::new(Mutex::new(tx))),
+                Ok(_) => {
+                    error!("Unknown channel type for L2");
+                    std::process::exit(1);
+                }
+                Err(e) => {
+                    error!("Failed to create L2 transport channel: {}", e);
+                    std::process::exit(1);
+                }
+            }
+        } else {
+            None
+        };
+
+        (tx_ipv4, tx_ipv6, tx_l2)
+    } else {
+        info!("Dry-run mode: Skipping transport channel creation");
+        (None, None, None)
+    }
+}
+
+pub async fn run() {
+    setup_logging();
+    let matches = parse_arguments();
+
+    if matches.get_flag("list-interfaces") {
+        println!("Available network interfaces:");
+        for iface in list_network_interfaces() {
+            println!("  {} - {} (Up: {}, IPs: {:?})",
+                     iface.name,
+                     iface.description,
+                     iface.is_up(),
+                     iface.ips);
+        }
+        return;
+    }
+
+    let config = match process_config(&matches) {
+        Ok(config) => config,
+        Err(e) => {
+            error!("Failed to process config: {}", e);
+            std::process::exit(1);
+        }
+    };
+
+    let dry_run = config.safety.dry_run;
 
     // Parse and validate target IP
     let target_ip: IpAddr = config.target.ip.parse()
@@ -265,53 +329,22 @@ pub async fn run() {
         }
     }
 
-    // Create transport channels (skip in dry-run mode)
-    let (tx_ipv4, tx_ipv6, tx_l2) = if !dry_run {
-        let tx_ipv4 = match transport::transport_channel(
-            4096,
-            transport::TransportChannelType::Layer3(pnet::packet::ip::IpNextHeaderProtocols::Ipv4),
-        ) {
-            Ok((tx, _)) => Some(Arc::new(Mutex::new(tx))),
-            Err(e) => {
-                error!("Failed to create IPv4 transport channel: {}", e);
-                std::process::exit(1);
-            }
-        };
-
-        let tx_ipv6 = match transport::transport_channel(
-            4096,
-            transport::TransportChannelType::Layer3(pnet::packet::ip::IpNextHeaderProtocols::Ipv6),
-        ) {
-            Ok((tx, _)) => Some(Arc::new(Mutex::new(tx))),
-            Err(e) => {
-                error!("Failed to create IPv6 transport channel: {}", e);
-                std::process::exit(1);
-            }
-        };
-
-        let tx_l2 = if let Some(iface) = selected_interface.clone() {
-            match pnet::datalink::channel(&iface, Default::default()) {
-                Ok(pnet::datalink::Channel::Ethernet(tx, _)) => Some(Arc::new(Mutex::new(tx))),
-                Ok(_) => {
-                    error!("Unknown channel type for L2");
-                    std::process::exit(1);
-                }
-                Err(e) => {
-                    error!("Failed to create L2 transport channel: {}", e);
-                    std::process::exit(1);
-                }
-            }
-        } else {
-            None
-        };
-
-        (tx_ipv4, tx_ipv6, tx_l2)
-    } else {
-        info!("Dry-run mode: Skipping transport channel creation");
-        (None, None, None)
-    };
+    let (tx_ipv4, tx_ipv6, tx_l2) = setup_channels(dry_run, &selected_interface);
     let running = Arc::new(AtomicBool::new(true));
     let multi_port_target = Arc::new(MultiPortTarget::new(config.target.ports.clone()));
+
+    spawn_monitoring_tasks(&config, stats.clone(), Arc::new(system_monitor), running.clone());
+    let handles = spawn_worker_threads(
+        &config,
+        stats.clone(),
+        running.clone(),
+        multi_port_target,
+        target_ip,
+        tx_ipv4,
+        tx_ipv6,
+        tx_l2,
+        dry_run,
+    );
 
     if dry_run {
         info!("🔍 Starting Enhanced Router Flood SIMULATION v3.0 (DRY-RUN)");
@@ -341,15 +374,20 @@ pub async fn run() {
     info!("   Press Ctrl+C to stop gracefully");
     println!();
 
+fn spawn_monitoring_tasks(
+    config: &Config,
+    stats: Arc<FloodStats>,
+    system_monitor: Arc<SystemMonitor>,
+    running: Arc<AtomicBool>,
+) {
     // Spawn statistics reporter with system monitoring
     let stats_clone = stats.clone();
     let running_clone = running.clone();
-    let system_monitor_clone = system_monitor;
     let stats_interval = config.monitoring.stats_interval;
     tokio::spawn(async move {
         while running_clone.load(Ordering::Relaxed) {
             time::sleep(StdDuration::from_secs(stats_interval)).await;
-            let sys_stats = system_monitor_clone.get_system_stats().await;
+            let sys_stats = system_monitor.get_system_stats().await;
             stats_clone.print_stats(sys_stats.as_ref());
         }
     });
@@ -379,8 +417,19 @@ pub async fn run() {
             info!("⏰ Duration reached, stopping...");
         });
     }
+}
 
-    // Spawn flood tasks
+fn spawn_worker_threads(
+    config: &Config,
+    stats: Arc<FloodStats>,
+    running: Arc<AtomicBool>,
+    multi_port_target: Arc<MultiPortTarget>,
+    target_ip: IpAddr,
+    tx_ipv4: Option<Arc<Mutex<pnet::transport::TransportSender>>>,
+    tx_ipv6: Option<Arc<Mutex<pnet::transport::TransportSender>>>,
+    tx_l2: Option<Arc<Mutex<Box<dyn pnet::datalink::DataLinkSender>>>>,
+    dry_run: bool,
+) -> Vec<tokio::task::JoinHandle<()>> {
     let mut handles = vec![];
     for task_id in 0..config.attack.threads {
         let tx_ipv4_clone = tx_ipv4.clone();
@@ -393,7 +442,6 @@ pub async fn run() {
         let packet_size_range = config.attack.packet_size_range;
         let protocol_mix = config.target.protocol_mix.clone();
         let randomize_timing = config.attack.randomize_timing;
-        let dry_run_mode = dry_run;
 
         let handle = tokio::spawn(async move {
             let mut packet_builder = PacketBuilder::new(packet_size_range, protocol_mix);
@@ -417,7 +465,7 @@ pub async fn run() {
                 };
 
                 // Send packet (or simulate in dry-run mode)
-                if dry_run_mode {
+                if dry_run {
                     // Simulate packet sending with artificial success/failure rate
                     let simulate_success = packet_builder.rng_gen_bool(0.98); // 98% success rate simulation
                     if simulate_success {
@@ -505,6 +553,8 @@ pub async fn run() {
         });
         handles.push(handle);
     }
+    handles
+}
 
     // Set up graceful shutdown
     tokio::select! {
