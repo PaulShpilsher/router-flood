@@ -7,6 +7,12 @@ pub const MAX_THREADS: usize = 100;
 pub const MAX_PACKET_RATE: u64 = 10000;
 pub const MIN_PAYLOAD_SIZE: usize = 20;
 pub const MAX_PAYLOAD_SIZE: usize = 1400;
+pub const STATS_EXPORT_DIR: &str = "exports";
+pub const PRIVATE_RANGES: &[(u32, u32)] = &[
+    (0xC0A80000, 0xFFFF0000), // 192.168.0.0/16
+    (0x0A000000, 0xFF000000), // 10.0.0.0/8
+    (0xAC100000, 0xFFF00000), // 172.16.0.0/12
+];
 
 /// Configuration structures for YAML config file support
 #[derive(Debug, Serialize, Deserialize, Clone)]

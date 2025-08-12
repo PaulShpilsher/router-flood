@@ -4,55 +4,16 @@
 //! - Unauthorized use (especially against systems you don't own or lack explicit permission to test) is strictly prohibited and may be illegal.
 
 use clap::{Arg, Command};
-use pnet::datalink::{self, NetworkInterface};
-use pnet::packet::ip::IpNextHeaderProtocols;
-use pnet::packet::ipv4::MutableIpv4Packet;
-use pnet::packet::ipv6::MutableIpv6Packet;
-use pnet::packet::tcp::{MutableTcpPacket, TcpFlags};
-use pnet::packet::udp::MutableUdpPacket;
-use pnet::packet::icmp::{MutableIcmpPacket, IcmpTypes};
-use pnet::packet::arp::{MutableArpPacket, ArpOperations, ArpHardwareTypes};
-use pnet::packet::ethernet::{MutableEthernetPacket, EtherTypes};
-use pnet::packet::MutablePacket;
 use pnet::transport::{self};
-use pnet::util::MacAddr;
-use rand::Rng;
-use rand::rngs::StdRng;
-use rand::SeedableRng;
-use std::net::{Ipv4Addr, Ipv6Addr, IpAddr};
-use std::time::{Duration as StdDuration, Instant};
+use std::net::IpAddr;
+use std::time::Duration as StdDuration;
 use tokio::sync::Mutex;
 use tokio::time;
 use std::sync::Arc;
-use std::sync::atomic::{AtomicU64, AtomicBool, Ordering};
-use std::fs::OpenOptions;
-use std::io::Write;
-use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
+use std::sync::atomic::{AtomicBool, Ordering};
 use tracing::{info, warn, error, debug, trace};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use sysinfo::System;
-use csv::Writer;
-use uuid::Uuid;
-use std::path::Path;
-use std::collections::HashMap;
 
-// Enhanced security configuration
-const MAX_THREADS: usize = 100;
-const MAX_PACKET_RATE: u64 = 10000;
-const DEFAULT_BURST_SIZE: usize = 10;
-const MAX_PAYLOAD_SIZE: usize = 1400;
-const MIN_PAYLOAD_SIZE: usize = 20;
-const AUDIT_LOG_FILE: &str = "router_flood_audit.log";
-const CONFIG_FILE: &str = "router_flood_config.yaml";
-const STATS_EXPORT_DIR: &str = "exports";
-
-// Private IP ranges for validation (network, mask)
-const PRIVATE_RANGES: &[(u32, u32)] = &[
-    (0xC0A80000, 0xFFFF0000), // 192.168.0.0/16
-    (0x0A000000, 0xFF000000), // 10.0.0.0/8
-    (0xAC100000, 0xFFF00000), // 172.16.0.0/12
-];
 
 pub mod config;
 use config::*;
@@ -63,64 +24,11 @@ use stats::*;
 pub mod packet;
 use packet::*;
 
-/// System monitoring for performance tracking
-pub struct SystemMonitor {
-    system: Arc<Mutex<System>>,
-    monitoring_enabled: bool,
-}
+pub mod monitor;
+use monitor::*;
 
-impl SystemMonitor {
-    fn new(monitoring_enabled: bool) -> Self {
-        let mut system = System::new_all();
-        system.refresh_all();
-
-        Self {
-            system: Arc::new(Mutex::new(system)),
-            monitoring_enabled,
-        }
-    }
-
-    async fn get_system_stats(&self) -> Option<SystemStats> {
-        if !self.monitoring_enabled {
-            return None;
-        }
-
-        let mut system = self.system.lock().await;
-        system.refresh_all();
-
-        Some(SystemStats {
-            cpu_usage: system.global_cpu_usage(),
-            memory_usage: system.used_memory(),
-            memory_total: system.total_memory(),
-            network_sent: 0, // Would need more complex implementation
-            network_received: 0,
-        })
-    }
-}
-
-/// Multi-port target manager
-pub struct MultiPortTarget {
-    ports: Vec<u16>,
-    current_index: Arc<std::sync::atomic::AtomicUsize>,
-}
-
-impl MultiPortTarget {
-    fn new(ports: Vec<u16>) -> Self {
-        Self {
-            ports,
-            current_index: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
-        }
-    }
-
-    fn next_port(&self) -> u16 {
-        let index = self.current_index.fetch_add(1, Ordering::Relaxed) % self.ports.len();
-        self.ports[index]
-    }
-
-    fn get_ports(&self) -> &[u16] {
-        &self.ports
-    }
-}
+pub mod target;
+use target::*;
 
 pub mod network;
 use network::*;
@@ -131,24 +39,6 @@ use validation::*;
 pub mod audit;
 use audit::*;
 
-fn validate_system_requirements(dry_run: bool) -> Result<(), String> {
-    // Check if running as root (required for raw sockets, but not for dry-run)
-    if !dry_run && unsafe { libc::geteuid() } != 0 {
-        return Err("This program requires root privileges for raw socket access. Use --dry-run for testing without root.".to_string());
-    }
-
-    if dry_run {
-        info!("Dry-run mode: Skipping root privilege check");
-    }
-
-    // Check system limits
-    let max_files = unsafe { libc::sysconf(libc::_SC_OPEN_MAX) };
-    if max_files < 1024 {
-        warn!("Low file descriptor limit detected: {}", max_files);
-    }
-
-    Ok(())
-}
 
 
 pub async fn run() {
@@ -492,7 +382,7 @@ pub async fn run() {
                 // Send packet (or simulate in dry-run mode)
                 if dry_run_mode {
                     // Simulate packet sending with artificial success/failure rate
-                    let simulate_success = packet_builder.rng.gen_bool(0.98); // 98% success rate simulation
+                    let simulate_success = packet_builder.rng_gen_bool(0.98); // 98% success rate simulation
                     if simulate_success {
                         stats_clone.increment_sent(packet_data.len() as u64, protocol_name);
                         if task_id == 0 && stats_clone.packets_sent.load(Ordering::Relaxed) % 1000 == 0 {
@@ -523,7 +413,7 @@ pub async fn run() {
 
                 // Randomized timing if enabled
                 let delay = if randomize_timing {
-                    let jitter = packet_builder.rng.gen_range(0.8..1.2);
+                    let jitter = packet_builder.rng_gen_range(0.8..1.2);
                     StdDuration::from_nanos((base_delay.as_nanos() as f64 * jitter) as u64)
                 } else {
                     base_delay

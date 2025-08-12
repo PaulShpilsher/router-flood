@@ -32,8 +32,6 @@ pub struct PacketBuilder {
     source_ip: Ipv4Addr,
     source_ipv6: Ipv6Addr,
     source_mac: MacAddr,
-    burst_counter: usize,
-    last_protocol: u8,
     packet_size_range: (usize, usize),
     protocol_mix: ProtocolMix,
 }
@@ -66,11 +64,17 @@ impl PacketBuilder {
             source_ip,
             source_ipv6,
             source_mac,
-            burst_counter: 0,
-            last_protocol: 0,
             packet_size_range,
             protocol_mix,
         }
+    }
+
+    pub fn rng_gen_bool(&mut self, probability: f64) -> bool {
+        self.rng.gen_bool(probability)
+    }
+
+    pub fn rng_gen_range(&mut self, range: std::ops::Range<f64>) -> f64 {
+        self.rng.gen_range(range)
     }
 
     pub fn next_packet_type(&mut self) -> PacketType {

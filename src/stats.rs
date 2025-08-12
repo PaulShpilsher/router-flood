@@ -11,7 +11,6 @@ use tracing::info;
 use uuid::Uuid;
 
 /// Enhanced statistics tracking with export capabilities
-#[derive(Default)]
 pub struct FloodStats {
     pub packets_sent: Arc<AtomicU64>,
     pub packets_failed: Arc<AtomicU64>,
@@ -20,6 +19,26 @@ pub struct FloodStats {
     pub session_id: String,
     pub protocol_stats: Arc<HashMap<String, AtomicU64>>,
     pub export_config: Option<ExportConfig>,
+}
+
+impl Default for FloodStats {
+    fn default() -> Self {
+        let mut protocol_stats = HashMap::new();
+        protocol_stats.insert("UDP".to_string(), AtomicU64::new(0));
+        protocol_stats.insert("TCP".to_string(), AtomicU64::new(0));
+        protocol_stats.insert("ICMP".to_string(), AtomicU64::new(0));
+        protocol_stats.insert("IPv6".to_string(), AtomicU64::new(0));
+        protocol_stats.insert("ARP".to_string(), AtomicU64::new(0));
+        Self {
+            packets_sent: Arc::new(AtomicU64::new(0)),
+            packets_failed: Arc::new(AtomicU64::new(0)),
+            bytes_sent: Arc::new(AtomicU64::new(0)),
+            start_time: Instant::now(),
+            session_id: Uuid::new_v4().to_string(),
+            protocol_stats: Arc::new(protocol_stats),
+            export_config: None,
+        }
+    }
 }
 
 #[derive(Debug, Serialize)]
