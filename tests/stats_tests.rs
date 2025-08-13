@@ -5,7 +5,6 @@
 use router_flood::stats::*;
 use router_flood::config::{ExportConfig, ExportFormat};
 use std::sync::atomic::Ordering;
-use tempfile::TempDir;
 
 fn create_test_export_config() -> ExportConfig {
     ExportConfig {

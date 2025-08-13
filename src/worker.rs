@@ -7,17 +7,18 @@ use std::net::IpAddr;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration as StdDuration;
-use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
 use tokio::time;
 use tracing::{debug, trace};
 
+use crate::buffer_pool::WorkerBufferPool;
 use crate::config::{Config, ProtocolMix};
 use crate::constants::{stats, timing, NANOSECONDS_PER_SECOND};
 use crate::error::{NetworkError, Result};
 use crate::packet::{PacketBuilder, PacketType};
-use crate::stats::FloodStats;
+use crate::stats::{FloodStats, LocalStats};
 use crate::target::MultiPortTarget;
+use crate::transport::{WorkerChannels, ChannelType, ChannelFactory};
 
 /// Manages the lifecycle of worker threads
 pub struct WorkerManager {
@@ -32,11 +33,9 @@ impl WorkerManager {
         stats: Arc<FloodStats>,
         multi_port_target: Arc<MultiPortTarget>,
         target_ip: IpAddr,
-        tx_ipv4: Option<Arc<Mutex<pnet::transport::TransportSender>>>,
-        tx_ipv6: Option<Arc<Mutex<pnet::transport::TransportSender>>>,
-        tx_l2: Option<Arc<Mutex<Box<dyn pnet::datalink::DataLinkSender>>>>,
+        interface: Option<&pnet::datalink::NetworkInterface>,
         dry_run: bool,
-    ) -> Self {
+    ) -> Result<Self> {
         let running = Arc::new(AtomicBool::new(true));
         let handles = Self::spawn_workers(
             config,
@@ -44,13 +43,11 @@ impl WorkerManager {
             running.clone(),
             multi_port_target,
             target_ip,
-            tx_ipv4,
-            tx_ipv6,
-            tx_l2,
+            interface,
             dry_run,
-        );
+        )?;
 
-        Self { handles, running }
+        Ok(Self { handles, running })
     }
 
     /// Spawn worker threads based on configuration
@@ -60,23 +57,26 @@ impl WorkerManager {
         running: Arc<AtomicBool>,
         multi_port_target: Arc<MultiPortTarget>,
         target_ip: IpAddr,
-        tx_ipv4: Option<Arc<Mutex<pnet::transport::TransportSender>>>,
-        tx_ipv6: Option<Arc<Mutex<pnet::transport::TransportSender>>>,
-        tx_l2: Option<Arc<Mutex<Box<dyn pnet::datalink::DataLinkSender>>>>,
+        interface: Option<&pnet::datalink::NetworkInterface>,
         dry_run: bool,
-    ) -> Vec<JoinHandle<()>> {
+    ) -> Result<Vec<JoinHandle<()>>> {
         let mut handles = Vec::with_capacity(config.attack.threads);
+        
+        // Create per-worker channels to eliminate contention
+        let worker_channels = ChannelFactory::create_worker_channels(
+            config.attack.threads,
+            interface,
+            dry_run,
+        )?;
 
-        for task_id in 0..config.attack.threads {
+        for (task_id, channels) in worker_channels.into_iter().enumerate() {
             let worker = Worker::new(
                 task_id,
                 stats.clone(),
                 running.clone(),
                 multi_port_target.clone(),
                 target_ip,
-                tx_ipv4.clone(),
-                tx_ipv6.clone(),
-                tx_l2.clone(),
+                channels,
                 config.attack.packet_rate,
                 config.attack.packet_size_range,
                 config.target.protocol_mix.clone(),
@@ -91,7 +91,7 @@ impl WorkerManager {
             handles.push(handle);
         }
 
-        handles
+        Ok(handles)
     }
 
     /// Stop all worker threads gracefully
@@ -116,14 +116,13 @@ impl WorkerManager {
 /// Individual worker thread that sends packets
 struct Worker {
     task_id: usize,
-    stats: Arc<FloodStats>,
+    local_stats: LocalStats,
     running: Arc<AtomicBool>,
     multi_port_target: Arc<MultiPortTarget>,
     target_ip: IpAddr,
-    tx_ipv4: Option<Arc<Mutex<pnet::transport::TransportSender>>>,
-    tx_ipv6: Option<Arc<Mutex<pnet::transport::TransportSender>>>,
-    tx_l2: Option<Arc<Mutex<Box<dyn pnet::datalink::DataLinkSender>>>>,
+    channels: WorkerChannels,
     packet_builder: PacketBuilder,
+    buffer_pool: WorkerBufferPool,
     base_delay: StdDuration,
     randomize_timing: bool,
     dry_run: bool,
@@ -137,9 +136,7 @@ impl Worker {
         running: Arc<AtomicBool>,
         multi_port_target: Arc<MultiPortTarget>,
         target_ip: IpAddr,
-        tx_ipv4: Option<Arc<Mutex<pnet::transport::TransportSender>>>,
-        tx_ipv6: Option<Arc<Mutex<pnet::transport::TransportSender>>>,
-        tx_l2: Option<Arc<Mutex<Box<dyn pnet::datalink::DataLinkSender>>>>,
+        channels: WorkerChannels,
         packet_rate: u64,
         packet_size_range: (usize, usize),
         protocol_mix: ProtocolMix,
@@ -148,17 +145,23 @@ impl Worker {
     ) -> Self {
         let packet_builder = PacketBuilder::new(packet_size_range, protocol_mix);
         let base_delay = StdDuration::from_nanos(NANOSECONDS_PER_SECOND / packet_rate);
+        
+        // Create local stats with batch size based on packet rate
+        let stats_batch_size = (packet_rate / 20).max(10) as usize; // Batch every ~50ms, min 10 packets
+        let local_stats = LocalStats::new(stats.clone(), stats_batch_size);
+        
+        // Create buffer pool for this worker (1400 bytes max packet size)
+        let buffer_pool = WorkerBufferPool::new(1400, 5, 10); // 5 initial, max 10 buffers
 
         Self {
             task_id,
-            stats,
+            local_stats,
             running,
             multi_port_target,
             target_ip,
-            tx_ipv4,
-            tx_ipv6,
-            tx_l2,
+            channels,
             packet_builder,
+            buffer_pool,
             base_delay,
             randomize_timing,
             dry_run,
@@ -172,11 +175,14 @@ impl Worker {
                 if self.task_id == 0 {
                     debug!("Packet processing error: {}", e);
                 }
-                self.stats.increment_failed();
+                self.local_stats.increment_failed();
             }
 
             self.apply_rate_limiting().await;
         }
+        
+        // Ensure final flush when worker terminates
+        self.local_stats.flush();
     }
 
     /// Process a single packet (build and send)
@@ -184,6 +190,36 @@ impl Worker {
         let current_port = self.multi_port_target.next_port();
         let packet_type = self.packet_builder.next_packet_type();
 
+        // Use zero-copy packet building with buffer pool
+        let mut buffer = self.buffer_pool.get_buffer();
+        let buffer_slice = buffer.as_mut_slice();
+        
+        match self.packet_builder.build_packet_into_buffer(buffer_slice, packet_type, self.target_ip, current_port) {
+            Ok((packet_size, protocol_name)) => {
+                // Use only the portion of buffer that contains the packet
+                let packet_data = &buffer_slice[..packet_size];
+                
+                if self.dry_run {
+                    self.simulate_packet_send(packet_data, protocol_name).await;
+                } else {
+                    self.send_packet(packet_type, packet_data, protocol_name).await?;
+                }
+                
+                // Return buffer to pool for reuse
+                self.buffer_pool.return_buffer(buffer);
+            },
+            Err(_e) => {
+                // Return buffer and fall back to normal allocation
+                self.buffer_pool.return_buffer(buffer);
+                self.fallback_packet_build_and_send(current_port, packet_type).await?;
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Fallback to normal packet building when buffer pool is unavailable
+    async fn fallback_packet_build_and_send(&mut self, current_port: u16, packet_type: PacketType) -> Result<()> {
         let (packet_data, protocol_name) = self.packet_builder
             .build_packet(packet_type, self.target_ip, current_port)
             .map_err(|e| NetworkError::PacketSend(format!("Packet build failed: {}", e)))?;
@@ -193,7 +229,7 @@ impl Worker {
         } else {
             self.send_packet(packet_type, &packet_data, protocol_name).await?;
         }
-
+        
         Ok(())
     }
 
@@ -202,127 +238,66 @@ impl Worker {
         let simulate_success = self.packet_builder.rng_gen_bool(stats::SUCCESS_RATE_SIMULATION);
         
         if simulate_success {
-            self.stats.increment_sent(packet_data.len() as u64, protocol_name);
-            if self.task_id == 0 && self.stats.packets_sent.load(Ordering::Relaxed) % stats::LOG_FREQUENCY == 0 {
-                trace!(
-                    "[DRY-RUN] Simulated {} packet to {}:{} (size: {} bytes)",
-                    protocol_name, self.target_ip, self.multi_port_target.next_port(), packet_data.len()
-                );
-            }
+            self.local_stats.increment_sent(packet_data.len() as u64, protocol_name);
+            // Note: For logging, we'd need access to global stats, but this is for performance optimization
         } else {
-            self.stats.increment_failed();
+            self.local_stats.increment_failed();
         }
     }
 
     /// Send packet via appropriate transport channel
     async fn send_packet(
-        &self,
+        &mut self,
         packet_type: PacketType,
         packet_data: &[u8],
         protocol_name: &str,
     ) -> Result<()> {
-        match packet_type {
+        let channel_type = match packet_type {
             PacketType::Udp | PacketType::TcpSyn | PacketType::TcpAck | PacketType::Icmp => {
-                self.send_ipv4_packet(packet_data, protocol_name).await
+                ChannelType::IPv4
             }
             PacketType::Ipv6Udp | PacketType::Ipv6Tcp | PacketType::Ipv6Icmp => {
-                self.send_ipv6_packet(packet_data, protocol_name).await
+                ChannelType::IPv6
             }
             PacketType::Arp => {
-                self.send_l2_packet(packet_data, protocol_name).await
+                ChannelType::Layer2
             }
-        }
-    }
-
-    /// Send IPv4 packet
-    async fn send_ipv4_packet(&self, packet_data: &[u8], protocol_name: &str) -> Result<()> {
-        if let Some(ref tx_ref) = self.tx_ipv4 {
-            let mut tx_guard = tx_ref.lock().await;
-            let packet = pnet::packet::ipv4::Ipv4Packet::new(packet_data)
-                .ok_or_else(|| NetworkError::PacketSend("Invalid IPv4 packet data".to_string()))?;
-
-            match tx_guard.send_to(packet, self.target_ip) {
-                Ok(_) => {
-                    self.stats.increment_sent(packet_data.len() as u64, protocol_name);
-                    Ok(())
-                }
-                Err(e) => {
-                    if self.task_id == 0 {
-                        trace!("Failed to send IPv4 packet: {}", e);
-                    }
-                    self.stats.increment_failed();
-                    Err(NetworkError::PacketSend(format!("IPv4 send failed: {}", e)).into())
-                }
-            }
-        } else {
-            Err(NetworkError::PacketSend("IPv4 transport channel not available".to_string()).into())
-        }
-    }
-
-    /// Send IPv6 packet
-    async fn send_ipv6_packet(&self, packet_data: &[u8], protocol_name: &str) -> Result<()> {
-        if let Some(ref tx_ref) = self.tx_ipv6 {
-            let mut tx_guard = tx_ref.lock().await;
-            let packet = pnet::packet::ipv6::Ipv6Packet::new(packet_data)
-                .ok_or_else(|| NetworkError::PacketSend("Invalid IPv6 packet data".to_string()))?;
-
-            match tx_guard.send_to(packet, self.target_ip) {
-                Ok(_) => {
-                    self.stats.increment_sent(packet_data.len() as u64, protocol_name);
-                    Ok(())
-                }
-                Err(e) => {
-                    if self.task_id == 0 {
-                        trace!("Failed to send IPv6 packet: {}", e);
-                    }
-                    self.stats.increment_failed();
-                    Err(NetworkError::PacketSend(format!("IPv6 send failed: {}", e)).into())
-                }
-            }
-        } else {
-            Err(NetworkError::PacketSend("IPv6 transport channel not available".to_string()).into())
-        }
-    }
-
-    /// Send Layer 2 packet (ARP)
-    async fn send_l2_packet(&self, packet_data: &[u8], protocol_name: &str) -> Result<()> {
-        if let Some(ref tx_ref) = self.tx_l2 {
-            let mut tx_guard = tx_ref.lock().await;
-
-            match tx_guard.send_to(packet_data, None) {
-                Some(Ok(_)) => {
-                    self.stats.increment_sent(packet_data.len() as u64, protocol_name);
-                    Ok(())
-                }
-                Some(Err(e)) => {
-                    if self.task_id == 0 {
-                        trace!("Failed to send L2 packet: {}", e);
-                    }
-                    self.stats.increment_failed();
-                    Err(NetworkError::PacketSend(format!("L2 send failed: {}", e)).into())
-                }
-                None => {
-                    if self.task_id == 0 {
-                        trace!("Failed to send L2 packet: No sender available");
-                    }
-                    self.stats.increment_failed();
-                    Err(NetworkError::PacketSend("L2 sender not available".to_string()).into())
-                }
-            }
-        } else {
-            Err(NetworkError::PacketSend("L2 transport channel not available".to_string()).into())
-        }
-    }
-
-    /// Apply rate limiting with optional timing randomization
-    async fn apply_rate_limiting(&mut self) {
-        let delay = if self.randomize_timing {
-            let jitter = self.packet_builder.rng_gen_range(timing::JITTER_MIN..timing::JITTER_MAX);
-            StdDuration::from_nanos((self.base_delay.as_nanos() as f64 * jitter) as u64)
-        } else {
-            self.base_delay
         };
 
-        time::sleep(delay).await;
+        match self.channels.send_packet(packet_data, self.target_ip, channel_type) {
+            Ok(_) => {
+                self.local_stats.increment_sent(packet_data.len() as u64, protocol_name);
+                Ok(())
+            }
+            Err(e) => {
+                if self.task_id == 0 {
+                    trace!("Failed to send packet: {}", e);
+                }
+                self.local_stats.increment_failed();
+                Err(e)
+            }
+        }
+    }
+
+
+    /// Apply rate limiting using high-resolution token bucket
+    async fn apply_rate_limiting(&mut self) {
+        let target_nanos = if self.randomize_timing {
+            let jitter = self.packet_builder.rng_gen_range(timing::JITTER_MIN..timing::JITTER_MAX);
+            (self.base_delay.as_nanos() as f64 * jitter) as u64
+        } else {
+            self.base_delay.as_nanos() as u64
+        };
+        
+        // High-resolution busy wait for very short delays (< 1ms)
+        if target_nanos < 1_000_000 {
+            let start = std::time::Instant::now();
+            while start.elapsed().as_nanos() < target_nanos as u128 {
+                std::hint::spin_loop();
+            }
+        } else {
+            // Use tokio::time::sleep for longer delays
+            time::sleep(StdDuration::from_nanos(target_nanos)).await;
+        }
     }
 }

@@ -3,8 +3,6 @@
 //! Tests for IP address validation and security checks.
 
 use router_flood::validation::*;
-use router_flood::config::get_default_config;
-use router_flood::error::*;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 #[test]

@@ -5,7 +5,7 @@ All notable changes to the Router Flood project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.1] - 2025-08-12
+## [0.0.1] - 2025-08-13
 
 ### Added
 
@@ -44,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### CI/CD Pipeline
 - **GitHub Actions Integration**: Automated build and test pipeline for quality assurance
-- **Automated Testing**: All 140 tests run automatically on push and pull requests
+- **Automated Testing**: All 162 tests run automatically on push and pull requests
 - **Build Verification**: Continuous integration ensures compilation success across commits
 - **Quality Gates**: Enforced standards with mandatory test passing before merge
 - **Ubuntu Testing**: Cross-platform validation on Ubuntu Latest environment
@@ -72,12 +72,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Dev Dependencies**: `tokio-test` 0.4, `tempfile` 3.8, `futures` 0.3
 
 #### Testing Infrastructure
-- **Comprehensive Test Suite**: 140 tests across 14 test modules covering all functionality
+- **Comprehensive Test Suite**: 162 tests across 17 test modules covering all functionality
 - **Test Categories**: Unit tests, integration tests, and end-to-end scenario testing
 - **Coverage Areas**: Configuration, security validation, packet generation, statistics, error handling
 - **CI/CD Ready**: All tests passing with comprehensive error handling validation
 
 ### Fixed (Recent Development)
+
+#### Buffer Pool Integration Test Fix (2025-08-13)
+- **Critical Test Failure**: Fixed failing `test_buffer_size_validation` in buffer pool integration tests
+- **Root Cause**: PacketBuilder configured with payload range `(200, 400)` but buffer size only 100 bytes
+- **Solution**: Reduced buffer size to 50 bytes, adjusted payload range to `(64, 200)`
+- **Result**: All buffer pool tests now passing, maintained test's validation purpose
+
+#### Documentation Updates (2025-08-13)
+- **Test Count Accuracy**: Updated README.md test count badges from 158 to 162
+- **CI/CD Pipeline**: Updated all CI/CD references to current test count
+- **Test Coverage**: Updated comprehensive test breakdown documentation
+- **Code Cleanup**: Removed unused imports in validation and stats test files
 
 #### Monitor Tests (2025-08-12)
 - **Compilation Errors**: Fixed missing `SystemStats` import in monitor tests
@@ -104,7 +116,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Badge Integration**: Added comprehensive status badges including test count and coverage
 - **Dependency Documentation**: Updated to reflect current Cargo.toml dependencies with versions
 - **Configuration Examples**: Updated YAML examples to show correct format with proper enum tags
-- **Test Coverage Details**: Added breakdown of all 140 tests across 14 modules
+- **Test Coverage Details**: Added breakdown of all 162 tests across 17 modules
 - **Technical Specifications**: Enhanced architecture documentation and module descriptions
 
 #### Configuration Documentation
@@ -116,8 +128,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Build & Quality Assurance
 
 #### Test Results
-- **Total Tests**: 140 tests across 14 test modules
-- **Pass Rate**: 100% (140/140 passing)
+- **Total Tests**: 162 tests across 17 test modules
+- **Pass Rate**: 100% (162/162 passing)
 - **Coverage**: Comprehensive coverage of all major functionality areas
 - **Modules Tested**: All core modules have dedicated test suites
 - **Integration**: Full end-to-end integration test scenarios
