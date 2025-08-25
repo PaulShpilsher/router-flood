@@ -66,7 +66,7 @@ impl BatchedRng {
         if self.port_batch.is_empty() {
             self.replenish_port_batch();
         }
-        self.port_batch.pop_front().unwrap()
+        self.port_batch.pop_front().unwrap_or(1024)
     }
 
     /// Get a random 32-bit sequence number
@@ -74,7 +74,7 @@ impl BatchedRng {
         if self.sequence_batch.is_empty() {
             self.replenish_sequence_batch();
         }
-        self.sequence_batch.pop_front().unwrap()
+        self.sequence_batch.pop_front().unwrap_or(0)
     }
 
     /// Get a random 16-bit identification
@@ -82,7 +82,7 @@ impl BatchedRng {
         if self.id_batch.is_empty() {
             self.replenish_id_batch();
         }
-        self.id_batch.pop_front().unwrap()
+        self.id_batch.pop_front().unwrap_or(1)
     }
 
     /// Get a random TTL value (32-128)
@@ -90,7 +90,7 @@ impl BatchedRng {
         if self.ttl_batch.is_empty() {
             self.replenish_ttl_batch();
         }
-        self.ttl_batch.pop_front().unwrap()
+        self.ttl_batch.pop_front().unwrap_or(64)
     }
 
     /// Get a random TCP window size
@@ -98,7 +98,7 @@ impl BatchedRng {
         if self.window_batch.is_empty() {
             self.replenish_window_batch();
         }
-        self.window_batch.pop_front().unwrap()
+        self.window_batch.pop_front().unwrap_or(8192)
     }
 
     /// Get a random IPv6 flow label (20-bit)
@@ -106,7 +106,7 @@ impl BatchedRng {
         if self.flow_batch.is_empty() {
             self.replenish_flow_batch();
         }
-        self.flow_batch.pop_front().unwrap()
+        self.flow_batch.pop_front().unwrap_or(0)
     }
 
     /// Get a random byte for payload generation
@@ -114,7 +114,7 @@ impl BatchedRng {
         if self.byte_batch.is_empty() {
             self.replenish_byte_batch();
         }
-        self.byte_batch.pop_front().unwrap()
+        self.byte_batch.pop_front().unwrap_or(0)
     }
 
     /// Generate random payload of specified size
@@ -134,7 +134,7 @@ impl BatchedRng {
         }
         
         for _ in 0..size {
-            payload.push(self.byte_batch.pop_front().unwrap());
+            payload.push(self.byte_batch.pop_front().unwrap_or(0));
         }
         
         payload

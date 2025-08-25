@@ -188,7 +188,7 @@ impl Worker {
     /// Process a single packet (build and send)
     async fn process_single_packet(&mut self) -> Result<()> {
         let current_port = self.multi_port_target.next_port();
-        let packet_type = self.packet_builder.next_packet_type();
+        let packet_type = self.packet_builder.next_packet_type_for_ip(self.target_ip);
 
         // Use zero-copy packet building with buffer pool
         let mut buffer = self.buffer_pool.get_buffer();
@@ -290,11 +290,8 @@ impl Worker {
         };
         
         // High-resolution busy wait for very short delays (< 1ms)
-        if target_nanos < 1_000_000 {
-            let start = std::time::Instant::now();
-            while start.elapsed().as_nanos() < target_nanos as u128 {
-                std::hint::spin_loop();
-            }
+    // Always use tokio::time::sleep for better CPU efficiency
+    time::sleep(StdDuration::from_nanos(target_nanos)).await;
         } else {
             // Use tokio::time::sleep for longer delays
             time::sleep(StdDuration::from_nanos(target_nanos)).await;

@@ -196,7 +196,8 @@ impl PacketBuilder {
             }
             PacketType::Ipv6Tcp => {
                 if let IpAddr::V6(ipv6) = target_ip {
-                    let size = self.build_ipv6_tcp_packet_into_buffer(buffer, ipv6, target_port)?;
+                    let size = let flags = if packet_type == PacketType::TcpAck { TcpFlags::ACK } else { TcpFlags::SYN };
+                    let size = self.build_ipv6_tcp_packet_into_buffer(buffer, ipv6, target_port, flags)?;
                     Ok((size, "IPv6"))
                 } else {
                     Err("IPv6 TCP packet requires IPv6 target".to_string())
@@ -349,7 +350,7 @@ impl PacketBuilder {
             0
         });
         tcp_packet.set_data_offset(5);
-        tcp_packet.set_flags(TcpFlags::SYN);
+        tcp_packet.set_flags(flags);
         tcp_packet.set_window(self.rng.window_size());
         tcp_packet.set_urgent_ptr(0);
         tcp_packet.set_checksum(pnet::packet::tcp::ipv4_checksum(
@@ -452,9 +453,13 @@ impl PacketBuilder {
         tcp_packet.set_source(self.rng.port());
         tcp_packet.set_destination(target_port);
         tcp_packet.set_sequence(self.rng.sequence());
-        tcp_packet.set_acknowledgement(0);
+        tcp_packet.set_acknowledgement(if flags == TcpFlags::ACK {
+            self.rng.sequence()
+        } else {
+            0
+        });
         tcp_packet.set_data_offset(5);
-        tcp_packet.set_flags(TcpFlags::SYN);
+        tcp_packet.set_flags(flags);
         tcp_packet.set_window(self.rng.window_size());
         tcp_packet.set_urgent_ptr(0);
         tcp_packet.set_checksum(pnet::packet::tcp::ipv6_checksum(
@@ -744,9 +749,13 @@ impl PacketBuilder {
         tcp_packet.set_source(self.rng.port());
         tcp_packet.set_destination(target_port);
         tcp_packet.set_sequence(self.rng.sequence());
-        tcp_packet.set_acknowledgement(0);
+        tcp_packet.set_acknowledgement(if flags == TcpFlags::ACK {
+            self.rng.sequence()
+        } else {
+            0
+        });
         tcp_packet.set_data_offset(5);
-        tcp_packet.set_flags(TcpFlags::SYN);
+        tcp_packet.set_flags(flags);
         tcp_packet.set_window(self.rng.window_size());
         tcp_packet.set_urgent_ptr(0);
         tcp_packet.set_checksum(pnet::packet::tcp::ipv6_checksum(
@@ -835,3 +844,49 @@ impl PacketBuilder {
         Ok(total_len)
     }
 }
+
+    /// Select packet type compatible with target IP version
+    pub fn next_packet_type_for_ip(&mut self, target_ip: IpAddr) -> PacketType {
+        let rand_val = self.rng.float_range(0.0, 1.0);
+        let mut cumulative = 0.0;
+
+        match target_ip {
+            IpAddr::V4(_) => {
+                // IPv4 protocols only
+                cumulative += self.protocol_mix.udp_ratio;
+                if rand_val < cumulative {
+                    return PacketType::Udp;
+                }
+
+                cumulative += self.protocol_mix.tcp_syn_ratio;
+                if rand_val < cumulative {
+                    return PacketType::TcpSyn;
+                }
+
+                cumulative += self.protocol_mix.tcp_ack_ratio;
+                if rand_val < cumulative {
+                    return PacketType::TcpAck;
+                }
+
+                cumulative += self.protocol_mix.icmp_ratio;
+                if rand_val < cumulative {
+                    return PacketType::Icmp;
+                }
+
+                // ARP for IPv4 (fallback)
+                PacketType::Arp
+            }
+            IpAddr::V6(_) => {
+                // IPv6 protocols only - evenly distribute across IPv6 types
+                let norm_val = rand_val * 3.0; // 3 IPv6 packet types
+                
+                if norm_val < 1.0 {
+                    PacketType::Ipv6Udp
+                } else if norm_val < 2.0 {
+                    PacketType::Ipv6Tcp
+                } else {
+                    PacketType::Ipv6Icmp
+                }
+            }
+        }
+    }
