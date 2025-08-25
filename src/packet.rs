@@ -717,6 +717,7 @@ impl PacketBuilder {
         buffer: &mut [u8],
         target_ip: Ipv6Addr,
         target_port: u16,
+        flags: u8,
     ) -> Result<usize, String> {
         let total_len = 40 + 20; // IPv6 + TCP
         
