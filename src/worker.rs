@@ -20,7 +20,7 @@ use crate::stats::FloodStats;
 use crate::stats_original::LocalStats;
 use crate::target::MultiPortTarget;
 use crate::transport::{WorkerChannels, ChannelFactory};
-use crate::transport_original::ChannelType;
+
 use crate::adapters::ChannelTypeAdapter;
 
 /// Manages the lifecycle of worker threads

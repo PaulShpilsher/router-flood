@@ -11,17 +11,63 @@ use crate::constants::{defaults, MAX_THREADS};
 use crate::error::{ConfigError, Result, RouterFloodError};
 use crate::config::{Config, ExportFormat};
 
+/// Generate comprehensive help text with examples
+fn get_long_help() -> &'static str {
+    r#"Educational DDoS simulation for local network testing with multi-protocol support
+
+🎯 SAFETY FIRST:
+  • Only works with private IP ranges (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+  • Built-in rate limiting and safety checks
+  • Comprehensive audit logging
+  • Use --dry-run for safe configuration testing
+
+📚 COMMON EXAMPLES:
+
+  Basic simulation:
+    sudo ./router-flood --target 192.168.1.1 --ports 80,443 --threads 4 --rate 100
+
+  Safe testing (no packets sent):
+    ./router-flood --target 192.168.1.1 --ports 80 --dry-run
+
+  High-performance test:
+    sudo ./router-flood --target 10.0.0.1 --ports 80,443,22,53 --threads 8 --rate 500 --duration 60
+
+  With configuration file:
+    sudo ./router-flood --config my_test.yaml --export json
+
+  List available interfaces:
+    ./router-flood --list-interfaces
+
+🔧 CONFIGURATION:
+  Use YAML files for complex scenarios. See router_flood_config.yaml for examples.
+  CLI arguments override configuration file values.
+
+📊 MONITORING:
+  Real-time statistics are displayed during execution.
+  Use --export to save results in JSON or CSV format.
+
+⚠️  REQUIREMENTS:
+  • Root privileges (unless using --dry-run)
+  • Network interface access
+  • Target must be in private IP range
+
+📖 For more information, see the README.md file.
+"#
+}
+
 /// Parse command line arguments and return matches
 pub fn parse_arguments() -> ArgMatches {
     Command::new("Router Flood - Enhanced Network Stress Tester")
         .version(env!("CARGO_PKG_VERSION"))
         .about("Educational DDoS simulation for local network testing with multi-protocol support")
+        .long_about(get_long_help())
         .arg(
             Arg::new("target")
                 .long("target")
                 .short('t')
                 .value_name("IP")
                 .help("Target router IP (must be private range)")
+                .long_help("Target router IP address. Must be in private ranges:\n  • 192.168.0.0/16 (e.g., 192.168.1.1)\n  • 10.0.0.0/8 (e.g., 10.0.0.1)\n  • 172.16.0.0/12 (e.g., 172.16.0.1)")
                 .required_unless_present_any(&["config", "list-interfaces"]),
         )
         .arg(
@@ -30,6 +76,7 @@ pub fn parse_arguments() -> ArgMatches {
                 .short('p')
                 .value_name("PORTS")
                 .help("Target ports (comma-separated, e.g., 80,443,22)")
+                .long_help("Target ports for testing (comma-separated).\nCommon ports: 80 (HTTP), 443 (HTTPS), 22 (SSH), 53 (DNS), 21 (FTP), 25 (SMTP)")
                 .required_unless_present_any(&["config", "list-interfaces"]),
         )
         .arg(

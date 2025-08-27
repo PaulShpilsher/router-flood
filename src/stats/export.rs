@@ -13,7 +13,7 @@ use tracing::info;
 /// Trait for statistics export functionality
 pub trait StatsExporter: Send + Sync {
     /// Export statistics in the configured format
-    async fn export_stats(&self, stats: &SessionStats, config: &ExportConfig) -> Result<()>;
+    fn export_stats(&self, stats: &SessionStats, config: &ExportConfig) -> impl std::future::Future<Output = Result<()>> + Send;
 }
 
 /// Default statistics exporter implementation

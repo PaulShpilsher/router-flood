@@ -1,7 +1,7 @@
 //! Real-time metrics collection system
 
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::Ordering;
 use std::sync::atomic::AtomicU64 as AtomicF64; // Use AtomicU64 for f64 storage
 use std::sync::{Arc, RwLock};
 use std::time::{Duration, Instant};

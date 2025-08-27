@@ -233,7 +233,7 @@ mod tests {
         
         // Test cache alignment check
         let aligned_data = vec![0u8; 128];
-        let aligned_ptr = aligned_data.as_ptr();
+        let _aligned_ptr = aligned_data.as_ptr();
         // Note: This might not always be cache-aligned depending on allocator
         // but the function should work correctly
     }

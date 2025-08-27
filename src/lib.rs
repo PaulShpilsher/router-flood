@@ -19,12 +19,14 @@ pub mod network;
 pub mod packet;
 pub mod performance;
 pub mod rng;
+pub mod security;
 pub mod simulation;
 pub mod stats;
 pub mod stats_original;
 pub mod target;
 pub mod transport;
 pub mod transport_original;
+pub mod ui;
 pub mod validation;
 pub mod worker;
 

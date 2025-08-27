@@ -14,7 +14,7 @@ use std::net::{IpAddr, Ipv4Addr};
 pub struct ArpStrategy {
     source_ip: Ipv4Addr,
     source_mac: MacAddr,
-    rng: BatchedRng,
+    _rng: BatchedRng,
 }
 
 impl ArpStrategy {
@@ -32,7 +32,7 @@ impl ArpStrategy {
         Self {
             source_ip,
             source_mac,
-            rng: BatchedRng::new(),
+            _rng: BatchedRng::new(),
         }
     }
 }

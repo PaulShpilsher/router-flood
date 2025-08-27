@@ -26,7 +26,7 @@ pub trait StatsCollector: Send + Sync {
 /// Separate trait for async export functionality to maintain dyn compatibility
 pub trait StatsExporter: Send + Sync {
     /// Export statistics if configured
-    async fn export_stats(&self, system_stats: Option<&SystemStats>) -> Result<()>;
+    fn export_stats(&self, system_stats: Option<&SystemStats>) -> impl std::future::Future<Output = Result<()>> + Send;
 }
 
 /// Session statistics snapshot

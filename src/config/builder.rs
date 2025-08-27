@@ -1,7 +1,7 @@
 //! Configuration builder with fluent API and validation
 
 use super::validation::ConfigValidator;
-use crate::config::{Config, TargetConfig, ProtocolMix, AttackConfig, BurstPattern};
+use crate::config::{Config, ProtocolMix, BurstPattern};
 use crate::error::{ConfigError, ValidationError, Result};
 use crate::validation::validate_target_ip;
 use std::net::IpAddr;

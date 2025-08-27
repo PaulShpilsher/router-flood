@@ -1,207 +1,182 @@
 # Contributing to Router Flood
 
-Thank you for your interest in contributing to Router Flood! This document provides guidelines and information for contributors to help maintain code quality and project consistency.
+Thank you for your interest in contributing to Router Flood! This document provides guidelines and information for contributors.
 
-## 🚨 Important Ethical Guidelines
+## 🎯 Project Mission
 
-**Before contributing, please understand:**
+Router Flood is an educational network stress testing tool designed to:
 
-- This tool is **strictly for educational and authorized testing purposes only**
-- Contributions must not facilitate malicious use or bypass safety mechanisms
-- All features must include appropriate safety validations and limits
-- Documentation must emphasize ethical usage and legal compliance
+- **Educate**: Help users understand network behavior and security
+- **Secure**: Provide safe, controlled testing environments
+- **Perform**: Deliver high-performance network testing capabilities
+- **Comply**: Ensure responsible and legal usage
 
-## 📋 Table of Contents
+## 🤝 How to Contribute
 
-- [Code of Conduct](#code-of-conduct)
-- [Getting Started](#getting-started)
-- [Development Setup](#development-setup)
-- [Making Changes](#making-changes)
-- [Testing](#testing)
-- [Code Style](#code-style)
-- [Pull Request Process](#pull-request-process)
-- [Issue Reporting](#issue-reporting)
-- [Architecture Guidelines](#architecture-guidelines)
+### Types of Contributions
 
-## 📜 Code of Conduct
+We welcome various types of contributions:
 
-### Our Pledge
+- 🐛 **Bug Reports**: Help us identify and fix issues
+- 💡 **Feature Requests**: Suggest new functionality
+- 📝 **Documentation**: Improve guides, examples, and API docs
+- 🧪 **Testing**: Add tests, improve coverage, or report test failures
+- ⚡ **Performance**: Optimize algorithms or system integration
+- 🔒 **Security**: Enhance security features or report vulnerabilities
+- 🎨 **User Experience**: Improve CLI, error messages, or workflows
 
-We are committed to providing a welcoming and inspiring community for all. We pledge to make participation in our project a harassment-free experience for everyone, regardless of age, body size, disability, ethnicity, gender identity and expression, level of experience, nationality, personal appearance, race, religion, or sexual identity and orientation.
+### Getting Started
 
-### Expected Behavior
-
-- **Ethical Usage**: Promote responsible and authorized network testing only
-- **Respectful Communication**: Use welcoming and inclusive language
-- **Constructive Feedback**: Focus on what is best for the community
-- **Safety First**: Always consider security implications of contributions
-- **Documentation**: Help others understand your contributions
-
-### Unacceptable Behavior
-
-- **Malicious Features**: Contributing code intended to bypass safety mechanisms
-- **Harassment**: Trolling, insulting/derogatory comments, personal attacks
-- **Unauthorized Testing**: Promoting use against non-authorized targets
-- **Security Vulnerabilities**: Intentionally introducing security flaws
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- **Rust**: Version 1.70+ with Cargo
-- **Git**: For version control
-- **Development Environment**: Linux preferred, macOS supported
-- **Network Knowledge**: Understanding of network protocols and ethical testing
-
-### Initial Setup
-
-1. **Fork the repository** on GitHub
-2. **Clone your fork** locally:
+1. **Fork the Repository**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/router-flood.git
+   git clone https://github.com/your-username/router-flood.git
    cd router-flood
    ```
-3. **Add upstream remote**:
+
+2. **Set Up Development Environment**
    ```bash
-   git remote add upstream https://github.com/paulshpilsher/router-flood.git
+   # Install Rust (if not already installed)
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+   
+   # Install development tools
+   cargo install cargo-fuzz
+   cargo install cargo-audit
+   cargo install criterion
+   
+   # Build the project
+   cargo build
+   
+   # Run tests
+   cargo test
    ```
-4. **Create a branch** for your feature:
+
+3. **Create a Feature Branch**
    ```bash
    git checkout -b feature/your-feature-name
    ```
 
-## 🛠️ Development Setup
+## 📋 Development Guidelines
 
-### Build and Test
+### Code Style
 
+We follow standard Rust conventions with some project-specific guidelines:
+
+#### Formatting
 ```bash
-# Build the project
-cargo build
+# Format code before committing
+cargo fmt
 
-# Run all tests
-cargo test
-
-# Run with detailed output
-cargo test -- --nocapture
-
-# Check code formatting
+# Check formatting
 cargo fmt --check
+```
 
-# Run linter
+#### Linting
+```bash
+# Run clippy with strict settings
 cargo clippy -- -D warnings
+
+# Security-focused linting
+cargo clippy -- -D warnings -D clippy::security
 ```
 
-### Development Tools
+#### Code Organization
 
-```bash
-# Install additional tools
-cargo install cargo-audit
-cargo install cargo-outdated
+- **Modules**: Keep modules focused and well-documented
+- **Functions**: Prefer small, single-purpose functions
+- **Error Handling**: Use `Result<T>` and proper error propagation
+- **Documentation**: Document public APIs with examples
+- **Testing**: Write tests for new functionality
 
-# Security audit
-cargo audit
+### Coding Standards
 
-# Check for outdated dependencies
-cargo outdated
+#### Error Handling
+```rust
+// ✅ Good: Proper error handling
+pub fn validate_ip(ip: &str) -> Result<IpAddr> {
+    ip.parse()
+        .map_err(|e| ValidationError::InvalidIp {
+            ip: ip.to_string(),
+            reason: e.to_string(),
+        }.into())
+}
+
+// ❌ Bad: Panic on error
+pub fn validate_ip(ip: &str) -> IpAddr {
+    ip.parse().unwrap()  // Don't do this!
+}
 ```
 
-### Environment Setup
-
-```bash
-# Enable debug logging
-export RUST_LOG=debug
-
-# Run in dry-run mode for safe testing
-cargo run -- --target 192.168.1.1 --ports 80 --dry-run
+#### Documentation
+```rust
+/// Validates that an IP address is in a private range
+///
+/// # Arguments
+/// * `ip` - The IP address to validate
+///
+/// # Returns
+/// * `Ok(())` if the IP is in a private range
+/// * `Err(ValidationError)` if the IP is public or invalid
+///
+/// # Examples
+/// ```
+/// use router_flood::validation::validate_private_ip;
+/// use std::net::IpAddr;
+///
+/// let private_ip: IpAddr = "192.168.1.1".parse().unwrap();
+/// assert!(validate_private_ip(&private_ip).is_ok());
+/// ```
+pub fn validate_private_ip(ip: &IpAddr) -> Result<()> {
+    // Implementation...
+}
 ```
 
-## 🔄 Making Changes
-
-### Branch Naming
-
-Use descriptive branch names with prefixes:
-
-- `feature/` - New features
-- `fix/` - Bug fixes  
-- `docs/` - Documentation updates
-- `test/` - Test improvements
-- `refactor/` - Code refactoring
-
-Examples:
-- `feature/add-ipv6-support`
-- `fix/config-parsing-error`
-- `docs/update-yaml-examples`
-
-### Commit Messages
-
-Follow conventional commit format:
-
-```
-type(scope): brief description
-
-Detailed explanation if needed.
-
-- Include any breaking changes
-- Reference issues: Fixes #123
-```
-
-**Types:**
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation
-- `test`: Tests
-- `refactor`: Code refactoring
-- `style`: Code formatting
-- `security`: Security improvements
-
-**Examples:**
-```
-feat(packet): add IPv6 UDP packet generation
-
-Add support for IPv6 UDP packets with proper header construction
-and validation. Includes comprehensive tests for all IPv6 scenarios.
-
-- Extends PacketBuilder with IPv6 capabilities
-- Maintains safety validation for IPv6 addresses
-- Fixes #45
-```
-
-## 🧪 Testing
-
-### Test Requirements
-
-**All contributions must include tests:**
-
-- **Unit Tests**: For individual functions and methods
-- **Integration Tests**: For module interactions  
-- **Error Handling**: For failure scenarios
-- **Safety Validation**: For security features
-
-### Test Structure
-
+#### Testing
 ```rust
 #[cfg(test)]
 mod tests {
     use super::*;
     
     #[test]
-    fn test_your_feature() {
-        // Arrange
-        let input = setup_test_data();
+    fn test_private_ip_validation() {
+        let private_ip: IpAddr = "192.168.1.1".parse().unwrap();
+        assert!(validate_private_ip(&private_ip).is_ok());
         
-        // Act  
-        let result = your_function(input);
-        
-        // Assert
-        assert_eq!(result, expected_value);
+        let public_ip: IpAddr = "8.8.8.8".parse().unwrap();
+        assert!(validate_private_ip(&public_ip).is_err());
     }
     
     #[tokio::test]
-    async fn test_async_feature() {
-        // Test async functionality
+    async fn test_async_functionality() {
+        // Async test example
     }
 }
 ```
+
+### Performance Guidelines
+
+- **Zero-Copy**: Prefer zero-copy operations where possible
+- **SIMD**: Use SIMD optimizations for performance-critical paths
+- **Memory**: Minimize allocations in hot paths
+- **Profiling**: Profile performance-critical changes
+- **Benchmarks**: Add benchmarks for performance improvements
+
+### Security Guidelines
+
+- **Input Validation**: Validate all external inputs
+- **Capability Principle**: Use minimal required privileges
+- **Audit Logging**: Log security-relevant events
+- **Safe Defaults**: Choose secure defaults
+- **Error Information**: Avoid leaking sensitive information in errors
+
+## 🧪 Testing
+
+### Test Categories
+
+1. **Unit Tests**: Test individual functions and modules
+2. **Integration Tests**: Test component interactions
+3. **Property Tests**: Test with generated inputs
+4. **Security Tests**: Test security features
+5. **Performance Tests**: Benchmark critical paths
 
 ### Running Tests
 
@@ -209,112 +184,124 @@ mod tests {
 # Run all tests
 cargo test
 
-# Run specific test module
-cargo test config_tests
+# Run specific test category
+cargo test --test integration_tests
+cargo test --test property_based_tests
 
-# Run with coverage (requires cargo-tarpaulin)
-cargo tarpaulin --out Html
+# Run with coverage
+cargo test --all-features
 
-# Run tests with memory sanitizer
-RUSTFLAGS="-Z sanitizer=address" cargo test
+# Run benchmarks
+cargo bench
+
+# Run fuzzing
+cargo fuzz run fuzz_packet_builder
 ```
 
-### Test Guidelines
+### Writing Tests
 
-- **Descriptive Names**: Test names should clearly describe what is being tested
-- **Independent Tests**: Each test should be isolated and not depend on others
-- **Edge Cases**: Include tests for boundary conditions and error cases
-- **Safety Features**: Always test security validations and safety limits
-- **Mock External Dependencies**: Use mocks for network interfaces, file systems, etc.
-
-## 🎨 Code Style
-
-### Rust Style Guidelines
-
-We follow standard Rust conventions:
-
+#### Unit Tests
 ```rust
-// Use descriptive variable names
-let packet_builder = PacketBuilder::new(size_range, protocol_mix);
-
-// Prefer early returns for error conditions
-fn validate_ip(ip: &str) -> Result<()> {
-    if ip.is_empty() {
-        return Err(ValidationError::EmptyInput);
-    }
+#[cfg(test)]
+mod tests {
+    use super::*;
     
-    // Continue with validation logic
-    Ok(())
-}
-
-// Use proper error handling
-match result {
-    Ok(value) => process_value(value),
-    Err(e) => {
-        tracing::error!("Operation failed: {}", e);
-        return Err(e.into());
+    #[test]
+    fn test_packet_creation() {
+        let packet = create_udp_packet("192.168.1.1", 80, &[1, 2, 3, 4]);
+        assert!(packet.is_ok());
+        assert_eq!(packet.unwrap().len(), 32); // 20 (IP) + 8 (UDP) + 4 (payload)
     }
 }
 ```
 
-### Documentation
-
+#### Property Tests
 ```rust
-/// Brief description of the function
-///
-/// More detailed explanation if needed, including:
-/// - Parameter descriptions
-/// - Return value explanation  
-/// - Error conditions
-/// - Usage examples
-///
-/// # Arguments
-///
-/// * `target` - The target IP address (must be private range)
-/// * `port` - The target port number
-///
-/// # Returns
-///
-/// Returns `Ok(())` on success, or an error if validation fails
-///
-/// # Examples
-///
-/// ```rust
-/// let result = validate_target("192.168.1.1", 80);
-/// assert!(result.is_ok());
-/// ```
-///
-/// # Safety
-///
-/// This function validates that the target IP is in a private range
-/// to prevent unauthorized network testing.
-pub fn validate_target(target: &str, port: u16) -> Result<()> {
-    // Implementation
+use proptest::prelude::*;
+
+proptest! {
+    #[test]
+    fn test_packet_size_bounds(
+        payload_size in 1usize..=1400
+    ) {
+        let packet = create_packet_with_size(payload_size);
+        prop_assert!(packet.is_ok());
+        prop_assert!(packet.unwrap().len() >= payload_size);
+    }
 }
 ```
 
-### Formatting
+#### Integration Tests
+```rust
+#[tokio::test]
+async fn test_full_simulation() {
+    let config = get_test_config();
+    let result = run_simulation(config).await;
+    assert!(result.is_ok());
+    assert!(result.unwrap().packets_sent > 0);
+}
+```
+
+## 📝 Documentation
+
+### Documentation Types
+
+1. **API Documentation**: Rust doc comments for public APIs
+2. **User Guides**: Markdown documentation for users
+3. **Examples**: Working code examples
+4. **Architecture**: High-level design documentation
+
+### Writing Documentation
+
+#### API Documentation
+- Use `///` for public items
+- Include examples for complex functions
+- Document error conditions
+- Link to related functions
+
+#### User Documentation
+- Write for your audience (beginners vs. experts)
+- Include working examples
+- Explain the "why" not just the "how"
+- Keep it up to date
+
+### Building Documentation
 
 ```bash
-# Format code before committing
-cargo fmt
+# Build API documentation
+cargo doc --open
 
-# Check formatting without making changes  
-cargo fmt --check
+# Check documentation
+cargo doc --no-deps
+
+# Test documentation examples
+cargo test --doc
 ```
 
-## 🔍 Pull Request Process
+## 🔄 Pull Request Process
 
 ### Before Submitting
 
-1. **Run all tests**: `cargo test`
-2. **Format code**: `cargo fmt`  
-3. **Run linter**: `cargo clippy`
-4. **Update documentation**: Including README if needed
-5. **Add tests**: For all new functionality
-6. **Security review**: Ensure no safety mechanisms are bypassed
+1. **Test Your Changes**
+   ```bash
+   cargo test --all-features
+   cargo clippy -- -D warnings
+   cargo fmt --check
+   ```
 
-### PR Template
+2. **Update Documentation**
+   - Update API docs for code changes
+   - Update user guides for new features
+   - Add examples for new functionality
+
+3. **Add Tests**
+   - Unit tests for new functions
+   - Integration tests for new features
+   - Property tests for complex logic
+
+### Pull Request Template
+
+When creating a pull request, please include:
 
 ```markdown
 ## Description
@@ -322,198 +309,177 @@ Brief description of changes
 
 ## Type of Change
 - [ ] Bug fix
-- [ ] New feature  
+- [ ] New feature
+- [ ] Breaking change
 - [ ] Documentation update
-- [ ] Refactoring
-- [ ] Security improvement
+- [ ] Performance improvement
+- [ ] Security enhancement
 
 ## Testing
-- [ ] All existing tests pass
-- [ ] New tests added for new functionality
-- [ ] Manual testing completed
+- [ ] Unit tests added/updated
+- [ ] Integration tests added/updated
+- [ ] Manual testing performed
+- [ ] Performance impact assessed
 
-## Safety Checklist
-- [ ] No bypass of IP range validation
-- [ ] Rate limiting maintained
-- [ ] Audit logging preserved
-- [ ] Documentation updated with safety notes
-
-## Breaking Changes
-List any breaking changes
-
-## Issues
-Fixes #(issue number)
+## Checklist
+- [ ] Code follows project style guidelines
+- [ ] Self-review completed
+- [ ] Documentation updated
+- [ ] Tests added for new functionality
+- [ ] All tests pass
+- [ ] No new clippy warnings
 ```
 
 ### Review Process
 
-1. **Automated Checks**: GitHub Actions CI/CD pipeline runs comprehensive validation:
-   - **Build Verification**: `cargo build --verbose` ensures compilation success
-   - **Test Execution**: `cargo test --verbose` runs all 140 tests
-   - **Quality Gates**: All tests must pass before merge approval
-   - **Cross-Platform**: Validation on Ubuntu Latest environment
-
-2. **Code Review**: Maintainers review for:
-   - Code quality and style
-   - Security implications
-   - Test coverage
-   - Documentation completeness
-
-3. **Testing**: Manual testing of new features
-4. **Approval**: Two maintainer approvals required
+1. **Automated Checks**: CI runs tests, linting, and security scans
+2. **Code Review**: Maintainers review code quality and design
+3. **Testing**: Reviewers test functionality
+4. **Approval**: At least one maintainer approval required
 5. **Merge**: Squash and merge to main branch
 
-### CI/CD Pipeline
+## 🐛 Bug Reports
 
-**Workflow Location**: `.github/workflows/rust.yml`
+### Before Reporting
 
-**Automatic Triggers:**
-- Push to `main` branch
-- Pull requests targeting `main` branch
+1. **Search Existing Issues**: Check if the bug is already reported
+2. **Reproduce**: Ensure the bug is reproducible
+3. **Minimal Example**: Create a minimal reproduction case
+4. **Environment**: Note your system configuration
 
-**Pipeline Steps:**
-```yaml
-- uses: actions/checkout@v4
-- name: Build
-  run: cargo build --verbose
-- name: Run tests
-  run: cargo test --verbose
-```
-
-**Quality Requirements:**
-- ✅ All 140 tests must pass
-- ✅ Build must complete without errors
-- ✅ No compilation failures allowed
-- ✅ Ubuntu environment compatibility required
-
-**Status Monitoring:**
-- Build status badge in README.md
-- GitHub Actions tab shows detailed results
-- Failed builds block pull request merging
-
-## 🐛 Issue Reporting
-
-### Bug Reports
-
-Use the bug report template:
+### Bug Report Template
 
 ```markdown
-**Bug Description**
+## Bug Description
 Clear description of the bug
 
-**Steps to Reproduce**
-1. Run command: `...`
-2. See error: `...`
+## Steps to Reproduce
+1. Step one
+2. Step two
+3. Step three
 
-**Expected Behavior**
-What should have happened
+## Expected Behavior
+What should happen
 
-**Environment**
+## Actual Behavior
+What actually happens
+
+## Environment
 - OS: [e.g., Ubuntu 22.04]
-- Rust version: [e.g., 1.70.0]
-- Router Flood version: [e.g., 0.0.1]
+- Rust Version: [e.g., 1.70.0]
+- Router Flood Version: [e.g., 1.0.0]
 
-**Additional Context**
-- Configuration files used
-- Log outputs
-- Network setup details
+## Additional Context
+Any other relevant information
 ```
 
-### Feature Requests
+## 💡 Feature Requests
+
+### Before Requesting
+
+1. **Check Existing Issues**: See if the feature is already requested
+2. **Consider Scope**: Ensure it fits the project mission
+3. **Think About Implementation**: Consider how it might work
+4. **Provide Use Cases**: Explain why it's needed
+
+### Feature Request Template
 
 ```markdown
-**Feature Description**
+## Feature Description
 Clear description of the proposed feature
 
-**Use Case**
+## Use Case
 Why is this feature needed?
 
-**Proposed Implementation**
-How should this be implemented?
+## Proposed Solution
+How should this feature work?
 
-**Safety Considerations**
-How does this maintain safety and ethical usage?
+## Alternatives Considered
+Other approaches you've considered
 
-**Additional Context**
-Any additional information or examples
+## Additional Context
+Any other relevant information
 ```
 
-## 🏗️ Architecture Guidelines
+## 🔒 Security Contributions
 
-### Module Organization
+### Security-Related Changes
 
+Security contributions require special attention:
+
+1. **Follow Security Policy**: Read [SECURITY.md](SECURITY.md)
+2. **Private Disclosure**: Report vulnerabilities privately first
+3. **Security Review**: Additional security-focused review
+4. **Testing**: Comprehensive security testing required
+
+### Security Testing
+
+```bash
+# Run security-focused tests
+cargo test security
+
+# Audit dependencies
+cargo audit
+
+# Run fuzzing
+cargo fuzz run fuzz_packet_builder
+
+# Check for common security issues
+cargo clippy -- -D clippy::security
 ```
-src/
-├── main.rs           # Entry point - minimal, delegates to lib
-├── lib.rs            # Library interface and exports
-├── cli.rs            # CLI argument parsing only  
-├── config.rs         # Configuration management
-├── simulation.rs     # High-level orchestration
-├── worker.rs         # Worker thread management
-├── packet.rs         # Protocol-specific packet building
-├── network.rs        # Network interface management
-├── target.rs         # Target and port management
-├── stats.rs          # Statistics and export
-├── monitor.rs        # System monitoring
-├── validation.rs     # Security validation
-├── audit.rs          # Audit logging
-├── error.rs          # Error types and handling
-└── constants.rs      # Application constants
-```
 
-### Design Principles
+## 🏆 Recognition
 
-1. **Separation of Concerns**: Each module has a single responsibility
-2. **Safety First**: All features include safety validations
-3. **Error Handling**: Comprehensive error types and propagation
-4. **Async Design**: Leverages tokio for concurrency
-5. **Testability**: Code designed for easy testing
-6. **Documentation**: Self-documenting code with clear interfaces
+### Contributors
 
-### Adding New Features
+We recognize contributors in several ways:
 
-1. **Security Review**: Ensure feature doesn't compromise safety
-2. **Module Placement**: Place in appropriate module or create new one
-3. **Error Handling**: Define appropriate error types
-4. **Configuration**: Add to YAML config if user-configurable
-5. **Testing**: Comprehensive test coverage
-6. **Documentation**: Update README and inline docs
+- **Contributors File**: Listed in CONTRIBUTORS.md
+- **Release Notes**: Mentioned in release announcements
+- **GitHub**: Contributor statistics and badges
+- **Special Recognition**: Outstanding contributions highlighted
 
-### Performance Considerations
+### Contribution Types
 
-- **Async/Await**: Use for I/O bound operations
-- **Memory Management**: Minimize allocations in hot paths
-- **Rate Limiting**: Respect configured limits
-- **Resource Cleanup**: Proper cleanup in Drop implementations
+All contributions are valued:
 
-## 📚 Additional Resources
-
-### Learning Resources
-
-- [The Rust Book](https://doc.rust-lang.org/book/)
-- [Rust API Guidelines](https://rust-lang.github.io/api-guidelines/)
-- [Tokio Documentation](https://tokio.rs/)
-- [Network Programming with Rust](https://www.oreilly.com/library/view/network-programming-with/9781788624893/)
-
-### Project Resources
-
-- [GitHub Repository](https://github.com/paulshpilsher/router-flood)
-- [Issue Tracker](https://github.com/paulshpilsher/router-flood/issues)
-- [Project Documentation](README.md)
-- [Changelog](CHANGELOG.md)
+- **Code**: New features, bug fixes, optimizations
+- **Documentation**: Guides, examples, API docs
+- **Testing**: Test cases, bug reports, quality assurance
+- **Community**: Helping users, answering questions
+- **Design**: UX improvements, architecture suggestions
 
 ## 📞 Getting Help
 
-- **GitHub Issues**: For bugs and feature requests
-- **GitHub Discussions**: For general questions and discussions
-- **Documentation**: Check README.md and inline documentation
-- **Code Examples**: Look at existing tests for usage patterns
+### Communication Channels
 
-## 🙏 Recognition
+- **GitHub Issues**: Bug reports and feature requests
+- **GitHub Discussions**: General questions and discussions
+- **Discord**: Real-time chat (link in README)
+- **Email**: maintainers@router-flood.org
 
-Contributors will be recognized in:
-- CHANGELOG.md for significant contributions
-- GitHub contributors page
-- Release notes for major features
+### Mentorship
 
-Thank you for contributing to Router Flood! Your efforts help make network testing safer and more educational for everyone. 🚀
+New contributors can get help with:
+
+- **First Contribution**: Guidance on getting started
+- **Code Review**: Learning from feedback
+- **Best Practices**: Rust and project-specific patterns
+- **Architecture**: Understanding system design
+
+## 📋 Contributor License Agreement
+
+By contributing to Router Flood, you agree that:
+
+1. **License**: Your contributions will be licensed under the MIT License
+2. **Originality**: Your contributions are your original work
+3. **Rights**: You have the right to submit the contributions
+4. **No Warranty**: Contributions are provided "as is"
+
+## 🙏 Thank You
+
+Thank you for contributing to Router Flood! Your contributions help make network testing safer, more educational, and more accessible for everyone.
+
+---
+
+**Questions?** Feel free to ask in GitHub Discussions or reach out to the maintainers.

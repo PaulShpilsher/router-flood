@@ -13,8 +13,9 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use router_flood::cli::{handle_pre_execution_commands, parse_arguments, process_cli_config};
 use router_flood::config::{get_default_config, load_config};
 use router_flood::constants::error_messages;
-use router_flood::error::Result;
+use router_flood::error::{Result, display_user_friendly_error};
 use router_flood::simulation::{setup_network_interface, Simulation};
+use router_flood::ui::display_startup_banner;
 use router_flood::validation::{validate_comprehensive_security, validate_system_requirements};
 
 fn setup_logging() {
@@ -58,6 +59,7 @@ fn perform_validations(config: &router_flood::config::Config, target_ip: &IpAddr
 
 async fn run_application() -> Result<()> {
     setup_logging();
+    display_startup_banner();
     let matches = parse_arguments();
 
     // Handle pre-execution commands (like --list-interfaces)
@@ -85,7 +87,11 @@ async fn run_application() -> Result<()> {
 #[tokio::main]
 async fn main() {
     if let Err(e) = run_application().await {
-        error!("Application error: {}", e);
+        // Display user-friendly error message
+        display_user_friendly_error(&e);
+        
+        // Also log the technical error for debugging
+        error!("Technical error details: {}", e);
         process::exit(1);
     }
 }

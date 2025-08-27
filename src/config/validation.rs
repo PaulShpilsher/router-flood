@@ -2,7 +2,7 @@
 
 use crate::config::Config;
 use crate::error::{ValidationError, Result};
-use crate::validation::{validate_target_ip, validate_comprehensive_security};
+use crate::validation::validate_comprehensive_security;
 use std::net::IpAddr;
 
 /// Centralized configuration validator

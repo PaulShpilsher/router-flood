@@ -4,9 +4,11 @@
 //! validation and a fluent builder API.
 
 pub mod builder;
+pub mod schema;
 pub mod validation;
 
 pub use builder::ConfigBuilder;
+pub use schema::{ConfigSchema, ConfigTemplates};
 pub use validation::ConfigValidator;
 
 // Re-export existing config types for backward compatibility

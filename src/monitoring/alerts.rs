@@ -5,7 +5,7 @@ use super::metrics::MetricsCollector;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
-use chrono::{DateTime, Utc};
+use chrono::Utc;
 use serde::{Serialize, Deserialize};
 
 /// Alert rule configuration

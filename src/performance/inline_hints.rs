@@ -10,17 +10,24 @@ pub const INLINE_ALWAYS: &str = "always";
 pub const INLINE_HOT: &str = "hot";
 
 /// Macro to add inline hints based on usage frequency
+// Performance inline hints - currently unused but kept for future optimizations
+// These can be enabled when specific hot paths are identified through profiling
+
+#[allow(unused_macros)]
 macro_rules! inline_hot {
     () => {
-        #[inline]
+        #[inline(always)]
     };
 }
 
+#[allow(unused_macros)]
 macro_rules! inline_always {
     () => {
         #[inline(always)]
     };
 }
 
+#[allow(unused_imports)]
 pub(crate) use inline_hot;
+#[allow(unused_imports)]
 pub(crate) use inline_always;
