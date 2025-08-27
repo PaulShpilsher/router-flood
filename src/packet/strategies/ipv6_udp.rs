@@ -39,10 +39,41 @@ impl Ipv6UdpStrategy {
 
     fn random_payload_size(&mut self) -> usize {
         // More realistic payload size distribution
+        let min_size = self.packet_size_range.0;
+        let max_size = self.packet_size_range.1;
+        
+        // Ensure we don't create empty ranges
         match self.rng.range(0, 100) {
-            0..=40 => self.rng.range(self.packet_size_range.0, 200 + 1), // Small packets
-            41..=80 => self.rng.range(200, 800 + 1),                     // Medium packets
-            _ => self.rng.range(800, self.packet_size_range.1 + 1),      // Large packets
+            0..=40 => {
+                // Small packets: use min_size to min(200, max_size)
+                let upper = std::cmp::min(200, max_size);
+                if min_size <= upper {
+                    self.rng.range(min_size, upper + 1)
+                } else {
+                    min_size
+                }
+            },
+            41..=80 => {
+                // Medium packets: use 200 to min(800, max_size)
+                let lower = std::cmp::max(200, min_size);
+                let upper = std::cmp::min(800, max_size);
+                if lower <= upper {
+                    self.rng.range(lower, upper + 1)
+                } else {
+                    // Fallback to valid range
+                    self.rng.range(min_size, max_size + 1)
+                }
+            },
+            _ => {
+                // Large packets: use max(800, min_size) to max_size
+                let lower = std::cmp::max(800, min_size);
+                if lower <= max_size {
+                    self.rng.range(lower, max_size + 1)
+                } else {
+                    // Fallback to valid range
+                    self.rng.range(min_size, max_size + 1)
+                }
+            }
         }
     }
 }
