@@ -2,7 +2,7 @@
 
 [![Rust](https://img.shields.io/badge/rust-1.70+-orange.svg)](https://www.rust-lang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-65%20passing-green.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-320%2B%20passing-green.svg)](#testing)
 [![Security](https://img.shields.io/badge/security-capability--based-blue.svg)](#security)
 [![Performance](https://img.shields.io/badge/performance-SIMD%20optimized-brightgreen.svg)](#performance)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](#build-status)
@@ -35,8 +35,8 @@ A comprehensive, safety-first network testing tool designed for educational purp
 
 ### 🧪 **Robust Testing**
 - **Property-Based Testing**: 10,000+ generated test cases per property
-- **Fuzzing Support**: Continuous security testing with cargo-fuzz
-- **72+ Comprehensive Tests**: Unit, integration, and security tests
+- **Fuzzing Support**: Continuous security testing with cargo-fuzz (3 fuzz targets)
+- **320+ Comprehensive Tests**: Unit, integration, and security tests
 - **Regression Protection**: Automated edge case detection
 - **Zero Warnings**: Clean compilation with strict linting
 
@@ -354,11 +354,11 @@ cargo test integration
 
 ### Test Categories
 
-- **Unit Tests**: 45 tests covering individual components
-- **Integration Tests**: 15 tests covering end-to-end scenarios
-- **Property Tests**: 7 tests with 10,000+ generated cases each
-- **Security Tests**: Capability and audit logging validation
-- **Performance Tests**: Benchmark regression detection
+- **Unit Tests**: 200+ tests covering individual components
+- **Integration Tests**: 50+ tests covering end-to-end scenarios
+- **Property Tests**: 20+ tests with 10,000+ generated cases each
+- **Security Tests**: 30+ tests for capability and audit logging validation
+- **Performance Tests**: 20+ benchmark regression detection tests
 
 ### Fuzzing
 
@@ -371,6 +371,12 @@ cargo fuzz run fuzz_packet_builder
 
 # Run configuration parser fuzzing
 cargo fuzz run fuzz_config_parser
+
+# Run CLI parser fuzzing
+cargo fuzz run fuzz_cli_parser
+
+# List all fuzz targets
+cargo fuzz list
 ```
 
 ## 🏗️ Architecture

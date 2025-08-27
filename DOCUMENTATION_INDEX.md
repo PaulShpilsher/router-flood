@@ -16,6 +16,7 @@ Welcome to the Router Flood documentation! This index helps you find the right d
 |----------|---------|----------|
 | [API_DOCUMENTATION.md](API_DOCUMENTATION.md) | Rust API reference and examples | Developers |
 | [TESTING_GUIDE.md](TESTING_GUIDE.md) | Testing strategies and implementation | Developers, QA |
+| [FUZZING_GUIDE.md](FUZZING_GUIDE.md) | Fuzzing setup and maintenance | Security researchers, Developers |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution guidelines | Contributors |
 
 ## ⚡ Operations
@@ -43,7 +44,8 @@ Welcome to the Router Flood documentation! This index helps you find the right d
 ### For Developers
 1. Read [API_DOCUMENTATION.md](API_DOCUMENTATION.md) for API reference
 2. Follow [TESTING_GUIDE.md](TESTING_GUIDE.md) for testing practices
-3. Check [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines
+3. Use [FUZZING_GUIDE.md](FUZZING_GUIDE.md) for security testing
+4. Check [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines
 
 ### For Operations Teams
 1. Use [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for deployment strategies
@@ -66,7 +68,8 @@ Welcome to the Router Flood documentation! This index helps you find the right d
 | TESTING_GUIDE.md | ✅ Current | 2025-08-27 | 100% |
 | SECURITY.md | ✅ Current | 2025-08-27 | 100% |
 | CHANGELOG.md | ✅ Current | 2025-08-27 | 100% |
-| CONTRIBUTING.md | ✅ Current | Previous | 95% |
+| CONTRIBUTING.md | ✅ Current | 2025-08-27 | 100% |
+| FUZZING_GUIDE.md | ✅ Current | 2025-08-27 | 100% |
 
 ## 🔍 Finding Specific Information
 
@@ -88,6 +91,7 @@ Welcome to the Router Flood documentation! This index helps you find the right d
 ### Testing
 - **Test overview**: [README.md](README.md#testing)
 - **Comprehensive testing**: [TESTING_GUIDE.md](TESTING_GUIDE.md)
+- **Fuzzing and security testing**: [FUZZING_GUIDE.md](FUZZING_GUIDE.md)
 - **API testing**: [API_DOCUMENTATION.md](API_DOCUMENTATION.md#examples)
 
 ### Deployment

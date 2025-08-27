@@ -28,7 +28,7 @@ Key performance indicators to monitor:
 | Memory Usage | <500MB | >1GB |
 | Success Rate | >99% | <95% |
 | Packet Build Time | <1ms | >10ms |
-| Buffer Pool Utilization | 60-80% | >95% |
+| Buffer Pool Utilization | 60-80% | >95% |December
 
 ## System-Level Optimizations
 
