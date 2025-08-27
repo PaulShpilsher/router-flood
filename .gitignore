@@ -37,3 +37,7 @@ Thumbs.db
 *.sqlite
 *.sqlite3
 
+# Test artifacts
+*.proptest-regressions
+tests/*.proptest-regressions
+
