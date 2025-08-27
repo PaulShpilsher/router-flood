@@ -10,9 +10,8 @@ pub const INLINE_ALWAYS: &str = "always";
 pub const INLINE_HOT: &str = "hot";
 
 /// Macro to add inline hints based on usage frequency
-// Performance inline hints - currently unused but kept for future optimizations
-// These can be enabled when specific hot paths are identified through profiling
-
+/// - inline_hot: For frequently called functions
+/// - inline_cold: For rarely called functions
 #[allow(unused_macros)]
 macro_rules! inline_hot {
     () => {

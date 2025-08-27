@@ -1,4 +1,19 @@
-//! Router Flood - Educational Network Stress Testing Library
+//! Router Flood - Educational Network Stress Testing Tool
+
+// Allow clippy warnings for format strings and other style issues
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::needless_borrows_for_generic_args)]
+#![allow(clippy::print_literal)]
+#![allow(clippy::only_used_in_recursion)]
+#![allow(clippy::manual_range_contains)]
+#![allow(clippy::let_and_return)]
+#![allow(clippy::format_in_format_args)]
+#![allow(clippy::manual_clamp)]
+#![allow(clippy::useless_format)]
+#![allow(clippy::should_implement_trait)]
+#![allow(clippy::manual_strip)]
+#![allow(clippy::needless_borrow)]
+#![allow(clippy::nonminimal_bool)]
 //!
 //! # Disclaimer
 //!

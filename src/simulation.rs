@@ -128,7 +128,7 @@ impl Simulation {
             while running.load(Ordering::Relaxed) {
                 time::sleep(StdDuration::from_secs(stats_interval)).await;
                 let sys_stats = system_monitor.get_system_stats().await;
-                let original_stats = sys_stats.as_ref().map(|s| SystemStatsAdapter::to_original(s));
+                let original_stats = sys_stats.as_ref().map(SystemStatsAdapter::to_original);
                 stats.print_stats(original_stats.as_ref());
             }
         });
