@@ -21,11 +21,11 @@ Router Flood employs a comprehensive testing strategy with multiple layers of va
 
 | Test Category | Count | Coverage | Purpose |
 |---------------|-------|----------|---------|
-| **Unit Tests** | 45+ | Individual components | Component validation |
-| **Integration Tests** | 15+ | End-to-end scenarios | System integration |
-| **Property Tests** | 7 | 10,000+ cases each | Edge case detection |
-| **Security Tests** | 10+ | Security features | Vulnerability prevention |
-| **Performance Tests** | 5+ | Benchmarks | Regression detection |
+| **Unit Tests** | 200+ | Individual components | Component validation |
+| **Integration Tests** | 50+ | End-to-end scenarios | System integration |
+| **Property Tests** | 20+ | 10,000+ cases each | Edge case detection |
+| **Security Tests** | 30+ | Security features | Vulnerability prevention |
+| **Performance Tests** | 20+ | Benchmarks | Regression detection |
 | **Fuzzing Tests** | 3 | Continuous | Security validation |
 
 ### Test Architecture
@@ -45,7 +45,31 @@ Router Flood employs a comprehensive testing strategy with multiple layers of va
 
 ### Unit Tests
 
-Located in individual module files and `tests/` directory:
+Unit tests are now organized in dedicated test files in the `tests/` directory for better separation of concerns. Previously inline tests have been moved to dedicated unit test files:
+
+#### Test Organization
+
+- **Inline tests moved**: All `#[cfg(test)]` modules moved to dedicated files
+- **Dedicated test files**: 40+ unit test files in `tests/` directory
+- **Better separation**: Clear distinction between implementation and test code
+- **Easier maintenance**: Tests are easier to find, modify, and organize
+
+#### Unit Test Files
+
+```
+tests/
+├── config_builder_unit_tests.rs          # Configuration builder tests
+├── config_schema_unit_tests.rs           # Schema validation tests
+├── monitoring_dashboard_unit_tests.rs    # Dashboard functionality tests
+├── monitoring_metrics_unit_tests.rs      # Metrics collection tests
+├── monitoring_alerts_unit_tests.rs       # Alert system tests
+├── monitoring_prometheus_unit_tests.rs   # Prometheus export tests
+├── performance_buffer_pool_unit_tests.rs # Buffer pool tests
+├── security_capabilities_unit_tests.rs   # Security capability tests
+├── error_user_friendly_unit_tests.rs     # Error handling tests
+├── ui_progress_unit_tests.rs             # UI component tests
+└── ... (30+ more unit test files)
+```
 
 ```rust
 // Example unit test

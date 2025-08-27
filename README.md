@@ -2,7 +2,7 @@
 
 [![Rust](https://img.shields.io/badge/rust-1.70+-orange.svg)](https://www.rust-lang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-320%2B%20passing-green.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-322%2B%20passing-green.svg)](#testing)
 [![Security](https://img.shields.io/badge/security-capability--based-blue.svg)](#security)
 [![Performance](https://img.shields.io/badge/performance-SIMD%20optimized-brightgreen.svg)](#performance)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](#build-status)
@@ -36,7 +36,7 @@ A comprehensive, safety-first network testing tool designed for educational purp
 ### 🧪 **Robust Testing**
 - **Property-Based Testing**: 10,000+ generated test cases per property
 - **Fuzzing Support**: Continuous security testing with cargo-fuzz (3 fuzz targets)
-- **320+ Comprehensive Tests**: Unit, integration, and security tests
+- **322+ Comprehensive Tests**: Unit, integration, and security tests
 - **Regression Protection**: Automated edge case detection
 - **Zero Warnings**: Clean compilation with strict linting
 
@@ -423,8 +423,9 @@ router-flood/
 
 ### Code Quality Improvements
 - **Zero Compiler Warnings**: Clean compilation with strict linting
-- **Comprehensive Testing**: 72+ tests with property-based testing
+- **Comprehensive Testing**: 322+ tests with property-based testing
 - **Modular Architecture**: Well-organized module structure
+- **Test Organization**: Inline tests moved to dedicated test files
 - **Documentation Coverage**: Complete API documentation
 
 ### Security Enhancements

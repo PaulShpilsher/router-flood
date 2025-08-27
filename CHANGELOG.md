@@ -236,7 +236,7 @@ This release focuses on code quality, performance optimizations, comprehensive t
 
 #### 🧪 Testing Infrastructure
 - **Property-Based Testing**: Fixed protocol selection distribution test logic
-- **Comprehensive Test Suite**: 320+ tests covering all major components
+- **Comprehensive Test Suite**: 322+ tests covering all major components
 - **Fuzzing Support**: 3 working fuzz targets (config parser, CLI parser, packet builder)
 - **Regression Protection**: Automated edge case detection and validation
 - **Performance Benchmarks**: Automated performance regression detection
@@ -272,6 +272,8 @@ This release focuses on code quality, performance optimizations, comprehensive t
 - **Fixed Property Tests**: Corrected protocol selection distribution logic
 - **Improved Test Coverage**: Added tests for edge cases and error conditions
 - **Better Test Organization**: Organized tests by functionality and scope
+- **Inline Test Migration**: Moved inline tests to dedicated test files for better separation
+- **New Unit Test Files**: Created 6 new unit test files from extracted inline tests
 - **Automated Testing**: Enhanced CI/CD pipeline with comprehensive testing
 
 ### 🛠️ Fixed
@@ -316,7 +318,7 @@ This release focuses on code quality, performance optimizations, comprehensive t
 - **Security Tests**: 30+ tests for capability and audit logging validation
 - **Performance Tests**: 20+ benchmark regression detection tests
 - **Fuzzing Tests**: 3 working fuzz targets (config, CLI, packet builder)
-- **Total Tests**: 320+ comprehensive tests with zero failures
+- **Total Tests**: 322+ comprehensive tests with zero failures
 
 ### 🔒 Security Improvements
 

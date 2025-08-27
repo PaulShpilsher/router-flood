@@ -5,6 +5,7 @@
 **Branch**: perf-optimization  
 **Build Status**: ✅ Passing  
 **Fuzz Targets**: ✅ 3 targets working  
+**Test Organization**: ✅ Inline tests moved to dedicated files  
 
 ## 🎯 Current Status Overview
 
@@ -15,7 +16,7 @@ Router Flood has reached a significant milestone with comprehensive performance 
 | Metric | Value | Status |
 |--------|-------|--------|
 | **Build Status** | ✅ Zero warnings | Excellent |
-| **Test Coverage** | 320+ tests passing | Excellent |
+| **Test Coverage** | 322+ tests passing | Excellent |
 | **Performance** | 100,000+ PPS per thread | Excellent |
 | **Memory Efficiency** | 60-80% reduction | Excellent |
 | **Security** | Capability-based | Excellent |
@@ -68,6 +69,9 @@ Router Flood has reached a significant milestone with comprehensive performance 
 - ✅ Fixed fuzz target build errors (libfuzzer-sys import syntax)
 - ✅ Added missing dependencies for fuzz targets (serde_yaml, arbitrary)
 - ✅ All 3 fuzz targets now compile and run successfully
+- ✅ Moved inline tests to dedicated test files for better organization
+- ✅ Created 6 new unit test files from extracted inline tests
+- ✅ Improved code separation between implementation and testing
 
 ## ⚡ Performance Status
 
@@ -158,7 +162,7 @@ Router Flood has reached a significant milestone with comprehensive performance 
 
 ### v0.0.1 Release Checklist
 
-- ✅ **All tests passing** (320+ tests)
+- ✅ **All tests passing** (322+ tests)
 - ✅ **Zero warnings** (compiler + clippy)
 - ✅ **Performance optimizations** complete
 - ✅ **Security features** implemented
