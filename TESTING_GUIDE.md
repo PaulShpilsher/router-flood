@@ -491,9 +491,9 @@ fuzz_target!(|data: &[u8]| {
 });
 ```
 
-## 🔗 Integration Testing
+### Integration Testing
 
-### End-to-End Testing
+#### End-to-End Testing
 
 ```rust
 #[tokio::test]
@@ -506,6 +506,7 @@ async fn test_complete_workflow() {
         .packet_rate(1000)
         .duration(10)
         .dry_run(true)
+        .perfect_simulation(true)  // Use perfect simulation for clean testing
         .build()?;
 
     // Test configuration validation
@@ -539,7 +540,48 @@ fn test_network_interface_detection() {
 }
 ```
 
-### Configuration Integration Testing
+#### Perfect Simulation Testing
+
+```rust
+#[tokio::test]
+async fn test_perfect_simulation_mode() {
+    // Test perfect simulation (100% success rate)
+    let perfect_config = ConfigBuilder::new()
+        .target_ip("192.168.1.100")?
+        .dry_run(true)
+        .perfect_simulation(true)
+        .duration(5)
+        .build()?;
+
+    let mut simulation = Simulation::new(perfect_config)?;
+    let result = simulation.run().await?;
+
+    // Perfect simulation should have zero failures
+    assert_eq!(result.packets_failed, 0);
+    assert_eq!(result.success_rate, 100.0);
+}
+
+#[tokio::test]
+async fn test_realistic_simulation_mode() {
+    // Test realistic simulation (98% success rate)
+    let realistic_config = ConfigBuilder::new()
+        .target_ip("192.168.1.100")?
+        .dry_run(true)
+        .perfect_simulation(false)
+        .duration(5)
+        .build()?;
+
+    let mut simulation = Simulation::new(realistic_config)?;
+    let result = simulation.run().await?;
+
+    // Realistic simulation should have some failures
+    assert!(result.success_rate >= 95.0 && result.success_rate <= 100.0);
+    // Should have some packets sent
+    assert!(result.packets_sent > 0);
+}
+```
+
+#### Configuration Integration Testing
 
 ```rust
 #[test]
@@ -552,11 +594,15 @@ attack:
   threads: 4
   packet_rate: 1000
   duration: 60
+safety:
+  dry_run: true
+  perfect_simulation: false
 "#;
 
     let config: Config = serde_yaml::from_str(yaml_config).unwrap();
     assert_eq!(config.target.ip, "192.168.1.100");
     assert_eq!(config.attack.threads, 4);
+    assert!(!config.safety.perfect_simulation);
     
     // Test validation
     validate_config(&config).unwrap();

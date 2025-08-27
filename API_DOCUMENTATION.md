@@ -55,6 +55,7 @@ let config = ConfigBuilder::new()
     .packet_size_range(64, 1400)
     .duration(300)
     .dry_run(false)
+    .perfect_simulation(false)
     .build()?;
 ```
 
@@ -70,6 +71,7 @@ let config = ConfigBuilder::new()
 | `packet_size_range(min, max)` | `usize, usize` | Set packet size range |
 | `duration(secs)` | `u64` | Set test duration |
 | `dry_run(enabled)` | `bool` | Enable/disable dry-run mode |
+| `perfect_simulation(enabled)` | `bool` | Enable/disable perfect simulation (100% success rate) |
 | `build()` | - | Build the configuration |
 
 ### ProtocolMix
@@ -486,10 +488,11 @@ use router_flood::*;
 
 #[tokio::test]
 async fn test_packet_generation() -> Result<()> {
-    // Create test configuration
+    // Create test configuration with perfect simulation
     let config = ConfigBuilder::new()
         .target_ip("192.168.1.100")?
         .dry_run(true)  // Safe testing mode
+        .perfect_simulation(true)  // 100% success rate for clean testing
         .threads(1)
         .packet_rate(100)
         .duration(5)
@@ -516,6 +519,74 @@ async fn test_packet_generation() -> Result<()> {
 
     Ok(())
 }
+```
+
+## 🧪 Dry-Run and Simulation Modes
+
+### Realistic Simulation (Default)
+
+```rust
+use router_flood::*;
+
+// Create configuration with realistic simulation (98% success rate)
+let config = ConfigBuilder::new()
+    .target_ip("192.168.1.100")?
+    .dry_run(true)
+    .perfect_simulation(false)  // Default: realistic simulation
+    .build()?;
+
+let mut simulation = Simulation::new(config)?;
+let result = simulation.run().await?;
+
+// Expect some simulated failures for realistic training
+assert!(result.success_rate >= 95.0 && result.success_rate <= 100.0);
+```
+
+### Perfect Simulation
+
+```rust
+use router_flood::*;
+
+// Create configuration with perfect simulation (100% success rate)
+let config = ConfigBuilder::new()
+    .target_ip("192.168.1.100")?
+    .dry_run(true)
+    .perfect_simulation(true)  // Perfect simulation mode
+    .build()?;
+
+let mut simulation = Simulation::new(config)?;
+let result = simulation.run().await?;
+
+// Expect perfect success rate for clean validation
+assert_eq!(result.success_rate, 100.0);
+assert_eq!(result.packets_failed, 0);
+```
+
+### Use Case Examples
+
+```rust
+// Configuration validation in CI/CD
+let ci_config = ConfigBuilder::new()
+    .target_ip("192.168.1.100")?
+    .dry_run(true)
+    .perfect_simulation(true)  // Clean validation without noise
+    .duration(10)
+    .build()?;
+
+// Educational training with realistic failures
+let training_config = ConfigBuilder::new()
+    .target_ip("192.168.1.100")?
+    .dry_run(true)
+    .perfect_simulation(false)  // Realistic simulation for learning
+    .duration(60)
+    .build()?;
+
+// Production testing (actual packets)
+let production_config = ConfigBuilder::new()
+    .target_ip("192.168.1.100")?
+    .dry_run(false)  // Real packets
+    // perfect_simulation is ignored when dry_run is false
+    .build()?;
 ```
 
 ## 🔗 Integration Examples

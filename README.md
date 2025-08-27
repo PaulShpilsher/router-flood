@@ -16,6 +16,7 @@ A comprehensive, safety-first network testing tool designed for educational purp
 - **Capability-Based Security**: No root required (CAP_NET_RAW sufficient)
 - **Rate Limiting**: Built-in safety limits and monitoring
 - **Dry-Run Mode**: Safe testing without sending packets
+- **Perfect Simulation**: 100% success rate option for pure configuration validation
 - **Tamper-Proof Audit Logging**: Cryptographic integrity protection
 
 ### ⚡ **High Performance**
@@ -74,7 +75,10 @@ sudo setcap cap_net_raw+ep ./target/release/router-flood
 ./target/release/router-flood interactive
 
 # Quick test with dry-run (safe, no packets sent)
-./target/release/router-flood run --target 192.168.1.1 --ports 80,443 --dry-run
+./target/release/router-flood --target 192.168.1.1 --ports 80,443 --dry-run
+
+# Perfect simulation (100% success rate for clean validation)
+./target/release/router-flood --target 192.168.1.1 --ports 80,443 --dry-run --perfect-simulation
 
 # High-performance test with monitoring
 ./target/release/router-flood run --config high_perf.yaml --cpu-affinity --prometheus-port 9090
@@ -182,6 +186,7 @@ attack:
 safety:
   require_private_ranges: true
   dry_run: false
+  perfect_simulation: false
   max_threads: 100
   max_packet_rate: 10000
 
@@ -217,6 +222,35 @@ sudo setcap cap_net_raw+ep ./target/release/router-flood
 - **Audit Logging**: Tamper-proof cryptographic audit trails
 - **Privilege Validation**: Automatic security context analysis
 - **Dry-Run Mode**: Safe testing without network impact
+- **Perfect Simulation**: Optional 100% success rate for clean configuration validation
+
+### Dry-Run Modes
+
+Router Flood offers two dry-run modes for safe testing:
+
+#### Realistic Simulation (Default)
+```bash
+# Simulates 98% success rate for realistic training
+./target/release/router-flood --target 192.168.1.1 --ports 80 --dry-run
+
+# Example output:
+# 📊 Stats - Sent: 878, Failed: 21, Rate: 167.2 pps
+# Success Rate: 97.7% ≈ 98% (realistic)
+```
+
+#### Perfect Simulation
+```bash
+# 100% success rate for pure configuration validation
+./target/release/router-flood --target 192.168.1.1 --ports 80 --dry-run --perfect-simulation
+
+# Example output:
+# 📊 Stats - Sent: 894, Failed: 0, Rate: 169.8 pps
+# Success Rate: 100% (perfect)
+```
+
+**When to use each mode:**
+- **Realistic Mode**: Educational training, understanding real-world network behavior
+- **Perfect Mode**: Configuration validation, CI/CD testing, beginner-friendly learning
 
 ### Security Analysis
 
