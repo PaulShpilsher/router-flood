@@ -241,7 +241,7 @@ pub fn setup_network_interface(config: &Config) -> Result<Option<pnet::datalink:
                 info!("Using specified interface: {}", iface.name);
                 Ok(Some(iface))
             }
-            None => Err(NetworkError::InterfaceNotFound(iface_name.clone()).into()),
+            None => Err(NetworkError::InterfaceNotFound(iface_name.to_string()).into()),
         }
     } else {
         match get_default_interface() {

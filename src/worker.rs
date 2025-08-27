@@ -16,7 +16,8 @@ use crate::config::{Config, ProtocolMix};
 use crate::constants::{stats, timing, NANOSECONDS_PER_SECOND};
 use crate::error::{NetworkError, Result};
 use crate::packet::{PacketBuilder, PacketType};
-use crate::stats::{FloodStats, LocalStats};
+use crate::stats::FloodStats;
+use crate::stats_original::LocalStats;
 use crate::target::MultiPortTarget;
 use crate::transport::{WorkerChannels, ChannelType, ChannelFactory};
 
@@ -289,12 +290,7 @@ impl Worker {
             self.base_delay.as_nanos() as u64
         };
         
-        // High-resolution busy wait for very short delays (< 1ms)
-    // Always use tokio::time::sleep for better CPU efficiency
-    time::sleep(StdDuration::from_nanos(target_nanos)).await;
-        } else {
-            // Use tokio::time::sleep for longer delays
-            time::sleep(StdDuration::from_nanos(target_nanos)).await;
-        }
+        // Always use tokio::time::sleep for better CPU efficiency
+        time::sleep(StdDuration::from_nanos(target_nanos)).await;
     }
 }
