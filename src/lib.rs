@@ -52,4 +52,4 @@ pub use error::{Result, RouterFloodError};
 pub use packet::{PacketBuilder, PacketStrategy, PacketType, Target};
 pub use simulation::Simulation;
 pub use stats::FloodStats;
-pub use terminal::TerminalGuard;
+pub use terminal::{TerminalController, TerminalGuard};

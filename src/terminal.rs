@@ -10,6 +10,7 @@ use termios::{Termios, TCSANOW, tcflag_t};
 const ECHOCTL: tcflag_t = 0o001000; // Echo control characters as ^X
 
 /// Terminal controller for managing terminal settings
+#[derive(Debug)]
 pub struct TerminalController {
     original_termios: Option<Termios>,
     stdin_fd: i32,
@@ -57,6 +58,16 @@ impl TerminalController {
     pub fn is_tty() -> bool {
         unsafe { libc::isatty(libc::STDIN_FILENO) != 0 }
     }
+
+    /// Get the stdin file descriptor
+    pub fn stdin_fd(&self) -> i32 {
+        self.stdin_fd
+    }
+
+    /// Check if original termios is stored
+    pub fn has_original_termios(&self) -> bool {
+        self.original_termios.is_some()
+    }
 }
 
 impl Drop for TerminalController {
@@ -89,32 +100,5 @@ impl Drop for TerminalGuard {
     fn drop(&mut self) {
         // Restore terminal settings when guard is dropped
         let _ = self.controller.restore();
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_terminal_controller_creation() {
-        let controller = TerminalController::new();
-        assert!(controller.original_termios.is_none());
-    }
-
-    #[test]
-    fn test_is_tty() {
-        // This test will pass differently depending on how it's run
-        // In a terminal: true, in CI/automated: false
-        let _is_tty = TerminalController::is_tty();
-        // Just ensure the function doesn't panic
-    }
-
-    #[test]
-    fn test_terminal_guard_creation() {
-        // This should not panic even if not in a TTY
-        let result = TerminalGuard::new();
-        // In non-TTY environments, this should still succeed
-        assert!(result.is_ok() || !TerminalController::is_tty());
     }
 }
