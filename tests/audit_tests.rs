@@ -1,4 +1,7 @@
-//! Audit logging tests
+//! Audit module tests
+
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::useless_vec)]
 //!
 //! Tests for audit trail creation and logging functionality.
 

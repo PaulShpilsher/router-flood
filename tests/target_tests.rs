@@ -1,4 +1,7 @@
 //! Target module tests
+
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::unnecessary_cast)]
 //!
 //! Tests for multi-port target management and port selection logic.
 
@@ -149,7 +152,7 @@ fn test_multi_port_target_edge_case_ports() {
     for _ in 0..20 {
         let port = target.next_port();
         assert!(edge_ports.contains(&port));
-        assert!(port >= 1 && port <= 65535);
+        assert!(port >= 1); // port is u16, so <= 65535 is always true
     }
 }
 

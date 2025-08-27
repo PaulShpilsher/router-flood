@@ -1,4 +1,7 @@
 //! Worker module tests
+
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::manual_range_contains)]
 //!
 //! Tests for worker thread management and packet sending logic.
 
@@ -42,11 +45,9 @@ async fn test_worker_manager_creation() {
         stats,
         multi_port_target,
         target_ip,
-        None, // tx_ipv4
-        None, // tx_ipv6
-        None, // tx_l2
+        None, // interface
         true, // dry_run
-    );
+    ).expect("Failed to create WorkerManager");
 
     assert!(worker_manager.is_running());
     
@@ -72,11 +73,9 @@ async fn test_worker_manager_lifecycle() {
         stats.clone(),
         multi_port_target,
         target_ip,
-        None,
-        None,
-        None,
+        None, // interface
         true, // dry_run
-    );
+    ).expect("Failed to create WorkerManager");
 
     // Let workers run briefly
     tokio::time::sleep(std::time::Duration::from_millis(50)).await;
@@ -114,11 +113,9 @@ async fn test_worker_with_multiple_ports() {
         stats.clone(),
         multi_port_target,
         target_ip,
-        None,
-        None,
-        None,
+        None, // interface
         true, // dry_run
-    );
+    ).expect("Failed to create WorkerManager");
 
     // Let the worker run for a bit
     tokio::time::sleep(std::time::Duration::from_millis(100)).await;
@@ -158,11 +155,9 @@ async fn test_worker_protocol_mix() {
         stats.clone(),
         multi_port_target,
         target_ip,
-        None,
-        None,
-        None,
+        None, // interface
         true, // dry_run
-    );
+    ).expect("Failed to create WorkerManager");
 
     // Let it run to generate packets
     tokio::time::sleep(std::time::Duration::from_millis(200)).await;
@@ -194,11 +189,9 @@ async fn test_worker_rate_limiting() {
         stats.clone(),
         multi_port_target,
         target_ip,
-        None,
-        None,
-        None,
+        None, // interface
         true, // dry_run
-    );
+    ).expect("Failed to create WorkerManager");
 
     // Let it run for exactly 1 second
     tokio::time::sleep(std::time::Duration::from_millis(1000)).await;

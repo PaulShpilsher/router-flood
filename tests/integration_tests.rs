@@ -1,4 +1,6 @@
 //! Integration tests for router-flood
+
+#![allow(clippy::uninlined_format_args)]
 //!
 //! These tests verify the integration and interaction between different modules
 //! of the router-flood application, focusing on end-to-end functionality.

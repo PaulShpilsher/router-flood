@@ -7,7 +7,6 @@ use std::net::IpAddr;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration as StdDuration;
-use tokio::sync::Mutex;
 use tokio::time;
 use tracing::{error, info, warn};
 
@@ -16,6 +15,7 @@ use crate::config::Config;
 use crate::constants::GRACEFUL_SHUTDOWN_TIMEOUT;
 use crate::error::{NetworkError, Result};
 use crate::monitor::SystemMonitor;
+use crate::adapters::SystemStatsAdapter;
 use crate::network::{find_interface_by_name, get_default_interface};
 use crate::stats::FloodStats;
 use crate::target::MultiPortTarget;
@@ -60,7 +60,6 @@ impl Simulation {
         self.spawn_monitoring_tasks();
         self.print_simulation_info();
 
-        let channels = self.setup_transport_channels()?;
         let multi_port_target = Arc::new(MultiPortTarget::new(self.config.target.ports.clone()));
 
         let worker_manager = WorkerManager::new(
@@ -68,11 +67,9 @@ impl Simulation {
             self.stats.clone(),
             multi_port_target,
             self.target_ip,
-            channels.0,
-            channels.1,
-            channels.2,
+            self.selected_interface.as_ref(),
             self.config.safety.dry_run,
-        );
+        )?;
 
         // Wait for completion or interruption
         tokio::select! {
@@ -113,66 +110,6 @@ impl Simulation {
         Ok(())
     }
 
-    /// Set up transport channels based on configuration
-    fn setup_transport_channels(
-        &self,
-    ) -> Result<(
-        Option<Arc<Mutex<pnet::transport::TransportSender>>>,
-        Option<Arc<Mutex<pnet::transport::TransportSender>>>,
-        Option<Arc<Mutex<Box<dyn pnet::datalink::DataLinkSender>>>>,
-    )> {
-        if self.config.safety.dry_run {
-            info!("Dry-run mode: Skipping transport channel creation");
-            return Ok((None, None, None));
-        }
-
-        let tx_ipv4 = self.create_ipv4_channel()?;
-        let tx_ipv6 = self.create_ipv6_channel()?;
-        let tx_l2 = self.create_l2_channel()?;
-
-        Ok((tx_ipv4, tx_ipv6, tx_l2))
-    }
-
-    /// Create IPv4 transport channel
-    fn create_ipv4_channel(&self) -> Result<Option<Arc<Mutex<pnet::transport::TransportSender>>>> {
-        use pnet::transport::{transport_channel, TransportChannelType};
-        
-        match transport_channel(
-            crate::constants::TRANSPORT_BUFFER_SIZE,
-            TransportChannelType::Layer3(pnet::packet::ip::IpNextHeaderProtocols::Ipv4),
-        ) {
-            Ok((tx, _)) => Ok(Some(Arc::new(Mutex::new(tx)))),
-            Err(e) => Err(NetworkError::ChannelCreation(format!("IPv4 channel: {}", e)).into()),
-        }
-    }
-
-    /// Create IPv6 transport channel
-    fn create_ipv6_channel(&self) -> Result<Option<Arc<Mutex<pnet::transport::TransportSender>>>> {
-        use pnet::transport::{transport_channel, TransportChannelType};
-        
-        match transport_channel(
-            crate::constants::TRANSPORT_BUFFER_SIZE,
-            TransportChannelType::Layer3(pnet::packet::ip::IpNextHeaderProtocols::Ipv6),
-        ) {
-            Ok((tx, _)) => Ok(Some(Arc::new(Mutex::new(tx)))),
-            Err(e) => Err(NetworkError::ChannelCreation(format!("IPv6 channel: {}", e)).into()),
-        }
-    }
-
-    /// Create Layer 2 transport channel for ARP
-    fn create_l2_channel(&self) -> Result<Option<Arc<Mutex<Box<dyn pnet::datalink::DataLinkSender>>>>> {
-        if let Some(ref iface) = self.selected_interface {
-            match pnet::datalink::channel(iface, Default::default()) {
-                Ok(pnet::datalink::Channel::Ethernet(tx, _)) => {
-                    Ok(Some(Arc::new(Mutex::new(tx))))
-                }
-                Ok(_) => Err(NetworkError::ChannelCreation("Unknown L2 channel type".to_string()).into()),
-                Err(e) => Err(NetworkError::ChannelCreation(format!("L2 channel: {}", e)).into()),
-            }
-        } else {
-            Ok(None)
-        }
-    }
 
     /// Spawn background monitoring tasks
     fn spawn_monitoring_tasks(&self) {
@@ -191,7 +128,8 @@ impl Simulation {
             while running.load(Ordering::Relaxed) {
                 time::sleep(StdDuration::from_secs(stats_interval)).await;
                 let sys_stats = system_monitor.get_system_stats().await;
-                stats.print_stats(sys_stats.as_ref());
+                let original_stats = sys_stats.as_ref().map(SystemStatsAdapter::to_original);
+                stats.print_stats(original_stats.as_ref());
             }
         });
     }
@@ -305,7 +243,7 @@ pub fn setup_network_interface(config: &Config) -> Result<Option<pnet::datalink:
                 info!("Using specified interface: {}", iface.name);
                 Ok(Some(iface))
             }
-            None => Err(NetworkError::InterfaceNotFound(iface_name.clone()).into()),
+            None => Err(NetworkError::InterfaceNotFound(iface_name.to_string()).into()),
         }
     } else {
         match get_default_interface() {

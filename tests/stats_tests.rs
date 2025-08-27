@@ -5,7 +5,6 @@
 use router_flood::stats::*;
 use router_flood::config::{ExportConfig, ExportFormat};
 use std::sync::atomic::Ordering;
-use tempfile::TempDir;
 
 fn create_test_export_config() -> ExportConfig {
     ExportConfig {
@@ -240,7 +239,15 @@ fn test_stats_print_functionality() {
     });
     
     // This should not panic
-    stats.print_stats(system_stats.as_ref());
+    // Convert to original SystemStats type for compatibility
+    let original_stats = system_stats.as_ref().map(|s| router_flood::stats_original::SystemStats {
+        cpu_usage: s.cpu_usage,
+        memory_usage: s.memory_usage,
+        memory_total: s.memory_total,
+        network_sent: s.network_sent,
+        network_received: s.network_received,
+    });
+    stats.print_stats(original_stats.as_ref());
     
     // Test with no system stats
     stats.print_stats(None);

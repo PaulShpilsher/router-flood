@@ -1,0 +1,32 @@
+[package]
+name = "router-flood-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+router-flood = { path = ".." }
+serde_yaml = "0.9"
+arbitrary = { version = "1.0", features = ["derive"] }
+
+[[bin]]
+name = "fuzz_packet_builder"
+path = "fuzz_targets/fuzz_packet_builder.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_config_parser"
+path = "fuzz_targets/fuzz_config_parser.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_cli_parser"
+path = "fuzz_targets/fuzz_cli_parser.rs"
+test = false
+doc = false

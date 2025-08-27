@@ -98,10 +98,12 @@ fn test_interface_properties() {
         assert!(!iface.name.is_empty());
         
         // Description can be empty, but should be a valid string
-        assert!(iface.description.len() >= 0);
+        // Length is always >= 0 for String, so just verify it's accessible
+        let _ = iface.description.len();
         
         // IPs should be a valid vector (can be empty)
-        assert!(iface.ips.len() >= 0);
+        // Length is always >= 0 for Vec, so just verify it's accessible
+        let _ = iface.ips.len();
         
         // If interface is up and not loopback, it might have IPs
         if iface.is_up() && !iface.is_loopback() {

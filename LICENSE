@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2025 Paul Shpilsher
+Copyright (c) 2025 Router Flood Contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +19,18 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+EDUCATIONAL USE NOTICE:
+
+This software is designed exclusively for educational purposes and authorized 
+network testing. Users must:
+
+1. Only test networks they own or have explicit written permission to test
+2. Comply with all applicable local, national, and international laws
+3. Use the software responsibly and ethically
+4. Respect network resources and other users
+5. Not use the software for malicious purposes
+
+The authors and contributors are not responsible for any misuse of this software.
+Users assume full responsibility for ensuring their use complies with all 
+applicable laws and regulations.

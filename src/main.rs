@@ -1,4 +1,23 @@
-//! # Router Flood - Main Application Entry Point
+//! Router Flood - Educational Network Stress Testing Tool
+
+// Allow clippy warnings for format strings and other style issues
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::needless_borrows_for_generic_args)]
+#![allow(clippy::print_literal)]
+#![allow(clippy::only_used_in_recursion)]
+#![allow(clippy::manual_range_contains)]
+#![allow(clippy::let_and_return)]
+#![allow(clippy::format_in_format_args)]
+#![allow(clippy::manual_clamp)]
+#![allow(clippy::useless_format)]
+#![allow(clippy::should_implement_trait)]
+#![allow(clippy::manual_strip)]
+#![allow(clippy::needless_borrow)]
+#![allow(clippy::nonminimal_bool)]
+#![allow(clippy::len_zero)]
+#![allow(clippy::useless_vec)]
+#![allow(clippy::unit_arg)]
+#![allow(clippy::unnecessary_cast)]
 //!
 //! # Disclaimer
 //!
@@ -13,8 +32,10 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use router_flood::cli::{handle_pre_execution_commands, parse_arguments, process_cli_config};
 use router_flood::config::{get_default_config, load_config};
 use router_flood::constants::error_messages;
-use router_flood::error::Result;
+use router_flood::error::{Result, display_user_friendly_error};
 use router_flood::simulation::{setup_network_interface, Simulation};
+use router_flood::terminal::TerminalGuard;
+use router_flood::ui::display_startup_banner;
 use router_flood::validation::{validate_comprehensive_security, validate_system_requirements};
 
 fn setup_logging() {
@@ -58,6 +79,7 @@ fn perform_validations(config: &router_flood::config::Config, target_ip: &IpAddr
 
 async fn run_application() -> Result<()> {
     setup_logging();
+    display_startup_banner();
     let matches = parse_arguments();
 
     // Handle pre-execution commands (like --list-interfaces)
@@ -75,6 +97,12 @@ async fn run_application() -> Result<()> {
     // Set up network interface
     let selected_interface = setup_network_interface(&config)?;
 
+    // Set up terminal control to hide ^C characters
+    let _terminal_guard = TerminalGuard::new().map_err(|e| {
+        tracing::warn!("Failed to set up terminal control: {}", e);
+        // Continue without terminal control - this is not critical
+    }).ok();
+
     // Create and run simulation
     let simulation = Simulation::new(config, target_ip, selected_interface);
     simulation.run().await?;
@@ -85,7 +113,11 @@ async fn run_application() -> Result<()> {
 #[tokio::main]
 async fn main() {
     if let Err(e) = run_application().await {
-        error!("Application error: {}", e);
+        // Display user-friendly error message
+        display_user_friendly_error(&e);
+        
+        // Also log the technical error for debugging
+        error!("Technical error details: {}", e);
         process::exit(1);
     }
 }

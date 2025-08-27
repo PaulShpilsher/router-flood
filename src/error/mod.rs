@@ -3,6 +3,10 @@
 //! This module provides comprehensive error types and handling utilities
 //! to replace unwrap/expect patterns throughout the codebase.
 
+pub mod user_friendly;
+
+pub use user_friendly::{UserFriendlyError, display_user_friendly_error, ErrorContext};
+
 use std::fmt;
 use std::io;
 

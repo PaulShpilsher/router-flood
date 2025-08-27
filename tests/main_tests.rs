@@ -1,4 +1,6 @@
-//! Main application tests
+//! Main module tests
+
+#![allow(clippy::uninlined_format_args)]
 //!
 //! Tests for the main application entry point functions and configuration parsing.
 

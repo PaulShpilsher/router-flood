@@ -133,7 +133,8 @@ fn test_system_stats_edge_values() {
     for stats in edge_stats {
         assert!(stats.cpu_usage >= 0.0);
         assert!(stats.cpu_usage <= 100.0);
-        assert!(stats.memory_usage >= 0);
+        // memory_usage is u64, so always >= 0
+        assert!(stats.memory_usage < u64::MAX);
         
         // Should be able to format without issues
         let _formatted = format!("{:.2}% CPU, {:.1} MB RAM", stats.cpu_usage, stats.memory_usage as f64 / (1024.0 * 1024.0));

@@ -31,6 +31,7 @@ pub fn create_audit_entry(
     interface: Option<&str>,
     session_id: &str,
 ) -> Result<(), String> {
+    
     let entry = AuditEntry {
         timestamp: Utc::now(),
         event_type: "flood_simulation_start".to_string(),

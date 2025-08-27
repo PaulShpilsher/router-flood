@@ -54,6 +54,7 @@ safety:
   enable_monitoring: true        # Enable system resource monitoring
   audit_logging: true           # Enable audit log creation
   dry_run: false               # Simulate without sending packets (safe testing)
+  perfect_simulation: false     # Use 100% success rate in dry-run mode (no simulated failures)
 
 monitoring:
   # Monitoring and reporting configuration
