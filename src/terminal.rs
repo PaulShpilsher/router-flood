@@ -16,6 +16,12 @@ pub struct TerminalController {
     stdin_fd: i32,
 }
 
+impl Default for TerminalController {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TerminalController {
     /// Create a new terminal controller
     pub fn new() -> Self {
@@ -29,17 +35,17 @@ impl TerminalController {
     pub fn disable_ctrl_echo(&mut self) -> io::Result<()> {
         // Get current terminal settings
         let mut termios = Termios::from_fd(self.stdin_fd)
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("Failed to get terminal settings: {}", e)))?;
+            .map_err(|e| io::Error::other(format!("Failed to get terminal settings: {}", e)))?;
         
         // Store original settings for restoration
-        self.original_termios = Some(termios.clone());
+        self.original_termios = Some(termios);
         
         // Disable control character echo
         termios.c_lflag &= !(ECHOCTL);
         
         // Apply the new settings
         termios::tcsetattr(self.stdin_fd, TCSANOW, &termios)
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("Failed to set terminal settings: {}", e)))?;
+            .map_err(|e| io::Error::other(format!("Failed to set terminal settings: {}", e)))?;
         
         Ok(())
     }
@@ -48,7 +54,7 @@ impl TerminalController {
     pub fn restore(&mut self) -> io::Result<()> {
         if let Some(original) = &self.original_termios {
             termios::tcsetattr(self.stdin_fd, TCSANOW, original)
-                .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("Failed to restore terminal settings: {}", e)))?;
+                .map_err(|e| io::Error::other(format!("Failed to restore terminal settings: {}", e)))?;
             self.original_termios = None;
         }
         Ok(())
