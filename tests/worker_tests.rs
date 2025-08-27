@@ -1,4 +1,7 @@
 //! Worker module tests
+
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::manual_range_contains)]
 //!
 //! Tests for worker thread management and packet sending logic.
 

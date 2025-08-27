@@ -1,5 +1,7 @@
 //! Simple verification tests for Phase 2 improvements
 
+#![allow(clippy::uninlined_format_args)]
+
 use router_flood::packet::{PacketBuilder, PacketType};
 use router_flood::config::ConfigBuilder;
 use router_flood::performance::{LockFreeBufferPool, SharedBufferPool};

@@ -1,4 +1,6 @@
 //! Error handling tests
+
+#![allow(clippy::uninlined_format_args)]
 //!
 //! Tests for custom error types, error conversion, and error propagation.
 

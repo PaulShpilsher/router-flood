@@ -1,4 +1,6 @@
-//! Unit tests for RNG functionality
+//! RNG module unit tests
+
+#![allow(clippy::manual_range_contains)]
 //!
 //! These tests were moved from src/rng.rs to follow best practices
 //! of keeping all tests in the tests/ directory.

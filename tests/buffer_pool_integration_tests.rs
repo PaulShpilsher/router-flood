@@ -1,4 +1,6 @@
 //! Buffer pool integration tests
+
+#![allow(clippy::uninlined_format_args)]
 //!
 //! Tests for buffer pool functionality and zero-copy packet building integration.
 

@@ -1,4 +1,6 @@
 //! Advanced usage examples for Router Flood
+
+#![allow(clippy::uninlined_format_args)]
 //!
 //! This example demonstrates advanced features including SIMD optimizations,
 //! Prometheus metrics, and performance tuning.

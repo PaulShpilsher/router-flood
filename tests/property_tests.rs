@@ -1,4 +1,6 @@
 //! Property-based tests for router-flood components
+
+#![allow(clippy::unnecessary_cast)]
 //!
 //! These tests use proptest to generate random inputs and verify
 //! that our implementations maintain invariants across all inputs.

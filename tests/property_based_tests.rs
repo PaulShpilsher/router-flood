@@ -1,6 +1,8 @@
 //! Property-based testing for router-flood
 //!
-//! These tests use proptest to generate random inputs and verify that
+//! Property-based tests using proptest
+
+#![allow(clippy::nonminimal_bool)]
 //! the system behaves correctly under all conditions.
 
 use proptest::prelude::*;

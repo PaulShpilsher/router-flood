@@ -364,7 +364,7 @@ mod tests {
         let pool = AdvancedBufferPool::new();
         let stats = pool.get_stats();
         
-        assert!(stats.size_class_stats.len() > 0);
+        assert!(!stats.size_class_stats.is_empty());
         assert_eq!(stats.total_allocated, 0);
         assert_eq!(stats.hit_rate, 100.0); // No requests yet
     }

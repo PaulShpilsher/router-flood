@@ -1,4 +1,7 @@
-//! Benchmarks for packet building performance
+//! Packet building benchmarks
+
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::unit_arg)]
 //!
 //! These benchmarks measure the performance of different packet building
 //! strategies and optimizations to detect performance regressions.

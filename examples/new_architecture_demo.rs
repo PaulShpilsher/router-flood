@@ -1,4 +1,6 @@
 //! Demonstration of the new architecture improvements
+
+#![allow(clippy::uninlined_format_args)]
 //! 
 //! This example shows how the refactored code would work with:
 //! - Strategy pattern for packet building

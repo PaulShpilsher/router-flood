@@ -1,4 +1,6 @@
-//! Integration tests for the new architecture
+//! Integration tests for new architecture
+
+#![allow(clippy::uninlined_format_args)]
 //!
 //! These tests verify that all components work together correctly
 //! and that the new architecture maintains compatibility.

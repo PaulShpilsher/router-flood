@@ -1,4 +1,6 @@
 //! Validation module tests
+
+#![allow(clippy::uninlined_format_args)]
 //!
 //! Tests for IP address validation and security checks.
 

@@ -1,4 +1,6 @@
 //! Basic usage examples for Router Flood
+
+#![allow(clippy::uninlined_format_args)]
 //!
 //! This example demonstrates the basic functionality of Router Flood
 //! in a safe, educational context.

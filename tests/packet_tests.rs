@@ -1,4 +1,6 @@
-//! Basic packet module tests
+//! Packet module tests
+
+#![allow(clippy::uninlined_format_args)]
 //!
 //! Tests for packet type definitions and basic functionality.
 

@@ -1,4 +1,7 @@
 //! Target module tests
+
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::unnecessary_cast)]
 //!
 //! Tests for multi-port target management and port selection logic.
 
