@@ -5,7 +5,7 @@
 
 use router_flood::packet::{PacketBuilder, PacketType};
 use router_flood::config::ConfigBuilder;
-use router_flood::transport::MockTransport;
+use router_flood::transport::{MockTransport, TransportLayer};
 use router_flood::performance::LockFreeBufferPool;
 use std::net::IpAddr;
 use std::sync::Arc;
