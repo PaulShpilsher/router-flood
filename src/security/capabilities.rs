@@ -125,7 +125,7 @@ impl CapabilityManager {
     }
 
     /// Parse capability from /proc/self/status
-    fn parse_capability(status: &str, cap_type: &str, cap_number: u8) -> bool {
+    pub fn parse_capability(status: &str, cap_type: &str, cap_number: u8) -> bool {
         for line in status.lines() {
             if line.starts_with(cap_type) {
                 if let Some(hex_caps) = line.split_whitespace().nth(1) {
@@ -342,96 +342,3 @@ impl TamperProofAuditLog {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use tempfile::NamedTempFile;
-
-    #[test]
-    fn test_capability_manager_creation() {
-        let manager = CapabilityManager::new();
-        assert!(manager.is_ok());
-        
-        let manager = manager.unwrap();
-        let context = manager.security_context();
-        
-        // Basic sanity checks
-        assert!(context.process_id > 0);
-        // UIDs are u32, so they're always >= 0
-        assert!(context.effective_uid < u32::MAX);
-        assert!(context.real_uid < u32::MAX);
-    }
-
-    #[test]
-    fn test_dry_run_capabilities() {
-        let manager = CapabilityManager::default();
-        
-        // Dry run should always pass
-        assert!(manager.has_required_capabilities(true).is_ok());
-        assert!(manager.validate_privilege_level(true).is_ok());
-    }
-
-    #[test]
-    fn test_security_report_generation() {
-        let manager = CapabilityManager::default();
-        let report = manager.security_report();
-        
-        assert!(report.contains("Security Context Report"));
-        assert!(report.contains("Process ID"));
-        assert!(report.contains("Security Recommendations"));
-    }
-
-    #[test]
-    fn test_capability_parsing() {
-        // Test capability parsing with mock data
-        let status = "CapEff:\t0000000000002000\n";
-        let has_net_raw = CapabilityManager::parse_capability(status, "CapEff", 13);
-        assert!(has_net_raw); // Bit 13 is set in 0x2000
-    }
-
-    #[tokio::test]
-    async fn test_tamper_proof_audit_log() {
-        let temp_file = NamedTempFile::new().unwrap();
-        let log_path = temp_file.path().to_str().unwrap();
-        
-        let mut audit_log = TamperProofAuditLog::new(log_path, "test-session").unwrap();
-        
-        // Write some entries
-        audit_log.write_entry("TEST", "Test event 1").await.unwrap();
-        audit_log.write_entry("TEST", "Test event 2").await.unwrap();
-        
-        // Check that file was created and contains expected content
-        let content = tokio::fs::read_to_string(log_path).await.unwrap();
-        assert!(content.contains("GENESIS"));
-        assert!(content.contains("Test event 1"));
-        assert!(content.contains("Test event 2"));
-        assert!(content.contains("Hash:"));
-        assert!(content.contains("PrevHash:"));
-        
-        // Basic integrity check (simplified)
-        let integrity_result = audit_log.verify_integrity().await;
-        assert!(integrity_result.is_ok());
-    }
-
-    #[tokio::test]
-    async fn test_audit_log_integrity_verification() {
-        let temp_file = NamedTempFile::new().unwrap();
-        let log_path = temp_file.path().to_str().unwrap();
-        
-        let mut audit_log = TamperProofAuditLog::new(log_path, "test-session").unwrap();
-        audit_log.write_entry("TEST", "Original entry").await.unwrap();
-        
-        // Verify original integrity (basic check)
-        let integrity_result = audit_log.verify_integrity().await;
-        assert!(integrity_result.is_ok());
-        
-        // Tamper with the file
-        let mut content = tokio::fs::read_to_string(log_path).await.unwrap();
-        content = content.replace("Original entry", "Tampered entry");
-        tokio::fs::write(log_path, content).await.unwrap();
-        
-        // Integrity check should still work (simplified implementation)
-        let tampered_result = audit_log.verify_integrity().await;
-        assert!(tampered_result.is_ok());
-    }
-}

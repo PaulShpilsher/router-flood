@@ -168,7 +168,7 @@ impl StatsDisplay {
 }
 
 /// Format large numbers with appropriate suffixes
-fn format_number(num: u64) -> String {
+pub fn format_number(num: u64) -> String {
     if num >= 1_000_000_000 {
         format!("{:.1}B", num as f64 / 1_000_000_000.0)
     } else if num >= 1_000_000 {
@@ -224,7 +224,7 @@ pub fn display_completion_summary(
 }
 
 /// Format bytes with appropriate units
-fn format_bytes(bytes: u64) -> String {
+pub fn format_bytes(bytes: u64) -> String {
     if bytes >= 1_073_741_824 {
         format!("{:.2} GB", bytes as f64 / 1_073_741_824.0)
     } else if bytes >= 1_048_576 {
@@ -236,33 +236,3 @@ fn format_bytes(bytes: u64) -> String {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_format_number() {
-        assert_eq!(format_number(500), "500");
-        assert_eq!(format_number(1_500), "1.5K");
-        assert_eq!(format_number(1_500_000), "1.5M");
-        assert_eq!(format_number(1_500_000_000), "1.5B");
-    }
-
-    #[test]
-    fn test_format_bytes() {
-        assert_eq!(format_bytes(500), "500 bytes");
-        assert_eq!(format_bytes(1_536), "1.50 KB");
-        assert_eq!(format_bytes(1_572_864), "1.50 MB");
-        assert_eq!(format_bytes(1_610_612_736), "1.50 GB");
-    }
-
-    #[tokio::test]
-    async fn test_progress_indicator() {
-        let progress = ProgressIndicator::new("Testing");
-        
-        // Test completion
-        progress.complete_success(Some("Test completed"));
-        
-        // Should not panic
-    }
-}

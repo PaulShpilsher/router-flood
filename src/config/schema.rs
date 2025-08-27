@@ -348,33 +348,3 @@ impl ConfigTemplates {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_schema_validation_valid_config() {
-        let config = get_default_config();
-        let result = ConfigSchema::validate(&config);
-        if let Err(e) = &result {
-            println!("Validation error: {:?}", e);
-        }
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn test_all_templates_valid() {
-        for template_name in ConfigTemplates::list_templates() {
-            let template = ConfigTemplates::get_template(template_name).unwrap();
-            assert!(ConfigSchema::validate(&template).is_ok(), 
-                "Template '{}' should be valid", template_name);
-        }
-    }
-
-    #[test]
-    fn test_template_serialization() {
-        let template = ConfigTemplates::get_template("basic").unwrap();
-        let yaml = ConfigTemplates::template_to_yaml(&template);
-        assert!(yaml.is_ok());
-    }
-}

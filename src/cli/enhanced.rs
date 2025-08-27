@@ -532,33 +532,3 @@ impl Default for EnhancedCli {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_enhanced_cli_creation() {
-        let cli = EnhancedCli::default();
-        // Should not panic
-        assert!(cli.capability_manager.security_context().process_id > 0);
-    }
-
-    #[test]
-    fn test_command_building() {
-        let cmd = EnhancedCli::build_command();
-        
-        // Should have subcommands
-        let subcommands: Vec<_> = cmd.get_subcommands().map(|s| s.get_name()).collect();
-        assert!(subcommands.contains(&"run"));
-        assert!(subcommands.contains(&"config"));
-        assert!(subcommands.contains(&"system"));
-        assert!(subcommands.contains(&"interactive"));
-    }
-
-    #[tokio::test]
-    async fn test_list_templates() {
-        let cli = EnhancedCli::default();
-        let result = cli.handle_list_templates().await;
-        assert!(result.is_ok());
-    }
-}

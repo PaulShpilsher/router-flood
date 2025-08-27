@@ -121,38 +121,3 @@ where
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_user_friendly_ip_error() {
-        let error = RouterFloodError::Validation(ValidationError::InvalidIpRange {
-            ip: "8.8.8.8".to_string(),
-            reason: "Public IP not allowed".to_string(),
-        });
-        
-        let friendly = UserFriendlyError::new(&error);
-        let output = format!("{}", friendly);
-        
-        assert!(output.contains("❌ Invalid target IP address"));
-        assert!(output.contains("💡 Suggestions"));
-        assert!(output.contains("192.168.1.1"));
-    }
-
-    #[test]
-    fn test_user_friendly_limit_error() {
-        let error = RouterFloodError::Validation(ValidationError::ExceedsLimit {
-            field: "threads".to_string(),
-            value: 200,
-            limit: 100,
-        });
-        
-        let friendly = UserFriendlyError::new(&error);
-        let output = format!("{}", friendly);
-        
-        assert!(output.contains("❌ Configuration limit exceeded"));
-        assert!(output.contains("threads"));
-        assert!(output.contains("4-8 threads"));
-    }
-}
