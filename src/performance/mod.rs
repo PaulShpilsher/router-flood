@@ -11,7 +11,7 @@ pub mod optimized_constants;
 pub mod simd_packet;
 
 pub use advanced_buffer_pool::{AdvancedBufferPool, AlignedBuffer, PoolStatistics};
-pub use buffer_pool::LockFreeBufferPool;
+pub use buffer_pool::{LockFreeBufferPool, SharedBufferPool};
 pub use cpu_affinity::{CpuAffinityManager, CpuTopology, CpuAssignment};
 pub use optimized_constants::*;
 pub use simd_packet::{SimdPacketBuilder, SimdPerformanceInfo};
