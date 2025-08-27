@@ -19,7 +19,9 @@ use crate::packet::{PacketBuilder, PacketType};
 use crate::stats::FloodStats;
 use crate::stats_original::LocalStats;
 use crate::target::MultiPortTarget;
-use crate::transport::{WorkerChannels, ChannelType, ChannelFactory};
+use crate::transport::{WorkerChannels, ChannelFactory};
+use crate::transport_original::ChannelType;
+use crate::adapters::ChannelTypeAdapter;
 
 /// Manages the lifecycle of worker threads
 pub struct WorkerManager {
@@ -253,17 +255,18 @@ impl Worker {
         packet_data: &[u8],
         protocol_name: &str,
     ) -> Result<()> {
-        let channel_type = match packet_type {
+        let new_channel_type = match packet_type {
             PacketType::Udp | PacketType::TcpSyn | PacketType::TcpAck | PacketType::Icmp => {
-                ChannelType::IPv4
+                crate::transport::layer::ChannelType::IPv4
             }
             PacketType::Ipv6Udp | PacketType::Ipv6Tcp | PacketType::Ipv6Icmp => {
-                ChannelType::IPv6
+                crate::transport::layer::ChannelType::IPv6
             }
             PacketType::Arp => {
-                ChannelType::Layer2
+                crate::transport::layer::ChannelType::Layer2
             }
         };
+        let channel_type = ChannelTypeAdapter::to_original(new_channel_type);
 
         match self.channels.send_packet(packet_data, self.target_ip, channel_type) {
             Ok(_) => {

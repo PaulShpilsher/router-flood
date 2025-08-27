@@ -62,6 +62,7 @@ impl BatchedRng {
     }
 
     /// Get a random port number (1024-65535)
+    #[inline]
     pub fn port(&mut self) -> u16 {
         if self.port_batch.is_empty() {
             self.replenish_port_batch();
@@ -70,6 +71,7 @@ impl BatchedRng {
     }
 
     /// Get a random 32-bit sequence number
+    #[inline]
     pub fn sequence(&mut self) -> u32 {
         if self.sequence_batch.is_empty() {
             self.replenish_sequence_batch();
@@ -78,6 +80,7 @@ impl BatchedRng {
     }
 
     /// Get a random 16-bit identification
+    #[inline]
     pub fn identification(&mut self) -> u16 {
         if self.id_batch.is_empty() {
             self.replenish_id_batch();
@@ -86,6 +89,7 @@ impl BatchedRng {
     }
 
     /// Get a random TTL value (32-128)
+    #[inline]
     pub fn ttl(&mut self) -> u8 {
         if self.ttl_batch.is_empty() {
             self.replenish_ttl_batch();
@@ -141,16 +145,19 @@ impl BatchedRng {
     }
 
     /// Generate random boolean with given probability
+    #[inline(always)]
     pub fn bool_with_probability(&mut self, probability: f64) -> bool {
         self.rng.gen_bool(probability)
     }
 
     /// Generate random value in range
+    #[inline(always)]
     pub fn range(&mut self, min: usize, max: usize) -> usize {
         self.rng.gen_range(min..max)
     }
 
     /// Generate random float in range
+    #[inline(always)]
     pub fn float_range(&mut self, min: f64, max: f64) -> f64 {
         self.rng.gen_range(min..max)
     }

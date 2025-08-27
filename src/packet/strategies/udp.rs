@@ -28,6 +28,7 @@ impl UdpStrategy {
         }
     }
 
+    #[inline]
     fn random_payload_size(&mut self) -> usize {
         // More realistic payload size distribution
         match self.rng.range(0, 100) {
@@ -37,6 +38,7 @@ impl UdpStrategy {
         }
     }
 
+    #[inline]
     fn setup_ip_header(
         &mut self,
         ip_packet: &mut MutableIpv4Packet,
@@ -60,6 +62,7 @@ impl UdpStrategy {
 }
 
 impl PacketStrategy for UdpStrategy {
+    #[inline]
     fn build_packet(&mut self, target: &Target, buffer: &mut [u8]) -> Result<usize> {
         let target_ip = match target.ip {
             IpAddr::V4(ip) => ip,
@@ -117,14 +120,17 @@ impl PacketStrategy for UdpStrategy {
         Ok(total_len)
     }
 
+    #[inline(always)]
     fn protocol_name(&self) -> &'static str {
         "UDP"
     }
 
+    #[inline(always)]
     fn max_packet_size(&self) -> usize {
         IPV4_HEADER_SIZE + UDP_HEADER_SIZE + self.packet_size_range.1
     }
 
+    #[inline(always)]
     fn is_compatible_with(&self, target_ip: IpAddr) -> bool {
         matches!(target_ip, IpAddr::V4(_))
     }

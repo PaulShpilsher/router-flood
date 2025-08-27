@@ -62,6 +62,7 @@ impl PacketBuilder {
     }
 
     /// Build a packet using the zero-copy approach
+    #[inline]
     pub fn build_packet_into_buffer(
         &mut self,
         buffer: &mut [u8],
@@ -89,6 +90,7 @@ impl PacketBuilder {
     }
 
     /// Build a packet with allocation (fallback method)
+    #[inline]
     pub fn build_packet(
         &mut self,
         packet_type: PacketType,
@@ -112,16 +114,19 @@ impl PacketBuilder {
     }
 
     /// Select the next packet type based on protocol mix and target IP compatibility
+    #[inline]
     pub fn next_packet_type_for_ip(&mut self, target_ip: IpAddr) -> PacketType {
         self.protocol_selector.select_packet_type(target_ip, &mut self.rng)
     }
 
     /// Generate a random boolean with the given probability
+    #[inline(always)]
     pub fn rng_gen_bool(&mut self, probability: f64) -> bool {
         self.rng.bool_with_probability(probability)
     }
 
     /// Generate a random float in the given range
+    #[inline(always)]
     pub fn rng_gen_range(&mut self, range: std::ops::Range<f64>) -> f64 {
         self.rng.float_range(range.start, range.end)
     }
