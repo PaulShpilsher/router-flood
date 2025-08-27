@@ -23,7 +23,7 @@ prop_compose! {
 
 prop_compose! {
     fn valid_ipv6_link_local()(
-        a in 0u16..=0xFFFF,
+        _a in 0u16..=0xFFFF,
         b in 0u16..=0xFFFF,
         c in 0u16..=0xFFFF,
         d in 0u16..=0xFFFF,

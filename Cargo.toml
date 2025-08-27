@@ -30,6 +30,14 @@ sha2 = "0.10"
 hex = "0.4"
 num_cpus = "1.16"
 
+[features]
+default = []
+http-server = ["warp"]
+
+[dependencies.warp]
+version = "0.3"
+optional = true
+
 [dev-dependencies]
 tokio-test = "0.4"
 tempfile = "3.8"
