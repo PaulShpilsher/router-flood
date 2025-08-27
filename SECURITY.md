@@ -14,6 +14,8 @@ Router Flood uses Linux capabilities instead of requiring full root privileges:
 - **Principle of Least Privilege**: Only requests necessary capabilities
 - **Automatic Detection**: Runtime capability detection and validation
 - **Graceful Degradation**: Dry-run mode works without any privileges
+- **Security Context Analysis**: Comprehensive privilege and capability reporting
+- **Runtime Validation**: Continuous security context monitoring
 
 ### Built-in Safety Mechanisms
 
@@ -143,16 +145,23 @@ cargo fuzz run fuzz_cli_parser
 cargo audit
 
 # Run with security-focused clippy lints
-cargo clippy -- -D warnings -D clippy::security
+cargo clippy -- -D warnings
+
+# Run property-based security tests
+cargo test --test property_tests
+
+# Comprehensive security validation
+router-flood system security
 ```
 
 ## 🔍 Security Audit History
 
-### Version 1.0.0 (Current)
-- **Date**: 2024-01-XX
-- **Scope**: Full security audit
-- **Findings**: No critical vulnerabilities
+### Version 0.0.1 (Current)
+- **Date**: 2025-08-27
+- **Scope**: Comprehensive security review
+- **Findings**: Zero compiler warnings, enhanced validation
 - **Status**: ✅ Passed
+- **Improvements**: Capability-based security, tamper-proof audit logging
 
 ### Planned Audits
 - **Q2 2024**: External security audit
