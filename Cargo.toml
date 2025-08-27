@@ -29,6 +29,7 @@ futures = "0.3"
 sha2 = "0.10"
 hex = "0.4"
 num_cpus = "1.16"
+termios = "0.3"
 
 [features]
 default = []

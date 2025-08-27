@@ -39,15 +39,17 @@ pub mod simulation;
 pub mod stats;
 pub mod stats_original;
 pub mod target;
+pub mod terminal;
 pub mod transport;
 pub mod transport_original;
 pub mod ui;
 pub mod validation;
 pub mod worker;
 
-// Re-export key types for easier access
+// Re-export key types for convenience
+pub use config::{Config, TargetConfig, AttackConfig, SafetyConfig, MonitoringConfig, ExportConfig, ExportFormat, ProtocolMix};
+pub use error::{Result, RouterFloodError};
 pub use packet::{PacketBuilder, PacketStrategy, PacketType, Target};
-pub use stats::{StatsCollector, SessionStats, SystemStats};
-pub use transport::{TransportLayer, ChannelType};
-pub use config::{ConfigBuilder, ConfigValidator};
-pub use error::{RouterFloodError, Result};
+pub use simulation::Simulation;
+pub use stats::FloodStats;
+pub use terminal::TerminalGuard;

@@ -1,0 +1,120 @@
+//! Terminal control utilities for clean signal handling
+//!
+//! This module provides utilities to control terminal behavior,
+//! particularly for hiding control character echoes like ^C.
+
+use std::io;
+use termios::{Termios, TCSANOW, tcflag_t};
+
+// Terminal control flags
+const ECHOCTL: tcflag_t = 0o001000; // Echo control characters as ^X
+
+/// Terminal controller for managing terminal settings
+pub struct TerminalController {
+    original_termios: Option<Termios>,
+    stdin_fd: i32,
+}
+
+impl TerminalController {
+    /// Create a new terminal controller
+    pub fn new() -> Self {
+        Self {
+            original_termios: None,
+            stdin_fd: libc::STDIN_FILENO,
+        }
+    }
+
+    /// Disable control character echo (like ^C)
+    pub fn disable_ctrl_echo(&mut self) -> io::Result<()> {
+        // Get current terminal settings
+        let mut termios = Termios::from_fd(self.stdin_fd)
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("Failed to get terminal settings: {}", e)))?;
+        
+        // Store original settings for restoration
+        self.original_termios = Some(termios.clone());
+        
+        // Disable control character echo
+        termios.c_lflag &= !(ECHOCTL);
+        
+        // Apply the new settings
+        termios::tcsetattr(self.stdin_fd, TCSANOW, &termios)
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("Failed to set terminal settings: {}", e)))?;
+        
+        Ok(())
+    }
+
+    /// Restore original terminal settings
+    pub fn restore(&mut self) -> io::Result<()> {
+        if let Some(original) = &self.original_termios {
+            termios::tcsetattr(self.stdin_fd, TCSANOW, original)
+                .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("Failed to restore terminal settings: {}", e)))?;
+            self.original_termios = None;
+        }
+        Ok(())
+    }
+
+    /// Check if we're running in a TTY (terminal)
+    pub fn is_tty() -> bool {
+        unsafe { libc::isatty(libc::STDIN_FILENO) != 0 }
+    }
+}
+
+impl Drop for TerminalController {
+    fn drop(&mut self) {
+        // Ensure terminal settings are restored when the controller is dropped
+        let _ = self.restore();
+    }
+}
+
+/// RAII guard for terminal control
+pub struct TerminalGuard {
+    controller: TerminalController,
+}
+
+impl TerminalGuard {
+    /// Create a new terminal guard and disable control character echo
+    pub fn new() -> io::Result<Self> {
+        let mut controller = TerminalController::new();
+        
+        // Only modify terminal settings if we're in a TTY
+        if TerminalController::is_tty() {
+            controller.disable_ctrl_echo()?;
+        }
+        
+        Ok(Self { controller })
+    }
+}
+
+impl Drop for TerminalGuard {
+    fn drop(&mut self) {
+        // Restore terminal settings when guard is dropped
+        let _ = self.controller.restore();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_terminal_controller_creation() {
+        let controller = TerminalController::new();
+        assert!(controller.original_termios.is_none());
+    }
+
+    #[test]
+    fn test_is_tty() {
+        // This test will pass differently depending on how it's run
+        // In a terminal: true, in CI/automated: false
+        let _is_tty = TerminalController::is_tty();
+        // Just ensure the function doesn't panic
+    }
+
+    #[test]
+    fn test_terminal_guard_creation() {
+        // This should not panic even if not in a TTY
+        let result = TerminalGuard::new();
+        // In non-TTY environments, this should still succeed
+        assert!(result.is_ok() || !TerminalController::is_tty());
+    }
+}

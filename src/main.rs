@@ -34,6 +34,7 @@ use router_flood::config::{get_default_config, load_config};
 use router_flood::constants::error_messages;
 use router_flood::error::{Result, display_user_friendly_error};
 use router_flood::simulation::{setup_network_interface, Simulation};
+use router_flood::terminal::TerminalGuard;
 use router_flood::ui::display_startup_banner;
 use router_flood::validation::{validate_comprehensive_security, validate_system_requirements};
 
@@ -95,6 +96,12 @@ async fn run_application() -> Result<()> {
 
     // Set up network interface
     let selected_interface = setup_network_interface(&config)?;
+
+    // Set up terminal control to hide ^C characters
+    let _terminal_guard = TerminalGuard::new().map_err(|e| {
+        tracing::warn!("Failed to set up terminal control: {}", e);
+        // Continue without terminal control - this is not critical
+    }).ok();
 
     // Create and run simulation
     let simulation = Simulation::new(config, target_ip, selected_interface);
