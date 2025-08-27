@@ -26,6 +26,7 @@ fn test_default_config_values() {
     assert!(config.safety.enable_monitoring);
     assert!(config.safety.audit_logging);
     assert!(!config.safety.dry_run);
+    assert!(!config.safety.perfect_simulation);
     
     // Test protocol mix ratios sum to 1.0
     let mix = &config.target.protocol_mix;
@@ -105,6 +106,7 @@ safety:
   enable_monitoring: true
   audit_logging: true
   dry_run: false
+  perfect_simulation: false
   max_threads: 100
   max_packet_rate: 10000
 
