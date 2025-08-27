@@ -85,6 +85,7 @@ impl WorkerManager {
                 config.target.protocol_mix.clone(),
                 config.attack.randomize_timing,
                 dry_run,
+                config.safety.perfect_simulation,
             );
 
             let handle = tokio::spawn(async move {
@@ -129,6 +130,7 @@ struct Worker {
     base_delay: StdDuration,
     randomize_timing: bool,
     dry_run: bool,
+    perfect_simulation: bool,
 }
 
 impl Worker {
@@ -145,6 +147,7 @@ impl Worker {
         protocol_mix: ProtocolMix,
         randomize_timing: bool,
         dry_run: bool,
+        perfect_simulation: bool,
     ) -> Self {
         let packet_builder = PacketBuilder::new(packet_size_range, protocol_mix);
         let base_delay = StdDuration::from_nanos(NANOSECONDS_PER_SECOND / packet_rate);
@@ -168,6 +171,7 @@ impl Worker {
             base_delay,
             randomize_timing,
             dry_run,
+            perfect_simulation,
         }
     }
 
@@ -238,7 +242,13 @@ impl Worker {
 
     /// Simulate packet sending in dry-run mode
     async fn simulate_packet_send(&mut self, packet_data: &[u8], protocol_name: &str) {
-        let simulate_success = self.packet_builder.rng_gen_bool(stats::SUCCESS_RATE_SIMULATION);
+        let simulate_success = if self.perfect_simulation {
+            // Perfect simulation: always succeed
+            true
+        } else {
+            // Realistic simulation: use configured success rate
+            self.packet_builder.rng_gen_bool(stats::SUCCESS_RATE_SIMULATION)
+        };
         
         if simulate_success {
             self.local_stats.increment_sent(packet_data.len() as u64, protocol_name);

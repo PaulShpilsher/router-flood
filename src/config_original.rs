@@ -54,6 +54,7 @@ pub struct SafetyConfig {
     pub enable_monitoring: bool,
     pub audit_logging: bool,
     pub dry_run: bool,
+    pub perfect_simulation: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -150,6 +151,7 @@ pub fn get_default_config() -> Config {
             enable_monitoring: true,
             audit_logging: true,
             dry_run: false,
+            perfect_simulation: false,
         },
         monitoring: MonitoringConfig {
             stats_interval: defaults::STATS_INTERVAL,

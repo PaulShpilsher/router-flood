@@ -29,6 +29,9 @@ fn get_long_help() -> &'static str {
   Safe testing (no packets sent):
     ./router-flood --target 192.168.1.1 --ports 80 --dry-run
 
+  Perfect simulation (100% success rate):
+    ./router-flood --target 192.168.1.1 --ports 80 --dry-run --perfect-simulation
+
   High-performance test:
     sudo ./router-flood --target 10.0.0.1 --ports 80,443,22,53 --threads 8 --rate 500 --duration 60
 
@@ -135,6 +138,14 @@ pub fn parse_arguments() -> ArgMatches {
                 .help("Simulate the attack without sending actual packets (safe testing)")
                 .action(clap::ArgAction::SetTrue),
         )
+        .arg(
+            Arg::new("perfect-simulation")
+                .long("perfect-simulation")
+                .help("Use 100% success rate in dry-run mode (no simulated failures)")
+                .long_help("When used with --dry-run, ensures 100% packet success rate.\nBy default, dry-run mode simulates 98% success rate for realistic training.\nThis flag removes simulated failures for pure configuration validation.")
+                .action(clap::ArgAction::SetTrue)
+                .requires("dry-run"),
+        )
         .get_matches()
 }
 
@@ -179,6 +190,13 @@ pub fn process_cli_config(matches: &ArgMatches, mut config: Config) -> Result<Co
         } else {
             info!("🔍 DRY-RUN MODE ENABLED (CONFIG) - No packets will be sent");
         }
+    }
+
+    // Handle perfect simulation flag
+    let cli_perfect_simulation = matches.get_flag("perfect-simulation");
+    if cli_perfect_simulation {
+        config.safety.perfect_simulation = true;
+        info!("✨ PERFECT SIMULATION MODE ENABLED - 100% success rate in dry-run");
     }
 
     Ok(config)
