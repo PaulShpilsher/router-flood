@@ -5,7 +5,7 @@
 
 #![no_main]
 
-use libfuzzer-sys::fuzz_target;
+use libfuzzer_sys::fuzz_target;
 use router_flood::config::*;
 
 fuzz_target!(|data: &[u8]| {

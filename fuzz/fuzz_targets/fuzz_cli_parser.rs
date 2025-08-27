@@ -5,7 +5,7 @@
 
 #![no_main]
 
-use libfuzzer-sys::fuzz_target;
+use libfuzzer_sys::fuzz_target;
 use router_flood::cli::*;
 
 fuzz_target!(|data: &[u8]| {
@@ -17,7 +17,7 @@ fuzz_target!(|data: &[u8]| {
     
     // Test with common port patterns
     let port_patterns = [
-        input_str.clone(),
+        input_str.to_string(),
         format!("80,{}", input_str),
         format!("{},443", input_str),
         format!("80,{},443", input_str),

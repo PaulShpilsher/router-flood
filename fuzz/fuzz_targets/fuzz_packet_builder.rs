@@ -9,8 +9,9 @@ use libfuzzer_sys::fuzz_target;
 use router_flood::packet::*;
 use router_flood::config::ProtocolMix;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+use arbitrary::Arbitrary;
 
-#[derive(Debug)]
+#[derive(Debug, Arbitrary)]
 struct FuzzInput {
     packet_size_min: u16,
     packet_size_max: u16,
