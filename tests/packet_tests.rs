@@ -53,7 +53,8 @@ fn test_packet_builder_packet_generation() {
     
     // Test that we can generate packet types
     for _ in 0..10 {
-        let packet_type = builder.next_packet_type();
+        let target_ip: std::net::IpAddr = "192.168.1.1".parse().unwrap();
+        let packet_type = builder.next_packet_type_for_ip(target_ip);
         // With 100% UDP ratio, should always return UDP
         assert_eq!(packet_type, PacketType::Udp);
     }
@@ -129,7 +130,7 @@ fn test_zero_copy_buffer_too_small() {
     
     assert!(result.is_err());
     let error_msg = result.err().unwrap();
-    assert!(error_msg.contains("Buffer too small"));
+    assert!(format!("{:?}", error_msg).contains("BufferTooSmall"));
 }
 
 #[test]

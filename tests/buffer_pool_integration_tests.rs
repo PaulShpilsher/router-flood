@@ -79,12 +79,12 @@ fn test_zero_copy_with_buffer_pool_simulation() {
     };
     
     let mut packet_builder = PacketBuilder::new((64, 1200), protocol_mix);
-    let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 100));
     let target_port = 80;
     
     // Simulate multiple packet building cycles
     for _ in 0..10 {
-        let packet_type = packet_builder.next_packet_type();
+        let target_ip: std::net::IpAddr = "192.168.1.1".parse().unwrap();
+        let packet_type = packet_builder.next_packet_type_for_ip(target_ip);
         
         // Get buffer from pool
         let mut buffer = pool.get_buffer();
@@ -208,7 +208,7 @@ fn test_buffer_pool_performance_characteristics() {
 
 #[test] 
 fn test_buffer_size_validation() {
-    let mut pool = WorkerBufferPool::new(50, 2, 4); // Very small buffers
+    let mut pool = WorkerBufferPool::new(50, 2, 4); // Small buffers (50 bytes)
     let protocol_mix = ProtocolMix {
         udp_ratio: 1.0,
         tcp_syn_ratio: 0.0,
@@ -218,13 +218,18 @@ fn test_buffer_size_validation() {
         arp_ratio: 0.0,
     };
     
-    let mut packet_builder = PacketBuilder::new((64, 200), protocol_mix); // Reasonable payload size range
+    // Use a reasonable payload size range that will still cause buffer overflow
+    // UDP needs at least 20 (IP) + 8 (UDP) + payload bytes = 28 + payload
+    // With 50 byte buffer, max payload is ~22 bytes, so 30-40 byte payload will fail
+    let mut packet_builder = PacketBuilder::new((30, 40), protocol_mix);
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
     let target_port = 80;
     
     let mut buffer = pool.get_buffer();
     
     // Should fail with buffer too small error
+    // Total packet size will be 28 (headers) + 30-40 (payload) = 58-68 bytes
+    // This exceeds our 50-byte buffer
     let result = packet_builder.build_packet_into_buffer(
         &mut buffer,
         PacketType::Udp,
@@ -234,7 +239,7 @@ fn test_buffer_size_validation() {
     
     assert!(result.is_err());
     let error_msg = result.err().unwrap();
-    assert!(error_msg.contains("Buffer too small"));
+    assert!(format!("{:?}", error_msg).contains("BufferTooSmall"));
     
     // Always return buffer even on error
     pool.return_buffer(buffer);

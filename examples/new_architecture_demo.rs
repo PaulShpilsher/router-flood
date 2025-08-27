@@ -9,7 +9,7 @@
 
 use router_flood::packet::{PacketBuilder, PacketType};
 use router_flood::config::ConfigBuilder;
-use router_flood::transport::MockTransport;
+use router_flood::transport::{MockTransport, TransportLayer};
 use std::net::IpAddr;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
