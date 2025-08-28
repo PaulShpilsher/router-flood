@@ -20,6 +20,7 @@
 //! - The software is for educational and authorized testing purposes only.
 //! - Unauthorized use (especially against systems you don't own or lack explicit permission to test) is strictly prohibited and may be illegal.
 
+pub mod abstractions;
 pub mod audit;
 pub mod buffer_pool;
 pub mod cli;
