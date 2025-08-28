@@ -36,7 +36,7 @@ fn benchmark_config_validation(c: &mut Criterion) {
     
     // Benchmark protocol mix validation
     group.bench_function("protocol_mix_validation", |b| {
-        let invalid_mix = router_flood::config_original::ProtocolMix {
+        let invalid_mix = router_flood::config::ProtocolMix {
             udp_ratio: 0.5,
             tcp_syn_ratio: 0.3,
             tcp_ack_ratio: 0.3, // Total > 1.0

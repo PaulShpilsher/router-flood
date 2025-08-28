@@ -43,7 +43,7 @@ fn test_config_builder_invalid_limits() {
 
 #[test]
 fn test_packet_builder_strategy_pattern() {
-    let protocol_mix = router_flood::config_original::ProtocolMix {
+    let protocol_mix = router_flood::config::ProtocolMix {
         udp_ratio: 0.6,
         tcp_syn_ratio: 0.25,
         tcp_ack_ratio: 0.05,
@@ -72,7 +72,7 @@ fn test_packet_builder_strategy_pattern() {
 
 #[test]
 fn test_packet_builder_protocol_selection() {
-    let protocol_mix = router_flood::config_original::ProtocolMix {
+    let protocol_mix = router_flood::config::ProtocolMix {
         udp_ratio: 1.0, // 100% UDP for predictable testing
         tcp_syn_ratio: 0.0,
         tcp_ack_ratio: 0.0,
@@ -93,7 +93,7 @@ fn test_packet_builder_protocol_selection() {
 
 #[test]
 fn test_packet_builder_ipv6_selection() {
-    let protocol_mix = router_flood::config_original::ProtocolMix {
+    let protocol_mix = router_flood::config::ProtocolMix {
         udp_ratio: 0.0,
         tcp_syn_ratio: 0.0,
         tcp_ack_ratio: 0.0,

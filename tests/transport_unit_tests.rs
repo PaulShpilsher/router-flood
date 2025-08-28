@@ -8,7 +8,10 @@ use router_flood::transport::{WorkerChannels, ChannelFactory};
 #[test]
 fn test_dry_run_channels() {
     let channels = WorkerChannels::new(None, true).unwrap();
-    assert!(!channels.has_channels());
+    // In dry-run mode, no actual channels are created
+    assert!(channels.ipv4_sender.is_none());
+    assert!(channels.ipv6_sender.is_none());
+    assert!(channels.l2_sender.is_none());
 }
 
 #[test]

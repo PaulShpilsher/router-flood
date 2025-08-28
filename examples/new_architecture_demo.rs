@@ -60,7 +60,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 3. Demonstrate the new packet builder with strategy pattern
     println!("\n3. Strategy Pattern Packet Building:");
     
-    let protocol_mix = router_flood::config_original::ProtocolMix {
+    let protocol_mix = router_flood::config::ProtocolMix {
         udp_ratio: 0.6,
         tcp_syn_ratio: 0.25,
         tcp_ack_ratio: 0.05,

@@ -171,7 +171,7 @@ fn test_configuration_validation_edge_cases() {
 #[test]
 fn test_protocol_selection_accuracy() {
     // Test that protocol selection respects the configured ratios
-    let protocol_mix = router_flood::config_original::ProtocolMix {
+    let protocol_mix = router_flood::config::ProtocolMix {
         udp_ratio: 1.0, // 100% UDP
         tcp_syn_ratio: 0.0,
         tcp_ack_ratio: 0.0,
@@ -192,7 +192,7 @@ fn test_protocol_selection_accuracy() {
 
 #[test]
 fn test_ipv6_compatibility() {
-    let protocol_mix = router_flood::config_original::ProtocolMix {
+    let protocol_mix = router_flood::config::ProtocolMix {
         udp_ratio: 0.0,
         tcp_syn_ratio: 0.0,
         tcp_ack_ratio: 0.0,
@@ -233,7 +233,7 @@ fn test_ipv6_compatibility() {
 
 #[test]
 fn test_error_handling_robustness() {
-    let protocol_mix = router_flood::config_original::ProtocolMix {
+    let protocol_mix = router_flood::config::ProtocolMix {
         udp_ratio: 0.6,
         tcp_syn_ratio: 0.25,
         tcp_ack_ratio: 0.05,
@@ -271,7 +271,7 @@ fn test_error_handling_robustness() {
 fn test_performance_optimizations() {
     use std::time::Instant;
     
-    let protocol_mix = router_flood::config_original::ProtocolMix {
+    let protocol_mix = router_flood::config::ProtocolMix {
         udp_ratio: 0.6,
         tcp_syn_ratio: 0.25,
         tcp_ack_ratio: 0.05,

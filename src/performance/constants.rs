@@ -46,7 +46,7 @@ pub mod tuning {
 
 /// Compile-time protocol mix calculations
 pub mod protocol_mix {
-    use crate::config_original::ProtocolMix;
+    use crate::config::ProtocolMix;
     
     /// Pre-computed cumulative distribution for protocol selection
     pub struct CumulativeDistribution {

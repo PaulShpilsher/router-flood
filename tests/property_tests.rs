@@ -46,11 +46,11 @@ prop_compose! {
         icmp in 0.0f64..=1.0,
         ipv6 in 0.0f64..=1.0,
         arp in 0.0f64..=1.0
-    ) -> router_flood::config_original::ProtocolMix {
+    ) -> router_flood::config::ProtocolMix {
         // Normalize to sum to 1.0
         let total = udp + tcp_syn + tcp_ack + icmp + ipv6 + arp;
         if total > 0.0 {
-            router_flood::config_original::ProtocolMix {
+            router_flood::config::ProtocolMix {
                 udp_ratio: udp / total,
                 tcp_syn_ratio: tcp_syn / total,
                 tcp_ack_ratio: tcp_ack / total,
@@ -60,7 +60,7 @@ prop_compose! {
             }
         } else {
             // Fallback to equal distribution
-            router_flood::config_original::ProtocolMix {
+            router_flood::config::ProtocolMix {
                 udp_ratio: 1.0 / 6.0,
                 tcp_syn_ratio: 1.0 / 6.0,
                 tcp_ack_ratio: 1.0 / 6.0,
@@ -82,7 +82,7 @@ proptest! {
         target_port in 1u16..=65535,
         buffer_size in 100usize..=2000
     ) {
-        let protocol_mix = router_flood::config_original::ProtocolMix {
+        let protocol_mix = router_flood::config::ProtocolMix {
             udp_ratio: 0.6,
             tcp_syn_ratio: 0.25,
             tcp_ack_ratio: 0.05,
@@ -127,7 +127,7 @@ proptest! {
         target_ip in valid_ipv4_private(),
         target_port in 1u16..=65535
     ) {
-        let protocol_mix = router_flood::config_original::ProtocolMix {
+        let protocol_mix = router_flood::config::ProtocolMix {
             udp_ratio: 0.6,
             tcp_syn_ratio: 0.25,
             tcp_ack_ratio: 0.05,
@@ -170,7 +170,7 @@ proptest! {
         target_ip in valid_ipv6_link_local(),
         target_port in 1u16..=65535
     ) {
-        let protocol_mix = router_flood::config_original::ProtocolMix {
+        let protocol_mix = router_flood::config::ProtocolMix {
             udp_ratio: 0.0,
             tcp_syn_ratio: 0.0,
             tcp_ack_ratio: 0.0,

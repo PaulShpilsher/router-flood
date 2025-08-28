@@ -9,7 +9,7 @@ use std::net::IpAddr;
 
 #[test]
 fn test_phase2_packet_building_performance() {
-    let protocol_mix = router_flood::config_original::ProtocolMix {
+    let protocol_mix = router_flood::config::ProtocolMix {
         udp_ratio: 0.6,
         tcp_syn_ratio: 0.25,
         tcp_ack_ratio: 0.05,
@@ -99,7 +99,7 @@ fn test_phase2_shared_buffer_pool() {
 
 #[test]
 fn test_phase2_protocol_selection_optimization() {
-    let protocol_mix = router_flood::config_original::ProtocolMix {
+    let protocol_mix = router_flood::config::ProtocolMix {
         udp_ratio: 1.0, // 100% UDP for predictable testing
         tcp_syn_ratio: 0.0,
         tcp_ack_ratio: 0.0,
@@ -134,34 +134,12 @@ fn test_phase2_const_optimizations() {
     println!("✅ Phase 2: Const function optimizations work");
 }
 
-#[test]
-fn test_phase2_adapter_compatibility() {
-    use router_flood::adapters::{ChannelTypeAdapter, SystemStatsAdapter};
-    
-    // Test channel type adapter
-    let new_channel = router_flood::transport::ChannelType::IPv4;
-    let original_channel = ChannelTypeAdapter::to_original(new_channel);
-    let back_to_new = ChannelTypeAdapter::from_original(original_channel);
-    
-    assert_eq!(format!("{:?}", new_channel), format!("{:?}", back_to_new));
-    
-    // Test system stats adapter
-    let new_stats = router_flood::stats::SystemStats {
-        cpu_usage: 50.0,
-        memory_usage: 1024,
-        memory_total: 8192,
-        network_sent: 1000,
-        network_received: 2000,
-    };
-    
-    let original_stats = SystemStatsAdapter::to_original(&new_stats);
-    let back_to_new = SystemStatsAdapter::from_original(&original_stats);
-    
-    assert_eq!(new_stats.cpu_usage, back_to_new.cpu_usage);
-    assert_eq!(new_stats.memory_usage, back_to_new.memory_usage);
-    
-    println!("✅ Phase 2: Compatibility adapters work");
-}
+// Adapters have been removed as part of cleanup
+// #[test]
+// fn test_phase2_adapter_compatibility() {
+//     // Adapters no longer needed after removing duplicate modules
+//     println!("✅ Phase 2: Adapters removed - using unified types");
+// }
 
 #[test]
 fn test_phase2_performance_constants() {

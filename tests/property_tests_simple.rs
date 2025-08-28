@@ -26,7 +26,7 @@ proptest! {
         target_port in 1u16..=65535,
         buffer_size in 100usize..=2000
     ) {
-        let protocol_mix = router_flood::config_original::ProtocolMix {
+        let protocol_mix = router_flood::config::ProtocolMix {
             udp_ratio: 0.6,
             tcp_syn_ratio: 0.25,
             tcp_ack_ratio: 0.05,

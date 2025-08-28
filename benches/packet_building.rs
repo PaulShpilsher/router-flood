@@ -12,7 +12,7 @@ use router_flood::performance::LockFreeBufferPool;
 use std::net::IpAddr;
 
 fn benchmark_packet_building(c: &mut Criterion) {
-    let protocol_mix = router_flood::config_original::ProtocolMix {
+    let protocol_mix = router_flood::config::ProtocolMix {
         udp_ratio: 0.6,
         tcp_syn_ratio: 0.25,
         tcp_ack_ratio: 0.05,
@@ -96,7 +96,7 @@ fn benchmark_buffer_pools(c: &mut Criterion) {
 }
 
 fn benchmark_protocol_selection(c: &mut Criterion) {
-    let protocol_mix = router_flood::config_original::ProtocolMix {
+    let protocol_mix = router_flood::config::ProtocolMix {
         udp_ratio: 0.6,
         tcp_syn_ratio: 0.25,
         tcp_ack_ratio: 0.05,
