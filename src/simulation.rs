@@ -15,7 +15,6 @@ use crate::config::Config;
 use crate::constants::GRACEFUL_SHUTDOWN_TIMEOUT;
 use crate::error::{NetworkError, Result};
 use crate::monitor::SystemMonitor;
-use crate::adapters::SystemStatsAdapter;
 use crate::network::{find_interface_by_name, get_default_interface};
 use crate::stats::FloodStats;
 use crate::target::MultiPortTarget;
@@ -128,8 +127,7 @@ impl Simulation {
             while running.load(Ordering::Relaxed) {
                 time::sleep(StdDuration::from_secs(stats_interval)).await;
                 let sys_stats = system_monitor.get_system_stats().await;
-                let original_stats = sys_stats.as_ref().map(SystemStatsAdapter::to_original);
-                stats.print_stats(original_stats.as_ref());
+                stats.print_stats(sys_stats.as_ref());
             }
         });
     }

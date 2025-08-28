@@ -20,12 +20,10 @@
 //! - The software is for educational and authorized testing purposes only.
 //! - Unauthorized use (especially against systems you don't own or lack explicit permission to test) is strictly prohibited and may be illegal.
 
-pub mod adapters;
 pub mod audit;
 pub mod buffer_pool;
 pub mod cli;
 pub mod config;
-pub mod config_original;
 pub mod constants;
 pub mod error;
 pub mod monitor;
@@ -37,11 +35,9 @@ pub mod rng;
 pub mod security;
 pub mod simulation;
 pub mod stats;
-pub mod stats_original;
 pub mod target;
 pub mod terminal;
 pub mod transport;
-pub mod transport_original;
 pub mod ui;
 pub mod validation;
 pub mod worker;

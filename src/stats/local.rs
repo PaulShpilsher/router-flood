@@ -1,9 +1,10 @@
 //! Local statistics accumulator for batched updates
 
-use super::collector::StatsCollector;
+use super::FloodStats;
 use crate::constants::protocols;
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::sync::atomic::Ordering;
 
 /// Local stats accumulator to batch atomic updates
 pub struct LocalStats {
@@ -12,12 +13,12 @@ pub struct LocalStats {
     bytes_sent: u64,
     protocol_counts: HashMap<String, u64>,
     batch_size: usize,
-    stats_ref: Arc<dyn StatsCollector>,
+    stats_ref: Arc<FloodStats>,
 }
 
 impl LocalStats {
     /// Create a new local stats accumulator
-    pub fn new(stats_ref: Arc<dyn StatsCollector>, batch_size: usize) -> Self {
+    pub fn new(stats_ref: Arc<FloodStats>, batch_size: usize) -> Self {
         let protocol_counts = protocols::ALL_PROTOCOLS
             .iter()
             .map(|&protocol| (protocol.to_string(), 0u64))
@@ -59,17 +60,26 @@ impl LocalStats {
     
     /// Flush accumulated stats to global counters
     pub fn flush(&mut self) {
-        if self.packets_sent > 0 || self.packets_failed > 0 {
-            // For now, we'll need to implement this differently since we can't
-            // directly access the FloodStats internals through the trait
-            // This would need to be refactored to work with the trait system
-            
-            // Reset local counters
+        if self.packets_sent > 0 {
+            self.stats_ref.packets_sent.fetch_add(self.packets_sent, Ordering::Relaxed);
             self.packets_sent = 0;
+        }
+        
+        if self.packets_failed > 0 {
+            self.stats_ref.packets_failed.fetch_add(self.packets_failed, Ordering::Relaxed);
             self.packets_failed = 0;
+        }
+        
+        if self.bytes_sent > 0 {
+            self.stats_ref.bytes_sent.fetch_add(self.bytes_sent, Ordering::Relaxed);
             self.bytes_sent = 0;
-            
-            for count in self.protocol_counts.values_mut() {
+        }
+        
+        for (protocol, count) in &mut self.protocol_counts {
+            if *count > 0 {
+                if let Some(global_counter) = self.stats_ref.protocol_stats.get(protocol) {
+                    global_counter.fetch_add(*count, Ordering::Relaxed);
+                }
                 *count = 0;
             }
         }
