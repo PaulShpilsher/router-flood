@@ -33,8 +33,8 @@ use router_flood::cli::{handle_pre_execution_commands, parse_arguments, process_
 use router_flood::config::{get_default_config, load_config};
 use router_flood::constants::error_messages;
 use router_flood::error::{Result, display_user_friendly_error};
-use router_flood::simulation::{setup_network_interface, Simulation};
-use router_flood::terminal::TerminalGuard;
+use router_flood::core::simulation::{setup_network_interface, Simulation};
+use router_flood::utils::terminal::TerminalGuard;
 use router_flood::ui::display_startup_banner;
 use router_flood::validation::{validate_comprehensive_security, validate_system_requirements};
 

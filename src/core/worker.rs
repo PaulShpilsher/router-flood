@@ -11,13 +11,13 @@ use tokio::task::JoinHandle;
 use tokio::time;
 use tracing::{debug, trace};
 
-use crate::buffer_pool::WorkerBufferPool;
+use crate::utils::buffer_pool::WorkerBufferPool;
 use crate::config::{Config, ProtocolMix};
 use crate::constants::{stats, timing, NANOSECONDS_PER_SECOND};
 use crate::error::{NetworkError, Result};
 use crate::packet::{PacketBuilder, PacketType};
 use crate::stats::{FloodStats, LocalStats};
-use crate::target::MultiPortTarget;
+use crate::core::target::MultiPortTarget;
 use crate::transport::{WorkerChannels, ChannelFactory};
 
 

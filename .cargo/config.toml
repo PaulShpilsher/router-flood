@@ -1,0 +1,6 @@
+[env]
+# Set criterion to use less iterations for faster benchmarking
+CRITERION_MEASUREMENT_TIME = "10"
+
+[profile.bench]
+debug = false

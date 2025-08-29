@@ -22,33 +22,30 @@
 
 pub mod abstractions;
 pub mod audit;
-pub mod buffer_pool;
 pub mod cli;
 pub mod config;
 pub mod constants;
+pub mod core;
 pub mod error;
 pub mod monitor;
 pub mod monitoring;
-pub mod network;
 pub mod packet;
 pub mod performance;
-pub mod raii;
-pub mod rng;
 pub mod security;
-pub mod simulation;
-pub mod simulation_raii;
 pub mod stats;
-pub mod target;
-pub mod terminal;
 pub mod transport;
 pub mod ui;
+pub mod utils;
 pub mod validation;
-pub mod worker;
 
 // Re-export key types for convenience
 pub use config::{Config, TargetConfig, AttackConfig, SafetyConfig, MonitoringConfig, ExportConfig, ExportFormat, ProtocolMix};
+pub use core::simulation::{Simulation, SimulationRAII};
+pub use core::worker::WorkerManager;
+pub use core::target::MultiPortTarget;
 pub use error::{Result, RouterFloodError};
 pub use packet::{PacketBuilder, PacketStrategy, PacketType, Target};
-pub use simulation::Simulation;
 pub use stats::FloodStats;
-pub use terminal::{TerminalController, TerminalGuard};
+pub use utils::buffer_pool::{BufferPool, WorkerBufferPool};
+pub use utils::terminal::{TerminalController, TerminalGuard};
+pub use utils::raii::ResourceGuard;

@@ -5,7 +5,7 @@
 //!
 //! Tests for multi-port target management and port selection logic.
 
-use router_flood::target::*;
+use router_flood::core::target::*;
 use std::collections::HashSet;
 
 #[test]

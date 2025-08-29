@@ -12,10 +12,10 @@ use crate::config::Config;
 use crate::constants::GRACEFUL_SHUTDOWN_TIMEOUT;
 use crate::error::{NetworkError, Result};
 use crate::monitor::SystemMonitor;
-use crate::network::{find_interface_by_name, get_default_interface};
+use crate::core::network::{find_interface_by_name, get_default_interface};
 use crate::stats::FloodStats;
-use crate::target::MultiPortTarget;
-use crate::worker::WorkerManager;
+use crate::core::target::MultiPortTarget;
+use crate::core::worker::WorkerManager;
 
 /// Network interface setup
 pub fn setup_network_interface(config: &Config) -> Result<Option<pnet::datalink::NetworkInterface>> {
@@ -42,7 +42,7 @@ pub fn setup_network_interface(config: &Config) -> Result<Option<pnet::datalink:
 }
 
 /// Monitoring tasks manager
-struct MonitoringTasks {
+pub(crate) struct MonitoringTasks {
     stats: Arc<FloodStats>,
     system_monitor: Arc<SystemMonitor>,
     running: Arc<AtomicBool>,

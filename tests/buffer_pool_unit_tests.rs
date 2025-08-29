@@ -3,7 +3,7 @@
 //! These tests were moved from src/buffer_pool.rs to follow best practices
 //! of keeping all tests in the tests/ directory.
 
-use router_flood::buffer_pool::{BufferPool, WorkerBufferPool};
+use router_flood::utils::buffer_pool::{BufferPool, WorkerBufferPool};
 
 #[test]
 fn test_buffer_pool_basic() {

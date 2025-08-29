@@ -4,7 +4,7 @@
 //!
 //! Tests for buffer pool functionality and zero-copy packet building integration.
 
-use router_flood::buffer_pool::WorkerBufferPool;
+use router_flood::utils::buffer_pool::WorkerBufferPool;
 use router_flood::config::ProtocolMix;
 use router_flood::packet::{PacketBuilder, PacketType};
 use std::net::{IpAddr, Ipv4Addr};

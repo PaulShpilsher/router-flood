@@ -8,7 +8,8 @@
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
 use router_flood::packet::{PacketBuilder, PacketType};
-use router_flood::performance::LockFreeBufferPool;
+use router_flood::utils::buffer_pool::BufferPool;
+use router_flood::utils::rng::BatchedRng;
 use std::net::IpAddr;
 
 fn benchmark_packet_building(c: &mut Criterion) {
@@ -72,15 +73,14 @@ fn benchmark_packet_building(c: &mut Criterion) {
 fn benchmark_buffer_pools(c: &mut Criterion) {
     let mut group = c.benchmark_group("buffer_pools");
     
-    // Benchmark lock-free buffer pool
-    let lock_free_pool = LockFreeBufferPool::new(1400, 100);
+    // Benchmark buffer pool
+    let buffer_pool = BufferPool::new(1400, 10, 100);
     
-    group.bench_function("lock_free_get_return", |b| {
+    group.bench_function("buffer_pool_get_return", |b| {
         b.iter(|| {
-            let buffer = black_box(lock_free_pool.get_buffer());
-            if let Some(buf) = buffer {
-                black_box(lock_free_pool.return_buffer(buf));
-            }
+            let buffer = black_box(buffer_pool.get_buffer());
+            // Buffer is automatically returned when dropped
+            black_box(buffer);
         });
     });
     
@@ -127,7 +127,7 @@ fn benchmark_protocol_selection(c: &mut Criterion) {
 }
 
 fn benchmark_rng_operations(c: &mut Criterion) {
-    let mut rng = router_flood::rng::BatchedRng::new();
+    let mut rng = BatchedRng::new();
     
     let mut group = c.benchmark_group("rng_operations");
     

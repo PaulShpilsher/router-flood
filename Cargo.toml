@@ -52,3 +52,15 @@ harness = false
 [[bench]]
 name = "config_validation"
 harness = false
+
+[[bench]]
+name = "lockfree_stats"
+harness = false
+
+[[bench]]
+name = "raii_guards"
+harness = false
+
+[[bench]]
+name = "abstractions"
+harness = false

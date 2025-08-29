@@ -5,7 +5,7 @@
 //! These tests were moved from src/rng.rs to follow best practices
 //! of keeping all tests in the tests/ directory.
 
-use router_flood::rng::{BatchedRng, RandomValueType, DEFAULT_BATCH_SIZE};
+use router_flood::utils::rng::{BatchedRng, RandomValueType, DEFAULT_BATCH_SIZE};
 
 #[test]
 fn test_batched_rng_creation() {

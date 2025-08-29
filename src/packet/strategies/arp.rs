@@ -4,7 +4,7 @@ use super::PacketStrategy;
 use crate::constants::{ETHERNET_HEADER_SIZE, ARP_PACKET_SIZE};
 use crate::error::{PacketError, Result};
 use crate::packet::Target;
-use crate::rng::BatchedRng;
+use crate::utils::rng::BatchedRng;
 use pnet::packet::arp::{ArpHardwareTypes, ArpOperations, MutableArpPacket};
 use pnet::packet::ethernet::{EtherTypes, MutableEthernetPacket};
 use pnet::packet::MutablePacket;

@@ -3,7 +3,7 @@
 //! Tests for the simulation orchestration logic and lifecycle management.
 
 use router_flood::config::get_default_config;
-use router_flood::simulation::{Simulation, setup_network_interface};
+use router_flood::core::simulation::{Simulation, setup_network_interface};
 use std::net::{IpAddr, Ipv4Addr};
 
 #[test]

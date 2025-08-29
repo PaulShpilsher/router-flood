@@ -4,7 +4,7 @@ use super::PacketStrategy;
 use crate::constants::{IPV4_HEADER_SIZE, UDP_HEADER_SIZE};
 use crate::error::{PacketError, Result};
 use crate::packet::Target;
-use crate::rng::BatchedRng;
+use crate::utils::rng::BatchedRng;
 use pnet::packet::ip::IpNextHeaderProtocols;
 use pnet::packet::ipv4::MutableIpv4Packet;
 use pnet::packet::udp::MutableUdpPacket;

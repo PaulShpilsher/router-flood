@@ -13,11 +13,11 @@ use crate::audit::create_audit_entry;
 use crate::config::Config;
 use crate::error::Result;
 use crate::monitor::SystemMonitor;
-use crate::raii::{ResourceGuard, SignalGuard, StatsGuard, TerminalRAIIGuard, WorkerGuard};
-use crate::simulation::setup_network_interface;
+use crate::utils::raii::{ResourceGuard, SignalGuard, StatsGuard, TerminalRAIIGuard, WorkerGuard};
+use crate::core::simulation::setup_network_interface;
 use crate::stats::FloodStats;
-use crate::target::MultiPortTarget;
-use crate::worker::WorkerManager;
+use crate::core::target::MultiPortTarget;
+use crate::core::worker::WorkerManager;
 
 /// Enhanced simulation with RAII resource management
 pub struct SimulationRAII {

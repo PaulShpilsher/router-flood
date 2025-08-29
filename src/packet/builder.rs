@@ -3,7 +3,7 @@
 use super::{PacketStrategy, PacketType, Target};
 use crate::config::ProtocolMix;
 use crate::error::{PacketError, Result};
-use crate::rng::BatchedRng;
+use crate::utils::rng::BatchedRng;
 use std::collections::HashMap;
 use std::net::IpAddr;
 

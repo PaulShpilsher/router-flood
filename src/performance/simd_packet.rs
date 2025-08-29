@@ -9,7 +9,7 @@ use std::arch::x86_64::*;
 use std::arch::aarch64::*;
 
 use crate::error::{PacketError, Result};
-use crate::rng::BatchedRng;
+use crate::utils::rng::BatchedRng;
 
 /// SIMD-optimized packet builder
 pub struct SimdPacketBuilder {

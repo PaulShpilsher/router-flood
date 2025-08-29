@@ -4,7 +4,7 @@ use super::PacketStrategy;
 use crate::constants::{IPV6_HEADER_SIZE, TCP_HEADER_SIZE};
 use crate::error::{PacketError, Result};
 use crate::packet::Target;
-use crate::rng::BatchedRng;
+use crate::utils::rng::BatchedRng;
 use pnet::packet::ip::IpNextHeaderProtocols;
 use pnet::packet::ipv6::MutableIpv6Packet;
 use pnet::packet::tcp::{MutableTcpPacket, TcpFlags};

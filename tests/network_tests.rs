@@ -2,7 +2,7 @@
 //!
 //! Tests for network interface detection and management.
 
-use router_flood::network::*;
+use router_flood::core::network::*;
 
 #[test]
 fn test_list_network_interfaces() {

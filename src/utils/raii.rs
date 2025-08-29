@@ -10,9 +10,9 @@ use tracing::{debug, error};
 
 use crate::error::{NetworkError, Result};
 use crate::stats::FloodStats;
-use crate::terminal::TerminalController;
+use crate::utils::terminal::TerminalController;
 use crate::transport::WorkerChannels;
-use crate::worker::WorkerManager;
+use crate::core::worker::WorkerManager;
 
 /// RAII guard for worker thread management
 /// 

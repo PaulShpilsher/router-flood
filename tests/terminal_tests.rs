@@ -3,7 +3,7 @@
 //! Tests for terminal control functionality including TTY detection,
 //! terminal settings management, and RAII guard behavior.
 
-use router_flood::terminal::{TerminalController, TerminalGuard};
+use router_flood::utils::terminal::{TerminalController, TerminalGuard};
 
 #[test]
 fn test_terminal_controller_creation() {
