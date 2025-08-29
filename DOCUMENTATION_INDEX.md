@@ -15,6 +15,8 @@ Welcome to the Router Flood documentation! This index helps you find the right d
 | Document | Purpose | Audience |
 |----------|---------|----------|
 | [API_DOCUMENTATION.md](API_DOCUMENTATION.md) | Rust API reference and examples | Developers |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | System architecture and design patterns | Architects, Senior Devs |
+| [DEVELOPMENT.md](DEVELOPMENT.md) | Development setup and workflow | Developers |
 | [TESTING_GUIDE.md](TESTING_GUIDE.md) | Testing strategies and implementation | Developers, QA |
 | [FUZZING_GUIDE.md](FUZZING_GUIDE.md) | Fuzzing setup and maintenance | Security researchers, Developers |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution guidelines | Contributors |
@@ -23,7 +25,10 @@ Welcome to the Router Flood documentation! This index helps you find the right d
 
 | Document | Purpose | Audience |
 |----------|---------|----------|
+| [USAGE.md](USAGE.md) | Comprehensive usage guide with examples | Operators, Users |
 | [PERFORMANCE_GUIDE.md](PERFORMANCE_GUIDE.md) | Performance tuning and optimization | Performance engineers |
+| [PERFORMANCE_TUNING.md](PERFORMANCE_TUNING.md) | Advanced performance tuning | Performance engineers |
+| [BENCHMARKS.md](BENCHMARKS.md) | Benchmark results and analysis | Performance engineers |
 | [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) | Production deployment strategies | DevOps, SRE |
 | [PRODUCTION_GUIDE.md](PRODUCTION_GUIDE.md) | Production operations | Operations teams |
 
@@ -32,7 +37,18 @@ Welcome to the Router Flood documentation! This index helps you find the right d
 | Document | Purpose | Audience |
 |----------|---------|----------|
 | [CHANGELOG.md](CHANGELOG.md) | Version history and changes | Everyone |
+| [PROJECT_STATUS.md](PROJECT_STATUS.md) | Current project status and roadmap | Everyone |
 | [LICENSE](LICENSE) | Legal information | Legal, Compliance |
+
+## 📝 Implementation Reports
+
+| Document | Purpose | Audience |
+|----------|---------|----------|
+| [IMPROVEMENTS_SUMMARY.md](IMPROVEMENTS_SUMMARY.md) | Code quality improvements summary | Developers |
+| [DEAD_CODE_ANALYSIS.md](DEAD_CODE_ANALYSIS.md) | Dead code analysis report | Developers |
+| [TEST_BENCH_UPDATE_SUMMARY.md](TEST_BENCH_UPDATE_SUMMARY.md) | Test and benchmark updates | QA, Developers |
+| [CLEANUP_SUMMARY.md](CLEANUP_SUMMARY.md) | Code cleanup summary | Developers |
+| [BENCHMARK_RESULTS.md](BENCHMARK_RESULTS.md) | Detailed benchmark results | Performance engineers |
 
 ## 🎯 Quick Navigation
 
@@ -61,15 +77,25 @@ Welcome to the Router Flood documentation! This index helps you find the right d
 
 | Document | Status | Last Updated | Completeness |
 |----------|--------|--------------|--------------|
-| README.md | ✅ Current | 2025-08-27 | 100% |
+| README.md | ✅ Current | 2025-08-29 | 100% |
+| CHANGELOG.md | ✅ Current | 2025-08-29 | 100% |
+| ARCHITECTURE.md | ✅ Current | 2025-08-29 | 100% |
+| USAGE.md | ✅ Current | 2025-08-29 | 100% |
+| BENCHMARKS.md | ✅ Current | 2025-08-29 | 100% |
 | API_DOCUMENTATION.md | ✅ Current | 2025-08-27 | 100% |
+| DEVELOPMENT.md | ✅ Current | 2025-08-29 | 100% |
 | PERFORMANCE_GUIDE.md | ✅ Current | 2025-08-27 | 100% |
+| PERFORMANCE_TUNING.md | ✅ Current | 2025-08-27 | 100% |
 | DEPLOYMENT_GUIDE.md | ✅ Current | 2025-08-27 | 100% |
+| PRODUCTION_GUIDE.md | ✅ Current | 2025-08-27 | 100% |
 | TESTING_GUIDE.md | ✅ Current | 2025-08-27 | 100% |
 | SECURITY.md | ✅ Current | 2025-08-27 | 100% |
-| CHANGELOG.md | ✅ Current | 2025-08-27 | 100% |
 | CONTRIBUTING.md | ✅ Current | 2025-08-27 | 100% |
 | FUZZING_GUIDE.md | ✅ Current | 2025-08-27 | 100% |
+| PROJECT_STATUS.md | ✅ Current | 2025-08-29 | 100% |
+| IMPROVEMENTS_SUMMARY.md | ✅ Current | 2025-08-29 | 100% |
+| DEAD_CODE_ANALYSIS.md | ✅ Current | 2025-08-29 | 100% |
+| TEST_BENCH_UPDATE_SUMMARY.md | ✅ Current | 2025-08-29 | 100% |
 
 ## 🔍 Finding Specific Information
 
