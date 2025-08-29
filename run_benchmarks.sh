@@ -15,6 +15,10 @@ benchmarks=(
     "lockfree_stats"
     "raii_guards"
     "abstractions"
+    "transport"
+    "rate_limiting"
+    "buffer_pool"
+    "protocol_selection"
 )
 
 for bench in "${benchmarks[@]}"; do

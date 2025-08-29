@@ -65,3 +65,19 @@ harness = false
 [[bench]]
 name = "abstractions"
 harness = false
+
+[[bench]]
+name = "transport"
+harness = false
+
+[[bench]]
+name = "rate_limiting"
+harness = false
+
+[[bench]]
+name = "buffer_pool"
+harness = false
+
+[[bench]]
+name = "protocol_selection"
+harness = false
