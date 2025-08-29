@@ -2,7 +2,7 @@
 
 [![Rust](https://img.shields.io/badge/rust-1.70+-orange.svg)](https://www.rust-lang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-322%2B%20passing-green.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-320%2B%20passing-green.svg)](#testing)
 [![Security](https://img.shields.io/badge/security-capability--based-blue.svg)](#security)
 [![Performance](https://img.shields.io/badge/performance-SIMD%20optimized-brightgreen.svg)](#performance)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](#build-status)
@@ -36,7 +36,7 @@ A comprehensive, safety-first network testing tool designed for educational purp
 ### 🧪 **Robust Testing**
 - **Property-Based Testing**: 10,000+ generated test cases per property
 - **Fuzzing Support**: Continuous security testing with cargo-fuzz (3 fuzz targets)
-- **322+ Comprehensive Tests**: Unit, integration, and security tests
+- **320+ Comprehensive Tests**: Unit, integration, and security tests
 - **Regression Protection**: Automated edge case detection
 - **Zero Warnings**: Clean compilation with strict linting
 
@@ -70,85 +70,145 @@ sudo setcap cap_net_raw+ep ./target/release/router-flood
 
 ### Basic Usage
 
+Router Flood supports two CLI modes: direct (for quick tests) and enhanced with subcommands (for advanced features).
+
+#### Direct Mode (Quick Testing)
+```bash
+# Quick test with dry-run (safe, no packets sent)
+./target/release/router-flood --target 192.168.1.1 --ports 80,443 --dry-run
+
+# Test with specific parameters
+./target/release/router-flood --target 192.168.1.1 --ports 80 --threads 4 --rate 500 --duration 30
+
+# Using configuration file
+./target/release/router-flood --config my_test.yaml
+```
+
+#### Enhanced Mode (Full Features)
 ```bash
 # Interactive mode (recommended for beginners)
 ./target/release/router-flood interactive
 
-# Quick test with dry-run (safe, no packets sent)
-./target/release/router-flood --target 192.168.1.1 --ports 80,443 --dry-run
+# Run with subcommand for more options
+./target/release/router-flood run --target 192.168.1.1 --ports 80 --cpu-affinity --prometheus-port 9090
 
-# Perfect simulation (100% success rate for clean validation)
-./target/release/router-flood --target 192.168.1.1 --ports 80,443 --dry-run --perfect-simulation
+# Configuration management
+./target/release/router-flood config generate --template web_server
+./target/release/router-flood config validate my_config.yaml
 
-# High-performance test with monitoring
-./target/release/router-flood run --config high_perf.yaml --cpu-affinity --prometheus-port 9090
+# System diagnostics
+./target/release/router-flood system security
+./target/release/router-flood system performance --workers 8
 ```
 
-## 📚 Usage Examples
+## 📚 Command Line Examples
 
-### 🎓 Educational Scenarios
+### Quick Start Examples
 
-#### Basic Web Server Testing
 ```bash
-# Generate a web server configuration
-nrouter-flood config generate --template web_server --output web_test.yaml
+# Check system capabilities and security context
+router-flood system security
 
-# Run the test with monitoring
+# Generate a configuration template
+router-flood config generate --template web_server --output my_test.yaml
+
+# Validate configuration before running
+router-flood config validate my_test.yaml
+
+# Run a simple test (dry-run first!)
+router-flood run --target 192.168.1.1 --ports 80 --dry-run
+router-flood run --target 192.168.1.1 --ports 80 --threads 2 --rate 100
+```
+
+### Common Testing Scenarios
+
+#### Web Server Testing
+```bash
+# Test HTTP/HTTPS with moderate load
+router-flood run --target 192.168.1.100 --ports 80,443 --threads 4 --rate 500 --duration 60
+
+# Test with multiple web application ports
+router-flood run --target 192.168.1.100 --ports 80,443,8080,8443,3000 --threads 8
+
+# Generate and use web server configuration
+router-flood config generate --template web_server --output web_test.yaml
 router-flood run --config web_test.yaml --export json
 ```
 
-#### DNS Server Stress Test
+#### DNS Server Testing
 ```bash
-# DNS-focused configuration
-router-flood config generate --template dns_server --output dns_test.yaml
+# Standard DNS port with high packet rate
+router-flood run --target 192.168.1.53 --ports 53 --threads 2 --rate 1000
 
-# Execute with CPU affinity optimization
-router-flood run --config dns_test.yaml --cpu-affinity
+# DNS over TLS/HTTPS testing
+router-flood run --target 192.168.1.53 --ports 53,853,443 --threads 4 --cpu-affinity
 ```
 
-#### Interactive Learning Mode
+#### Home Router Testing
 ```bash
-# Guided configuration for learning
-router-flood interactive
+# Conservative test for home equipment
+router-flood run --target 192.168.1.1 --ports 80,443,53 --threads 2 --rate 50 --duration 30
 
-# System analysis and recommendations
-router-flood system performance --workers 8
-router-flood system security
+# Gradual load increase
+for rate in 10 50 100 500; do
+  router-flood run --target 192.168.1.1 --ports 80 --rate $rate --duration 10
+  sleep 5
+done
 ```
 
-### 🏢 Professional Use Cases
+#### IoT Device Testing
+```bash
+# MQTT broker test
+router-flood run --target 192.168.1.150 --ports 1883,8883 --threads 1 --rate 20
+
+# Smart home hub with multiple protocols
+router-flood run --target 192.168.1.50 --ports 1883,5683,8080 --threads 2 --rate 30
+```
+
+### Advanced Usage
 
 #### High-Performance Testing
 ```bash
-# Generate high-performance configuration
-router-flood config generate --template high_performance
-
-# Run with full optimizations
-router-flood run --config high_performance.yaml \\
+# Maximum performance with all optimizations
+router-flood run \\
+  --target 192.168.1.1 \\
+  --ports 80,443 \\
+  --threads 16 \\
+  --rate 10000 \\
   --cpu-affinity \\
   --prometheus-port 9090 \\
   --export prometheus
+
+# Generate high-performance configuration
+router-flood config generate --template high_performance --output perf.yaml
+router-flood run --config perf.yaml --cpu-affinity
 ```
 
-#### Continuous Integration
+#### Monitoring and Export
 ```bash
-# Validate configuration in CI
-router-flood config validate test_config.yaml
-
-# Run automated tests
-router-flood run --config ci_test.yaml --dry-run --export json
-```
-
-#### Production Monitoring
-```bash
-# Start with Prometheus metrics
-router-flood run --config production.yaml \\
-  --prometheus-port 9090 \\
-  --cpu-affinity \\
-  --export both
-
-# Monitor with external tools
+# Real-time Prometheus metrics
+router-flood run --target 192.168.1.1 --ports 80 --prometheus-port 9090 &
 curl http://localhost:9090/metrics
+
+# Export in multiple formats
+router-flood run --target 192.168.1.1 --ports 80 --export json    # JSON output
+router-flood run --target 192.168.1.1 --ports 80 --export csv     # CSV output
+router-flood run --target 192.168.1.1 --ports 80 --export both    # Both formats
+```
+
+#### Safety Features in Action
+```bash
+# Always start with dry-run
+router-flood run --target 192.168.1.1 --ports 80,443 --dry-run
+
+# Gradual testing approach
+router-flood run --target 192.168.1.1 --ports 80 --threads 1 --rate 10 --duration 10
+router-flood run --target 192.168.1.1 --ports 80 --threads 2 --rate 100 --duration 30
+router-flood run --target 192.168.1.1 --ports 80 --threads 4 --rate 1000 --duration 60
+
+# Check capabilities before testing
+router-flood system security
+router-flood system performance --workers 8
 ```
 
 ## 🔧 Configuration
@@ -200,6 +260,25 @@ monitoring:
   stats_interval: 1
   performance_tracking: true
 ```
+
+## 🏗️ Architecture & Design
+
+### Design Patterns
+The codebase follows SOLID principles and implements multiple design patterns:
+
+- **Strategy Pattern**: Protocol-specific packet building
+- **Observer Pattern**: Event-driven statistics collection
+- **Chain of Responsibility**: Composable packet processing pipeline
+- **Decorator Pattern**: Transparent packet modification layers
+- **Plugin System**: Dynamic protocol registration
+- **Builder Pattern**: Fluent configuration API
+- **Factory Pattern**: Centralized strategy creation
+
+### Extensibility
+- **Interface Segregation**: Focused configuration traits
+- **Plugin Architecture**: Add protocols without modifying core
+- **Event-Driven Stats**: Multiple concurrent observers
+- **Processing Pipeline**: Composable packet handlers
 
 ## 🛡️ Security
 
@@ -303,6 +382,16 @@ router-flood system performance --workers 8
 - **Memory Efficiency**: 60-80% reduction in allocations
 - **CPU Utilization**: Optimal core usage with NUMA awareness
 - **Latency**: Sub-microsecond packet construction
+
+### Benchmark Results
+
+Latest benchmark highlights (see [BENCHMARKS.md](BENCHMARKS.md) for full results):
+
+- **Zero-copy packet building**: 472ns UDP, 59ns TCP SYN (10-30% faster than allocation)
+- **Lock-free statistics**: 18ns per operation (50% faster than mutex-based)
+- **Batched updates**: 1.9ns per operation (10x improvement)
+- **Near-zero abstraction overhead**: <1% performance impact
+- **Linear scaling**: Up to 4 threads with minimal contention
 
 ## 📊 Monitoring
 
@@ -519,6 +608,29 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **The authors and contributors are not responsible for any misuse of this tool.**
 
+## 📖 Documentation
+
+- **[USAGE.md](USAGE.md)**: Comprehensive usage guide with detailed CLI examples
+- **[BENCHMARKS.md](BENCHMARKS.md)**: Performance benchmarks and optimization guide
+- **[ARCHITECTURE.md](ARCHITECTURE.md)**: System architecture and design patterns
+- **[SECURITY.md](SECURITY.md)**: Security policy and responsible disclosure
+- **[GitHub Wiki](https://github.com/PaulShpilsher/router-flood/wiki)**: Additional documentation
+
+### Quick Reference
+
+```bash
+# View all available options
+./target/release/router-flood --help
+
+# List all subcommands (enhanced mode)
+./target/release/router-flood help
+
+# Get help for specific subcommand
+./target/release/router-flood run --help
+./target/release/router-flood config --help
+./target/release/router-flood system --help
+```
+
 ## 🙏 Acknowledgments
 
 - **Rust Community**: For excellent libraries and tools
@@ -528,7 +640,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Documentation**: [GitHub Wiki](https://github.com/PaulShpilsher/router-flood/wiki)
+- **Documentation**: See [USAGE.md](USAGE.md) for detailed examples
 - **Issues**: [GitHub Issues](https://github.com/PaulShpilsher/router-flood/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/PaulShpilsher/router-flood/discussions)
 - **Security**: [Security Policy](SECURITY.md)

@@ -54,6 +54,7 @@ pub fn create_test_config() -> Config {
 }
 
 /// Create a minimal test configuration for dry run
+#[allow(dead_code)]
 pub fn create_dry_run_config() -> Config {
     let mut config = create_test_config();
     config.safety.dry_run = true;
@@ -64,6 +65,7 @@ pub fn create_dry_run_config() -> Config {
 }
 
 /// Create a configuration for single-threaded testing
+#[allow(dead_code)]
 pub fn create_single_thread_config() -> Config {
     let mut config = create_test_config();
     config.attack.threads = 1;

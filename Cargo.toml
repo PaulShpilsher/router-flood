@@ -30,6 +30,7 @@ sha2 = "0.10"
 hex = "0.4"
 num_cpus = "1.16"
 termios = "0.3"
+once_cell = "1.19"
 
 [features]
 default = []
@@ -63,4 +64,44 @@ harness = false
 
 [[bench]]
 name = "abstractions"
+harness = false
+
+[[bench]]
+name = "transport"
+harness = false
+
+[[bench]]
+name = "rate_limiting"
+harness = false
+
+[[bench]]
+name = "buffer_pool"
+harness = false
+
+[[bench]]
+name = "protocol_selection"
+harness = false
+
+[[bench]]
+name = "validation"
+harness = false
+
+[[bench]]
+name = "rng"
+harness = false
+
+[[bench]]
+name = "simd"
+harness = false
+
+[[bench]]
+name = "export"
+harness = false
+
+[[bench]]
+name = "worker_coordination"
+harness = false
+
+[[bench]]
+name = "packet_strategies"
 harness = false

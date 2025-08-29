@@ -40,7 +40,7 @@ impl WorkerGuard {
     
     /// Check if workers are still running
     pub fn is_running(&self) -> bool {
-        self.manager.as_ref().map_or(false, |m| m.is_running())
+        self.manager.as_ref().is_some_and(|m| m.is_running())
     }
     
     /// Stop workers gracefully
@@ -241,6 +241,12 @@ pub struct ResourceGuard {
     stats: Option<StatsGuard>,
 }
 
+impl Default for ResourceGuard {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ResourceGuard {
     /// Create a new resource guard
     pub fn new() -> Self {
@@ -279,7 +285,7 @@ impl ResourceGuard {
     
     /// Check if shutdown was requested
     pub fn is_running(&self) -> bool {
-        self.signal.as_ref().map_or(true, |s| s.is_running())
+        self.signal.as_ref().is_none_or(|s| s.is_running())
     }
     
     /// Stop all managed resources

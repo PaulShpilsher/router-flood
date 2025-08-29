@@ -2,271 +2,258 @@
 
 ## Overview
 
-Router Flood is a high-performance network testing tool built with a modular, safety-first architecture. The system is designed for educational purposes while maintaining enterprise-grade performance and security features.
+Router Flood is a high-performance network testing tool built with a modular, extensible architecture. The system follows SOLID principles and modern design patterns to ensure maintainability, testability, and performance.
 
 ## Core Design Principles
 
 1. **Safety First**: Multiple validation layers ensure safe operation
 2. **Performance**: Zero-copy operations, SIMD optimizations, lock-free data structures
-3. **Modularity**: Clean separation of concerns with trait-based abstractions
-4. **Testability**: Comprehensive test coverage with dependency injection
-5. **Usability**: User-friendly interfaces with clear error messages
+3. **Extensibility**: Plugin architecture and design patterns for easy extension
+4. **Modularity**: Clean separation of concerns with trait-based abstractions
+5. **Testability**: Comprehensive test coverage with dependency injection
+
+## System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                         CLI Layer                            │
+│  ┌─────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────┐   │
+│  │ Parser  │ │ Commands │ │Interactive│ │   Prompts    │   │
+│  └─────────┘ └──────────┘ └──────────┘ └──────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+                               │
+┌─────────────────────────────────────────────────────────────┐
+│                    Configuration Layer                       │
+│  ┌─────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────┐   │
+│  │ Traits  │ │ Builder  │ │Validation│ │   Schema     │   │
+│  └─────────┘ └──────────┘ └──────────┘ └──────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+                               │
+┌─────────────────────────────────────────────────────────────┐
+│                      Core Layer                              │
+│  ┌─────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────┐   │
+│  │ Worker  │ │ Target   │ │Simulation│ │   Network    │   │
+│  └─────────┘ └──────────┘ └──────────┘ └──────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+                               │
+┌─────────────────────────────────────────────────────────────┐
+│                    Packet Layer                              │
+│  ┌─────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────┐   │
+│  │Strategy │ │  Chain   │ │Decorator │ │   Plugin     │   │
+│  └─────────┘ └──────────┘ └──────────┘ └──────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+                               │
+┌─────────────────────────────────────────────────────────────┐
+│                   Transport Layer                            │
+│  ┌─────────┐ ┌──────────┐ ┌──────────┐                     │
+│  │   Raw   │ │   Mock   │ │  Layer   │                     │
+│  └─────────┘ └──────────┘ └──────────┘                     │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ## Module Organization
 
-### Core Modules (`src/core/`)
+### CLI Module (`src/cli/`)
 
-The core functionality is organized into focused modules:
+Modular command-line interface following Single Responsibility Principle:
 
-#### Network Module (`network.rs`)
-- Network interface discovery and management
-- Interface validation and selection
-- IP address handling
+- **parser.rs**: Command structure and argument definitions
+- **commands.rs**: Command execution logic
+- **interactive.rs**: Interactive configuration mode
+- **prompts.rs**: User input utilities
+- **enhanced.rs**: Facade for backward compatibility
 
-#### Target Module (`target.rs`)
-- Target IP and port management
-- Multi-port target support with round-robin selection
-- Target validation and safety checks
+### Configuration Module (`src/config/`)
 
-#### Worker Module (`worker.rs`)
-- Worker thread management
-- Task distribution and coordination
-- Thread pool implementation
+Interface-segregated configuration system:
 
-#### Simulation Module (`simulation/`)
-- **Basic Mode** (`basic.rs`): Standard simulation with configurable success rates
-- **RAII Mode** (`raii.rs`): Resource-managed simulation with automatic cleanup
-- Dry-run capabilities for safe testing
+- **traits.rs**: Focused configuration traits (ISP)
+- **trait_impls.rs**: Trait implementations for Config structures
+- **builder.rs**: Fluent builder API
+- **validation.rs**: Centralized validation logic
+- **schema.rs**: Configuration templates and schemas
 
-### Utility Modules (`src/utils/`)
+### Packet Module (`src/packet/`)
 
-Common utilities and helpers:
+Extensible packet building with multiple design patterns:
 
-#### Buffer Pool (`buffer_pool.rs`)
-- Memory-aligned buffer management
-- Buffer reuse for reduced allocations
-- Zero-copy packet construction support
+#### Strategy Pattern (`strategies/`)
+- Protocol-specific implementations (UDP, TCP, ICMP, IPv6, ARP)
+- Zero-copy packet construction
+- Protocol compatibility checking
 
-#### RAII Guards (`raii.rs`)
-- **WorkerGuard**: Automatic worker cleanup
-- **ChannelGuard**: Channel resource management
-- **SignalGuard**: Signal handler registration/deregistration
-- **StatsGuard**: Statistics flushing on drop
-- **ResourceGuard**: Composite guard for multiple resources
+#### Chain of Responsibility (`chain.rs`)
+- Composable packet processing pipeline
+- Handlers: Validation, Checksum, TTL, Logging, RateLimit
+- Early termination support
 
-#### Random Number Generation (`rng.rs`)
-- Batched random number generation
-- Optimized for packet construction
-- Thread-safe random value generation
+#### Decorator Pattern (`decorator.rs`)
+- Transparent strategy enhancement
+- Decorators: Fragmentation, Encryption, Compression, Jitter
+- Stackable modifications
 
-#### Terminal Utilities (`terminal.rs`)
-- Terminal state management
-- Raw mode handling for interactive UI
-- Terminal restoration on exit
+#### Plugin System (`plugin.rs`)
+- Dynamic strategy registration
+- Runtime plugin loading/unloading
+- Isolated lifecycle management
 
-### Abstractions Layer (`src/abstractions/`)
+#### Factory Pattern (`strategy_factory.rs`)
+- Centralized strategy creation
+- Global registry with singleton pattern
+- Type-safe strategy builders
 
-Trait-based abstractions for testability and flexibility:
+### Statistics Module (`src/stats/`)
 
-#### Network Provider
-```rust
-pub trait NetworkProvider {
-    fn interfaces(&self) -> Vec<NetworkInterface>;
-    fn find_by_name(&self, name: &str) -> Option<NetworkInterface>;
-    fn default_interface(&self) -> Option<NetworkInterface>;
-}
-```
+Flexible statistics collection with Observer pattern:
 
-#### System Provider
-```rust
-pub trait SystemProvider {
-    fn is_root(&self) -> bool;
-    fn effective_uid(&self) -> u32;
-    fn is_tty(&self) -> bool;
-    fn cpu_count(&self) -> usize;
-}
-```
+- **observer.rs**: Event-driven statistics with multiple observers
+- **collector.rs**: Core statistics collection traits
+- **lockfree.rs**: Lock-free per-CPU statistics
+- **adapter.rs**: Adapters for different stats implementations
+- **export.rs**: Export functionality (JSON, CSV)
 
-### Statistics System (`src/stats/`)
+### Performance Module (`src/performance/`)
 
-High-performance statistics collection:
+Performance optimizations and enhancements:
 
-#### Lock-Free Statistics (`lockfree.rs`)
-- Atomic operations for thread-safe updates
-- Per-CPU statistics for cache locality
-- 2x performance improvement over mutex-based approach
-- Protocol-specific counters using array indexing
+- **simd_packet.rs**: SIMD-optimized packet building (AVX2, SSE4.2, NEON)
+- **buffer_pool.rs**: Lock-free and shared buffer pools
+- **advanced_buffer_pool.rs**: Size-class based pool with alignment
+- **cpu_affinity.rs**: NUMA-aware CPU affinity management
+- **optimized_constants.rs**: Compile-time optimizations
 
-```rust
-pub struct LockFreeStats {
-    pub packets_sent: AtomicU64,
-    pub packets_failed: AtomicU64,
-    pub bytes_sent: AtomicU64,
-    pub protocol_counters: [AtomicU64; ProtocolId::COUNT],
-    pub start_time: Instant,
-}
-```
+### Utils Module (`src/utils/`)
 
-#### Backward Compatibility (`adapter.rs`)
-- Adapter pattern for existing FloodStats interface
-- Seamless migration from mutex-based to lock-free stats
-- Protocol name to ID conversion
+Reusable utilities and abstractions:
 
-### Performance Optimizations (`src/performance/`)
+- **pool_trait.rs**: Unified buffer pool traits
+- **pool_adapters.rs**: Adapter implementations
+- **buffer_pool.rs**: Basic and worker-specific pools
+- **raii.rs**: RAII guards for resource management
+- **terminal.rs**: Terminal control utilities
+- **rng.rs**: Batched random number generation
 
-#### SIMD Packet Building (`simd_packet.rs`)
-- AVX2/SSE4.2/NEON acceleration
-- 2-4x performance improvement
-- Automatic fallback to scalar code
+### Security Module (`src/security/`)
 
-#### CPU Affinity (`cpu_affinity.rs`)
-- NUMA-aware worker placement
-- Optimal cache utilization
-- Reduced cross-CPU communication
+Security and safety features:
 
-#### Advanced Buffer Pool (`advanced_buffer_pool.rs`)
-- Memory alignment for SIMD operations
-- Size classes for different packet sizes
-- 60-80% reduction in allocations
+- **capabilities.rs**: Linux capability management
+- **validation.rs**: Input validation and sanitization
+- **audit.rs**: Tamper-proof audit logging
 
-### Security Features (`src/security/`)
+### Transport Module (`src/transport/`)
 
-#### Capability Management (`capability.rs`)
-- Linux capabilities detection
-- CAP_NET_RAW validation
-- Privilege escalation prevention
+Network transport abstraction:
 
-#### Audit Logging (`audit.rs`)
-- Tamper-proof hash chains
-- Cryptographic integrity protection
-- Comprehensive activity logging
+- **raw_socket.rs**: Raw socket implementation
+- **mock.rs**: Mock transport for testing
+- **layer.rs**: Transport layer abstraction
 
-### Packet Construction (`src/packet/`)
+## Design Patterns
 
-Multi-protocol packet building with zero-copy optimization:
+### Creational Patterns
+- **Builder**: Configuration building with validation
+- **Factory**: Packet strategy creation
+- **Singleton**: Global strategy registry
+- **Abstract Factory**: Plugin system
 
-- UDP packet construction
-- TCP SYN/ACK packets
-- ICMP echo requests
-- IPv6 support
-- ARP packets
-- Layer 2 (Ethernet) frames
+### Structural Patterns
+- **Adapter**: Buffer pool adapters for legacy code
+- **Decorator**: Packet modification layers
+- **Facade**: CLI module facade
+- **Composite**: Observer composition
 
-## Data Flow
+### Behavioral Patterns
+- **Strategy**: Protocol-specific packet building
+- **Observer**: Statistics event notification
+- **Chain of Responsibility**: Packet processing pipeline
+- **Template Method**: Base packet building flow
 
-```
-User Input → CLI Parser → Configuration Validation
-                ↓
-        Target Validation (Private IP only)
-                ↓
-        Worker Thread Creation
-                ↓
-    ┌───────────┴───────────┐
-    ↓                       ↓
-Packet Builder         Statistics Collection
-    ↓                       ↓
-Buffer Pool            Lock-Free Counters
-    ↓                       ↓
-Network Transport      Per-CPU Aggregation
-    ↓                       ↓
-Raw Socket Send        Real-time Display
-```
+## Performance Architecture
 
-## Performance Characteristics
+### Memory Management
+- **Zero-Copy**: Direct buffer writing without allocations
+- **Buffer Pools**: Pre-allocated, reusable buffers
+- **RAII**: Automatic resource cleanup
+- **Aligned Allocations**: SIMD-optimized memory layout
 
-### Lock-Free Statistics
-- **Increment Operation**: ~18ns (2x faster than mutex)
-- **Batched Updates**: ~1.9ns (11x faster)
-- **Per-CPU Aggregation**: Eliminates contention
+### Concurrency
+- **Lock-Free Statistics**: Atomic operations with per-CPU counters
+- **Thread Pools**: Worker thread management
+- **CPU Affinity**: NUMA-aware thread placement
+- **Batch Processing**: Amortized synchronization costs
 
-### RAII Guards
-- **Zero Overhead**: Same performance as manual cleanup
-- **Automatic Resource Management**: No leaks
-- **Composable**: Nested guard support
+### Optimization Techniques
+- **SIMD Instructions**: Vectorized packet operations
+- **Compile-Time Constants**: Pre-computed lookup tables
+- **Branch Prediction**: Hot-path optimization
+- **Cache Locality**: Data structure alignment
 
-### Packet Building
-- **Zero-Copy UDP**: ~560ns per packet
-- **TCP SYN**: ~59ns per packet
-- **Buffer Pool**: 60-80% allocation reduction
+## Safety Architecture
 
-### Abstraction Layer
-- **Zero Overhead**: Trait abstractions compile away
-- **System Calls**: ~143ns (same as direct calls)
+### Validation Layers
+1. **Configuration Validation**: Builder pattern with comprehensive checks
+2. **Runtime Validation**: Target IP and rate limiting
+3. **Protocol Validation**: IPv4/IPv6 compatibility
+4. **Capability Validation**: Linux capability checks
 
-## Testing Strategy
+### Safety Features
+- **Private IP Only**: RFC1918 range enforcement
+- **Rate Limiting**: Configurable packet rate limits
+- **Dry Run Mode**: Testing without packet transmission
+- **Perfect Simulation**: 100% success rate for validation
 
-### Unit Tests
-- 315+ tests across all modules
-- Property-based testing with proptest
-- Comprehensive edge case coverage
+## Extensibility Points
 
-### Integration Tests
-- End-to-end scenarios
-- Multi-threaded stress tests
-- Resource leak detection
+### Adding New Protocols
+1. Implement `PacketStrategy` trait
+2. Register with `StrategyRegistry`
+3. Add to `PacketType` enum
+4. Update protocol mix configuration
 
-### Benchmarks
-- Criterion.rs for statistical analysis
-- Regression detection
-- Performance tracking
+### Adding Statistics Observers
+1. Implement `StatsObserver` trait
+2. Register with `StatsSubject`
+3. Handle relevant `StatsEvent` types
+
+### Adding Packet Handlers
+1. Implement `PacketHandler` trait
+2. Add to `HandlerChain`
+3. Define `ProcessResult` behavior
+
+### Adding Packet Decorators
+1. Extend existing strategies
+2. Implement `PacketStrategy` trait
+3. Chain with `DecoratorBuilder`
+
+## Testing Architecture
 
 ### Test Organization
-```
-tests/
-├── common/              # Shared test utilities
-├── lockfree_stats_tests.rs
-├── raii_tests.rs
-├── abstractions_tests.rs
-├── core_tests.rs
-└── stats_adapter_tests.rs
+- **Unit Tests**: `tests/unit/` - Component isolation
+- **Integration Tests**: `tests/integration/` - Component interaction
+- **Property Tests**: Using proptest for invariants
+- **Benchmarks**: `benches/` - Performance regression detection
 
-benches/
-├── packet_building.rs   # Packet construction performance
-├── config_validation.rs # Configuration validation speed
-├── lockfree_stats.rs    # Statistics performance
-├── raii_guards.rs       # RAII overhead measurement
-└── abstractions.rs      # Abstraction layer overhead
-```
+### Test Coverage
+- 320+ tests across all categories
+- Property-based testing with 10,000+ cases
+- Fuzzing support with cargo-fuzz
+- Mock implementations for isolation
 
-## Build Configuration
+## Future Architecture Considerations
 
-### Release Optimizations
-```toml
-[profile.release]
-opt-level = 3
-lto = true
-codegen-units = 1
-```
+### Planned Enhancements
+- Async/await for I/O operations
+- Plugin loading from external libraries
+- WebAssembly support for sandboxed plugins
+- gRPC API for remote control
 
-### Benchmark Configuration
-```toml
-[profile.bench]
-inherits = "release"
-debug = false
-```
+### Scalability
+- Distributed testing coordination
+- Horizontal scaling with multiple nodes
+- Cloud-native deployment support
+- Kubernetes operator for orchestration
 
-## Future Enhancements
+## Conclusion
 
-### Planned Improvements
-1. **WebAssembly Support**: Browser-based network analysis
-2. **eBPF Integration**: Kernel-level packet filtering
-3. **Distributed Testing**: Multi-node coordination
-4. **Machine Learning**: Anomaly detection in results
-5. **GUI Frontend**: Native desktop application
-
-### Performance Goals
-- 1M PPS per thread
-- Sub-microsecond latency
-- Zero-allocation steady state
-- Linear scaling to 128 cores
-
-## Contributing
-
-When contributing to Router Flood architecture:
-
-1. Maintain the modular structure
-2. Add tests for new functionality
-3. Update benchmarks for performance changes
-4. Follow RAII patterns for resource management
-5. Use lock-free structures where appropriate
-6. Document architectural decisions
+The Router Flood architecture prioritizes safety, performance, and extensibility through careful application of design patterns and best practices. The modular structure ensures that components can evolve independently while maintaining system cohesion through well-defined interfaces.

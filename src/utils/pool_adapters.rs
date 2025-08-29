@@ -287,7 +287,7 @@ pub fn create_pool(pool_type: &str, buffer_size: usize, capacity: usize) -> Box<
     match pool_type {
         "lockfree" => Box::new(LockFreeBufferPool::new(buffer_size, capacity)),
         "shared" => Box::new(SharedBufferPool::new(buffer_size, capacity)),
-        "basic" | _ => Box::new(BasicBufferPool::new(buffer_size, capacity / 2, capacity)),
+        _ => Box::new(BasicBufferPool::new(buffer_size, capacity / 2, capacity)),
     }
 }
 

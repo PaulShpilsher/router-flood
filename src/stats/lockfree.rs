@@ -150,6 +150,12 @@ pub struct PerCpuStats {
     next_cpu: AtomicUsize,
 }
 
+impl Default for PerCpuStats {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PerCpuStats {
     pub fn new() -> Self {
         let cpu_count = num_cpus::get().max(1);

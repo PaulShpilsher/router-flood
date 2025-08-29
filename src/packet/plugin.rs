@@ -68,7 +68,7 @@ impl PluginRegistry {
     fn register_strategy(&self, packet_type: PacketType, strategy: Arc<dyn PacketStrategy>) -> Result<()> {
         let mut strategies = self.strategies.write().unwrap();
         strategies.entry(packet_type)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(strategy);
         Ok(())
     }

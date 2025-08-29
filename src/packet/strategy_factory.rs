@@ -157,7 +157,7 @@ static GLOBAL_REGISTRY: OnceLock<StrategyRegistry> = OnceLock::new();
 
 /// Get the global strategy registry
 pub fn global_registry() -> &'static StrategyRegistry {
-    GLOBAL_REGISTRY.get_or_init(|| StrategyRegistry::new())
+    GLOBAL_REGISTRY.get_or_init(StrategyRegistry::new)
 }
 
 /// Builder for configuring packet strategies

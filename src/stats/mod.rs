@@ -9,6 +9,7 @@ pub mod export;
 pub mod local;
 pub mod lockfree;
 pub mod observer;
+pub mod display;
 
 pub use adapter::{LockFreeStatsAdapter, LocalStatsExt};
 pub use collector::{StatsCollector, SessionStats, SystemStats};
@@ -16,6 +17,7 @@ pub use export::StatsExporter;
 pub use local::LocalStats;
 pub use lockfree::{LockFreeStats, LockFreeLocalStats, PerCpuStats, ProtocolId, StatsSnapshot};
 pub use observer::{StatsObserver, StatsSubject, StatsEvent, ObserverBuilder};
+pub use display::{StatsDisplay, init_display, get_display};
 
 use chrono::Utc;
 use csv::Writer;
@@ -97,31 +99,44 @@ impl FloodStats {
         let sent = self.packets_sent.load(Ordering::Relaxed);
         let failed = self.packets_failed.load(Ordering::Relaxed);
         let bytes = self.bytes_sent.load(Ordering::Relaxed);
-
         let elapsed = self.start_time.elapsed().as_secs_f64();
-        let pps = sent as f64 / elapsed;
-        let mbps = (bytes as f64 * 8.0) / (elapsed * stats_constants::MEGABITS_DIVISOR);
-
-        println!(
-            "📊 Stats - Sent: {}, Failed: {}, Rate: {:.1} pps, {:.2} Mbps",
-            sent, failed, pps, mbps
-        );
-
-        // Protocol breakdown
-        for (protocol, counter) in self.protocol_stats.iter() {
-            let count = counter.load(Ordering::Relaxed);
-            if count > 0 {
-                println!("   {}: {} packets", protocol, count);
-            }
-        }
-
-        // System stats if available
-        if let Some(sys_stats) = system_stats {
-            println!(
-                "   System: CPU {:.1}%, Memory: {:.1} MB",
-                sys_stats.cpu_usage,
-                sys_stats.memory_usage / stats_constants::BYTES_TO_MB_DIVISOR
+        
+        // Try to use in-place display if available
+        if let Some(display) = get_display() {
+            display.display_stats(
+                sent,
+                failed,
+                bytes,
+                elapsed,
+                &self.protocol_stats,
+                system_stats,
             );
+        } else {
+            // Fallback to regular printing
+            let pps = sent as f64 / elapsed;
+            let mbps = (bytes as f64 * 8.0) / (elapsed * stats_constants::MEGABITS_DIVISOR);
+
+            println!(
+                "📊 Stats - Sent: {}, Failed: {}, Rate: {:.1} pps, {:.2} Mbps",
+                sent, failed, pps, mbps
+            );
+
+            // Protocol breakdown
+            for (protocol, counter) in self.protocol_stats.iter() {
+                let count = counter.load(Ordering::Relaxed);
+                if count > 0 {
+                    println!("   {}: {} packets", protocol, count);
+                }
+            }
+
+            // System stats if available
+            if let Some(sys_stats) = system_stats {
+                println!(
+                    "   System: CPU {:.1}%, Memory: {:.1} MB",
+                    sys_stats.cpu_usage,
+                    sys_stats.memory_usage / stats_constants::BYTES_TO_MB_DIVISOR
+                );
+            }
         }
     }
 

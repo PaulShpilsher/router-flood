@@ -209,6 +209,11 @@ impl SimulationRAII {
         info!("📊 Final Statistics:");
         stats.print_stats(sys_stats.as_ref());
         
+        // Clear the in-place display before showing final messages
+        if let Some(display) = crate::stats::get_display() {
+            display.clear();
+        }
+        
         if self.config.export.enabled {
             if let Err(e) = stats.export_stats(sys_stats.as_ref()).await {
                 error!("Failed to export final stats: {}", e);

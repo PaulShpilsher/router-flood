@@ -21,7 +21,7 @@ impl ProgressIndicator {
     pub fn new(message: impl Into<String>) -> Self {
         let message = message.into();
         print!("🔄 {} ", message);
-        io::stdout().flush().unwrap();
+        let _ = io::stdout().flush(); // Ignore flush errors for UI
         
         Self {
             message,
@@ -38,7 +38,7 @@ impl ProgressIndicator {
         
         while running.load(Ordering::Relaxed) {
             print!("\r🔄 {} {}", self.message, chars[i % chars.len()]);
-            io::stdout().flush().unwrap();
+            let _ = io::stdout().flush(); // Ignore flush errors for UI
             i += 1;
             time::sleep(Duration::from_millis(100)).await;
         }
@@ -69,7 +69,7 @@ impl Drop for ProgressIndicator {
         self.running.store(false, Ordering::Relaxed);
         // Clear the line if not already completed
         print!("\r{}\r", " ".repeat(80));
-        io::stdout().flush().unwrap();
+        let _ = io::stdout().flush(); // Ignore flush errors for UI
     }
 }
 
@@ -151,7 +151,7 @@ impl StatsDisplay {
             success_rate,
             elapsed.as_secs_f64()
         );
-        io::stdout().flush().unwrap();
+        let _ = io::stdout().flush(); // Ignore flush errors for UI
         
         // Update tracking values
         self.last_update = now;
@@ -163,7 +163,7 @@ impl StatsDisplay {
     pub fn clear(&self) {
         print!("\r{}", " ".repeat(120));
         print!("\r");
-        io::stdout().flush().unwrap();
+        let _ = io::stdout().flush(); // Ignore flush errors for UI
     }
 }
 

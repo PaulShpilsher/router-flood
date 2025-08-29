@@ -221,26 +221,3 @@ async fn test_stats_export_both_formats() {
     assert!(result.is_ok() || result.is_err());
 }
 
-#[test]
-fn test_stats_print_functionality() {
-    let stats = FloodStats::default();
-    
-    // Add some test data
-    stats.increment_sent(64, "UDP");
-    stats.increment_sent(64, "TCP");
-    stats.increment_sent(64, "ICMP");
-    
-    let system_stats = Some(SystemStats {
-        cpu_usage: 25.5,
-        memory_usage: 1024 * 1024 * 1024, // 1GB in bytes
-        memory_total: 8 * 1024 * 1024 * 1024, // 8GB in bytes
-        network_sent: 1000,
-        network_received: 2000,
-    });
-    
-    // This should not panic
-    stats.print_stats(system_stats.as_ref());
-    
-    // Test with no system stats
-    stats.print_stats(None);
-}

@@ -224,7 +224,7 @@ async fn test_worker_guard_take_ownership() {
 async fn test_resource_guard_drop_order() {
     use std::sync::Mutex;
     
-    let drop_order = Arc::new(Mutex::new(Vec::<String>::new()));
+    let _drop_order = Arc::new(Mutex::new(Vec::<String>::new()));
     
     {
         let mut guard = ResourceGuard::new();
@@ -235,7 +235,7 @@ async fn test_resource_guard_drop_order() {
         
         let stats = Arc::new(FloodStats::default());
         let stats_guard = StatsGuard::new(stats, "test");
-        guard = guard.with_stats(stats_guard);
+        let _ = guard.with_stats(stats_guard);
         
         // Guard drops here - should drop in reverse order
     }

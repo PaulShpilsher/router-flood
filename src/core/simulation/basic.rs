@@ -242,6 +242,11 @@ impl Simulation {
         
         self.stats.print_stats(None);
         
+        // Clear the in-place display before showing final messages
+        if let Some(display) = crate::stats::get_display() {
+            display.clear();
+        }
+        
         if self.config.export.enabled {
             if let Err(e) = self.stats.export_stats(None).await {
                 error!("Failed to export final stats: {}", e);

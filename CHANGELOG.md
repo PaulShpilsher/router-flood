@@ -5,7 +5,25 @@ All notable changes to Router Flood will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.0] - 2024-01-XX
+## [Unreleased]
+
+### Added
+- Interface segregation for configuration with focused traits
+- Extensibility patterns: Plugin system, Observer, Chain of Responsibility, Decorator
+- Modular CLI architecture with separate parser, commands, and interactive modules
+
+### Changed
+- Refactored CLI into separate modules following Single Responsibility Principle
+- Updated buffer pool system with unified trait abstractions
+- Improved packet strategy factory with global registry
+
+### Removed
+- Deprecated CLI methods that were no longer used
+- Unused SimplePlugin and PluginBuilder implementations
+- Backup files (packet.rs.backup, packet.rs.bak)
+- Unused BufferPoolAdapter struct
+
+## [0.0.1] - 2024-08-29
 
 ### 🎉 Initial Release
 
