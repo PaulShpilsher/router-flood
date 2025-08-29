@@ -7,7 +7,6 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion, Benchmark
 use std::sync::{Arc, Barrier, Mutex};
 use std::sync::mpsc;
 use std::thread;
-use std::time::{Duration, Instant};
 
 /// Benchmark channel communication patterns
 fn benchmark_channel_communication(c: &mut Criterion) {
@@ -224,11 +223,11 @@ fn benchmark_task_queue(c: &mut Criterion) {
     group.bench_function("work_stealing", |b| {
         b.iter(|| {
             let num_workers = 4;
-            let tasks_per_worker = 250;
+            let tasks_per_worker = 250i32;
             
             // Create per-worker queues
             let mut queues: Vec<Vec<i32>> = (0..num_workers)
-                .map(|i| (0..tasks_per_worker).map(|j| i * tasks_per_worker + j).collect())
+                .map(|i| (0..tasks_per_worker).map(|j| (i as i32) * tasks_per_worker + j).collect())
                 .collect();
             
             let mut completed = Vec::new();
@@ -237,13 +236,13 @@ fn benchmark_task_queue(c: &mut Criterion) {
             // Simulate work stealing
             while queues.iter().any(|q| !q.is_empty()) && iterations < 10000 {
                 for worker_id in 0..num_workers {
-                    if let Some(task) = queues[worker_id].pop() {
+                    if let Some(task) = queues[worker_id as usize].pop() {
                         completed.push(task);
                     } else {
                         // Try to steal from another worker
                         for other_id in 0..num_workers {
-                            if other_id != worker_id && !queues[other_id].is_empty() {
-                                if let Some(task) = queues[other_id].pop() {
+                            if other_id != worker_id && !queues[other_id as usize].is_empty() {
+                                if let Some(task) = queues[other_id as usize].pop() {
                                     completed.push(task);
                                     break;
                                 }
@@ -269,7 +268,7 @@ fn benchmark_producer_consumer(c: &mut Criterion) {
         let (producers, consumers) = ratio;
         
         group.bench_with_input(
-            BenchmarkId::new(format!("{}p_{}c", producers, consumers), ratio),
+            BenchmarkId::new(format!("{}p_{}c", producers, consumers), format!("{}_{}", producers, consumers)),
             &ratio,
             |b, &(producers, consumers)| {
                 b.iter(|| {
@@ -285,6 +284,7 @@ fn benchmark_producer_consumer(c: &mut Criterion) {
                             for i in 0..100 {
                                 tx.send(i).unwrap();
                             }
+                            0 // Return same type as consumers
                         }));
                     }
                     

@@ -31,8 +31,10 @@ fn create_sample_stats(size: usize) -> SessionStats {
         protocol_breakdown,
         system_stats: Some(SystemStats {
             cpu_usage: 45.5,
-            memory_usage: 67.2,
-            network_bandwidth: 95.0,
+            memory_usage: 67200000,
+            memory_total: 134400000,
+            network_sent: 1000000,
+            network_received: 500000,
         }),
     }
 }
@@ -114,13 +116,13 @@ fn benchmark_stats_collection(c: &mut Criterion) {
         let stats = LockFreeStats::new();
         
         // Populate with some data
+        use router_flood::stats::lockfree::ProtocolId;
         for _ in 0..1000 {
-            stats.increment_sent();
+            stats.increment_sent(1500, ProtocolId::Udp);
         }
         for _ in 0..10 {
             stats.increment_failed();
         }
-        stats.add_bytes_sent(1500000);
         
         b.iter(|| {
             let snapshot = stats.snapshot();
@@ -130,13 +132,15 @@ fn benchmark_stats_collection(c: &mut Criterion) {
     
     group.bench_function("rate_calculation", |b| {
         let stats = LockFreeStats::new();
-        stats.increment_sent_by(10000);
-        stats.add_bytes_sent(15000000);
+        use router_flood::stats::lockfree::ProtocolId;
+        for _ in 0..10000 {
+            stats.increment_sent(1500, ProtocolId::Udp);
+        }
         
         b.iter(|| {
             let snapshot = stats.snapshot();
-            let rate = snapshot.calculate_packet_rate(std::time::Duration::from_secs(1));
-            let mbps = snapshot.calculate_mbps(std::time::Duration::from_secs(1));
+            let rate = snapshot.packets_per_second();
+            let mbps = snapshot.megabits_per_second();
             black_box((rate, mbps))
         })
     });

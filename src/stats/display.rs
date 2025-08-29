@@ -3,7 +3,7 @@
 //! This module provides functionality to update statistics in place
 //! instead of scrolling, creating a cleaner display.
 
-use super::{SessionStats, SystemStats};
+use super::SystemStats;
 use crate::constants::stats as stats_constants;
 use std::io::{self, Write};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};

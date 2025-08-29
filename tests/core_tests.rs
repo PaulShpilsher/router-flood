@@ -8,7 +8,6 @@ use common::create_test_config;
 use std::net::{IpAddr, Ipv4Addr};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::time::Duration;
 use std::thread;
 
 #[test]

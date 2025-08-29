@@ -4,7 +4,7 @@
 //! different value types, and batch size impacts.
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
-use router_flood::utils::rng::{BatchedRng, DEFAULT_BATCH_SIZE};
+use router_flood::utils::rng::BatchedRng;
 use rand::{Rng, SeedableRng};
 use rand::rngs::StdRng;
 
@@ -38,9 +38,9 @@ fn benchmark_batched_rng(c: &mut Criterion) {
         })
     });
     
-    group.bench_function("window", |b| {
+    group.bench_function("window_size", |b| {
         b.iter(|| {
-            black_box(rng.window())
+            black_box(rng.window_size())
         })
     });
     
@@ -50,9 +50,9 @@ fn benchmark_batched_rng(c: &mut Criterion) {
         })
     });
     
-    group.bench_function("random_byte", |b| {
+    group.bench_function("byte", |b| {
         b.iter(|| {
-            black_box(rng.random_byte())
+            black_box(rng.byte())
         })
     });
     
@@ -172,7 +172,9 @@ fn benchmark_buffer_filling(c: &mut Criterion) {
                 let mut buffer = vec![0u8; size];
                 
                 b.iter(|| {
-                    rng.fill_buffer(black_box(&mut buffer));
+                    let payload = rng.payload(size);
+                    buffer.copy_from_slice(&payload);
+                    black_box(&buffer);
                 })
             },
         );
@@ -192,7 +194,7 @@ fn benchmark_packet_fields(c: &mut Criterion) {
             let dst_port = rng.port();
             let seq = rng.sequence();
             let ack = rng.sequence();
-            let window = rng.window();
+            let window = rng.window_size();
             black_box((src_port, dst_port, seq, ack, window))
         })
     });

@@ -1,7 +1,7 @@
 //! Comprehensive tests for lock-free statistics module
 
 use router_flood::stats::lockfree::{
-    LockFreeStats, LockFreeLocalStats, PerCpuStats, ProtocolId, StatsSnapshot
+    LockFreeStats, LockFreeLocalStats, PerCpuStats, ProtocolId
 };
 use std::sync::Arc;
 use std::thread;

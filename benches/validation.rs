@@ -5,7 +5,7 @@
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
 use router_flood::validation::{validate_target_ip, validate_comprehensive_security};
-use router_flood::config::AttackConfig;
+use router_flood::config::{AttackConfig, BurstPattern};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 /// Benchmark IP validation for different address types
@@ -78,6 +78,7 @@ fn benchmark_security_validation(c: &mut Criterion) {
         packet_rate: 1000,
         duration: Some(60),
         packet_size_range: (64, 1400),
+        burst_pattern: BurstPattern::Sustained { rate: 1000 },
         randomize_timing: false,
     };
     
@@ -87,10 +88,10 @@ fn benchmark_security_validation(c: &mut Criterion) {
     group.bench_function("comprehensive", |b| {
         b.iter(|| {
             let _ = validate_comprehensive_security(
-                black_box(&config),
                 black_box(&target_ip),
                 black_box(&ports),
-                black_box(false),
+                black_box(config.threads),
+                black_box(config.packet_rate),
             );
         })
     });
@@ -106,10 +107,10 @@ fn benchmark_security_validation(c: &mut Criterion) {
                 
                 b.iter(|| {
                     let _ = validate_comprehensive_security(
-                        black_box(&test_config),
                         black_box(&target_ip),
                         black_box(&ports),
-                        black_box(false),
+                        black_box(test_config.threads),
+                        black_box(test_config.packet_rate),
                     );
                 })
             },
