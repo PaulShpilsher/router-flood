@@ -49,3 +49,6 @@ pub use stats::FloodStats;
 pub use utils::buffer_pool::{BufferPool, WorkerBufferPool};
 pub use utils::terminal::{TerminalController, TerminalGuard};
 pub use utils::raii::ResourceGuard;
+
+#[cfg(test)]
+mod extensibility_tests;

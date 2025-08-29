@@ -7,10 +7,16 @@ pub mod builder;
 pub mod strategies;
 pub mod strategy_factory;
 pub mod types;
+pub mod plugin;
+pub mod chain;
+pub mod decorator;
 
 pub use builder::PacketBuilder;
 pub use strategy_factory::{StrategyFactory, StrategyRegistry, StrategyBuilder, global_registry};
 pub use types::PacketType;
+pub use plugin::{StrategyPlugin, PluginRegistry, PluginBuilder};
+pub use chain::{PacketHandler, HandlerChain, ChainBuilder, PacketContext, ProcessResult};
+pub use decorator::{DecoratorBuilder, StrategyDecorator};
 
 use crate::error::Result;
 use std::net::IpAddr;

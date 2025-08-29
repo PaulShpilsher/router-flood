@@ -8,12 +8,14 @@ pub mod collector;
 pub mod export;
 pub mod local;
 pub mod lockfree;
+pub mod observer;
 
 pub use adapter::{LockFreeStatsAdapter, LocalStatsExt};
 pub use collector::{StatsCollector, SessionStats, SystemStats};
 pub use export::StatsExporter;
 pub use local::LocalStats;
 pub use lockfree::{LockFreeStats, LockFreeLocalStats, PerCpuStats, ProtocolId, StatsSnapshot};
+pub use observer::{StatsObserver, StatsSubject, StatsEvent, ObserverBuilder};
 
 use chrono::Utc;
 use csv::Writer;
