@@ -101,3 +101,7 @@ harness = false
 [[bench]]
 name = "worker_coordination"
 harness = false
+
+[[bench]]
+name = "packet_strategies"
+harness = false

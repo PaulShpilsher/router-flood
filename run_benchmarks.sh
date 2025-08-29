@@ -24,6 +24,7 @@ benchmarks=(
     "simd"
     "export"
     "worker_coordination"
+    "packet_strategies"
 )
 
 for bench in "${benchmarks[@]}"; do
