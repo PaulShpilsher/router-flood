@@ -19,6 +19,11 @@ benchmarks=(
     "rate_limiting"
     "buffer_pool"
     "protocol_selection"
+    "validation"
+    "rng"
+    "simd"
+    "export"
+    "worker_coordination"
 )
 
 for bench in "${benchmarks[@]}"; do

@@ -81,3 +81,23 @@ harness = false
 [[bench]]
 name = "protocol_selection"
 harness = false
+
+[[bench]]
+name = "validation"
+harness = false
+
+[[bench]]
+name = "rng"
+harness = false
+
+[[bench]]
+name = "simd"
+harness = false
+
+[[bench]]
+name = "export"
+harness = false
+
+[[bench]]
+name = "worker_coordination"
+harness = false
