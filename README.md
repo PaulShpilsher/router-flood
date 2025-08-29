@@ -2,7 +2,7 @@
 
 [![Rust](https://img.shields.io/badge/rust-1.70+-orange.svg)](https://www.rust-lang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-322%2B%20passing-green.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-320%2B%20passing-green.svg)](#testing)
 [![Security](https://img.shields.io/badge/security-capability--based-blue.svg)](#security)
 [![Performance](https://img.shields.io/badge/performance-SIMD%20optimized-brightgreen.svg)](#performance)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](#build-status)
@@ -36,7 +36,7 @@ A comprehensive, safety-first network testing tool designed for educational purp
 ### 🧪 **Robust Testing**
 - **Property-Based Testing**: 10,000+ generated test cases per property
 - **Fuzzing Support**: Continuous security testing with cargo-fuzz (3 fuzz targets)
-- **322+ Comprehensive Tests**: Unit, integration, and security tests
+- **320+ Comprehensive Tests**: Unit, integration, and security tests
 - **Regression Protection**: Automated edge case detection
 - **Zero Warnings**: Clean compilation with strict linting
 
@@ -200,6 +200,25 @@ monitoring:
   stats_interval: 1
   performance_tracking: true
 ```
+
+## 🏗️ Architecture & Design
+
+### Design Patterns
+The codebase follows SOLID principles and implements multiple design patterns:
+
+- **Strategy Pattern**: Protocol-specific packet building
+- **Observer Pattern**: Event-driven statistics collection
+- **Chain of Responsibility**: Composable packet processing pipeline
+- **Decorator Pattern**: Transparent packet modification layers
+- **Plugin System**: Dynamic protocol registration
+- **Builder Pattern**: Fluent configuration API
+- **Factory Pattern**: Centralized strategy creation
+
+### Extensibility
+- **Interface Segregation**: Focused configuration traits
+- **Plugin Architecture**: Add protocols without modifying core
+- **Event-Driven Stats**: Multiple concurrent observers
+- **Processing Pipeline**: Composable packet handlers
 
 ## 🛡️ Security
 
