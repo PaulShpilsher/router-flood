@@ -29,6 +29,7 @@ pub struct SecurityContext {
 }
 
 /// Capability-based security manager
+#[derive(Clone)]
 pub struct CapabilityManager {
     context: SecurityContext,
 }
