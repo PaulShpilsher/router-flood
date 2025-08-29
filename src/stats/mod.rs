@@ -3,13 +3,17 @@
 //! This module provides a trait-based architecture for statistics collection
 //! with support for different collection strategies and export formats.
 
+pub mod adapter;
 pub mod collector;
 pub mod export;
 pub mod local;
+pub mod lockfree;
 
+pub use adapter::{LockFreeStatsAdapter, LocalStatsExt};
 pub use collector::{StatsCollector, SessionStats, SystemStats};
 pub use export::StatsExporter;
 pub use local::LocalStats;
+pub use lockfree::{LockFreeStats, LockFreeLocalStats, PerCpuStats, ProtocolId, StatsSnapshot};
 
 use chrono::Utc;
 use csv::Writer;
