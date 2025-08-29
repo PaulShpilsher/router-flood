@@ -22,9 +22,9 @@ fn create_sample_stats(size: usize) -> SessionStats {
     SessionStats {
         session_id: format!("session_{}", size),
         timestamp: Utc::now(),
-        packets_sent: size as u64 * 1000,
-        packets_failed: size as u64 * 10,
-        bytes_sent: size as u64 * 1500000,
+        packets_sent: (size as u64).saturating_mul(1000),
+        packets_failed: (size as u64).saturating_mul(10),
+        bytes_sent: (size as u64).saturating_mul(1500),
         duration_secs: 60.0,
         packets_per_second: 1000.0,
         megabits_per_second: 12.0,
@@ -91,9 +91,9 @@ fn benchmark_csv_export(c: &mut Criterion) {
                     for i in 0..rows {
                         wtr.write_record(&[
                             &format!("2024-01-01T00:00:{:02}Z", i % 60),
-                            &(i * 1000).to_string(),
-                            &(i * 10).to_string(),
-                            &(i * 1500000).to_string(),
+                            &((i % 1000) * 1000).to_string(),
+                            &((i % 1000) * 10).to_string(),
+                            &((i % 1000) * 1500).to_string(),
                             "1000.0",
                         ]).unwrap();
                     }

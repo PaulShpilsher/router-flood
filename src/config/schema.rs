@@ -5,7 +5,6 @@
 
 use crate::config::*;
 use crate::error::{ConfigError, Result};
-use serde_json::{json, Value};
 
 /// Configuration schema validator
 pub struct ConfigSchema;
@@ -193,49 +192,6 @@ impl ConfigSchema {
         }
 
         Ok(())
-    }
-
-    /// Generate JSON schema for configuration
-    pub fn generate_json_schema() -> Value {
-        json!({
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "title": "Router Flood Configuration",
-            "description": "Configuration schema for router-flood network stress testing tool",
-            "type": "object",
-            "properties": {
-                "target": {
-                    "type": "object",
-                    "properties": {
-                        "ip": {
-                            "type": "string",
-                            "pattern": "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
-                            "description": "Target IP address (must be private range)"
-                        },
-                        "ports": {
-                            "type": "array",
-                            "items": {
-                                "type": "integer",
-                                "minimum": 1,
-                                "maximum": 65535
-                            },
-                            "minItems": 1,
-                            "description": "Target ports for testing"
-                        }
-                    },
-                    "required": ["ip", "ports"]
-                },
-                "attack": {
-                    "type": "object",
-                    "properties": {
-                        "threads": {"type": "integer", "minimum": 1, "maximum": 100},
-                        "packet_rate": {"type": "integer", "minimum": 1, "maximum": 10000},
-                        "duration": {"type": ["integer", "null"], "minimum": 1}
-                    },
-                    "required": ["threads", "packet_rate"]
-                }
-            },
-            "required": ["target", "attack"]
-        })
     }
 }
 

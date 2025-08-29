@@ -169,6 +169,12 @@ struct MetricsData {
     current_rate: f64,
 }
 
+impl Default for MetricsObserver {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MetricsObserver {
     /// Create a new metrics observer
     pub fn new() -> Self {
@@ -206,6 +212,12 @@ impl StatsObserver for MetricsObserver {
 /// Builder for creating composite observers
 pub struct ObserverBuilder {
     observers: Vec<Arc<dyn StatsObserver>>,
+}
+
+impl Default for ObserverBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ObserverBuilder {

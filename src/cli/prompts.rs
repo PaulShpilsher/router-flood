@@ -16,10 +16,10 @@ impl PromptUtils {
             print!(" [{}]", default);
         }
         print!(": ");
-        io::stdout().flush().unwrap();
+        let _ = io::stdout().flush();
 
         let mut input = String::new();
-        io::stdin().read_line(&mut input).unwrap();
+        io::stdin().read_line(&mut input).unwrap_or_default();
         let input = input.trim();
 
         if input.is_empty() && !default.is_empty() {
@@ -33,10 +33,10 @@ impl PromptUtils {
     pub fn prompt_yes_no(prompt: &str, default: bool) -> Result<bool> {
         let default_str = if default { "Y/n" } else { "y/N" };
         print!("{} [{}]: ", prompt, default_str);
-        io::stdout().flush().unwrap();
+        let _ = io::stdout().flush();
 
         let mut input = String::new();
-        io::stdin().read_line(&mut input).unwrap();
+        io::stdin().read_line(&mut input).unwrap_or_default();
         let input = input.trim().to_lowercase();
 
         match input.as_str() {
@@ -51,6 +51,7 @@ impl PromptUtils {
     }
 
     /// Prompt for a choice from a list of options
+    #[allow(dead_code)]
     pub fn prompt_choice(prompt: &str, options: &[&str], default: Option<usize>) -> Result<String> {
         println!("{}", prompt);
         for (i, option) in options.iter().enumerate() {
@@ -66,14 +67,19 @@ impl PromptUtils {
             print!(" [{}]", d + 1);
         }
         print!(": ");
-        io::stdout().flush().unwrap();
+        let _ = io::stdout().flush();
 
         let mut input = String::new();
-        io::stdin().read_line(&mut input).unwrap();
+        io::stdin().read_line(&mut input).unwrap_or_default();
         let input = input.trim();
 
-        if input.is_empty() && default.is_some() {
-            Ok(options[default.unwrap()].to_string())
+        if input.is_empty() {
+            if let Some(default_idx) = default {
+                Ok(options[default_idx].to_string())
+            } else {
+                println!("No input provided and no default available");
+                Self::prompt_choice(prompt, options, default)
+            }
         } else if let Ok(choice) = input.parse::<usize>() {
             if choice > 0 && choice <= options.len() {
                 Ok(options[choice - 1].to_string())
@@ -93,6 +99,7 @@ impl PromptUtils {
     }
 
     /// Display a section header
+    #[allow(dead_code)]
     pub fn display_section(title: &str) {
         println!();
         println!("🎯 {}", title);

@@ -141,45 +141,6 @@ impl PerformanceDashboard {
         alerts
     }
     
-    /// Print dashboard to console
-    pub fn print_dashboard(&self) {
-        let state = self.get_dashboard_state();
-        let indicators = &state.performance_indicators;
-        
-        println!("\n╔══════════════════════════════════════════════════════════════╗");
-        println!("║                    Router Flood Dashboard                    ║");
-        println!("╠══════════════════════════════════════════════════════════════╣");
-        println!("║ Uptime: {:.1}s                                              ║", state.uptime_seconds);
-        println!("║                                                              ║");
-        println!("║ Performance Metrics:                                         ║");
-        println!("║   Packets/sec:     {:>8.1}                                ║", indicators.packets_per_second);
-        println!("║   Success Rate:    {:>8.1}%                               ║", indicators.success_rate_percent);
-        println!("║   Build Time:      {:>8.2}ms                              ║", indicators.average_packet_build_time_ms);
-        println!("║   Send Time:       {:>8.2}ms                              ║", indicators.average_send_time_ms);
-        println!("║                                                              ║");
-        println!("║ System Resources:                                            ║");
-        println!("║   CPU Usage:       {:>8.1}%                               ║", indicators.cpu_usage_percent);
-        println!("║   Memory Usage:    {:>8.1}MB                              ║", indicators.memory_usage_mb);
-        println!("║   Network:         {:>8.1}Mbps                            ║", indicators.network_throughput_mbps);
-        println!("║   Buffer Pool:     {:>8.1}%                               ║", indicators.buffer_pool_efficiency * 100.0);
-        
-        if !state.alerts.is_empty() {
-            println!("║                                                              ║");
-            println!("║ Alerts:                                                      ║");
-            for alert in &state.alerts {
-                let level_str = match alert.level {
-                    AlertLevel::Critical => "CRIT",
-                    AlertLevel::Warning => "WARN",
-                    AlertLevel::Info => "INFO",
-                };
-                println!("║   [{}] {}                                    ║", level_str, 
-                    format!("{:.50}", alert.message));
-            }
-        }
-        
-        println!("╚══════════════════════════════════════════════════════════════╝");
-    }
-    
     // Simulation functions for demo purposes
     fn simulate_cpu_usage(&self, uptime: f64) -> f64 {
         // Simulate varying CPU usage

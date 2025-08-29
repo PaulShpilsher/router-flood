@@ -56,22 +56,6 @@ impl AlertManager {
         }
     }
     
-    /// Remove an alert rule
-    pub fn remove_rule(&self, name: &str) {
-        if let Ok(mut rules) = self.rules.write() {
-            rules.remove(name);
-        }
-    }
-    
-    /// Enable or disable a rule
-    pub fn set_rule_enabled(&self, name: &str, enabled: bool) {
-        if let Ok(mut rules) = self.rules.write() {
-            if let Some(rule) = rules.get_mut(name) {
-                rule.enabled = enabled;
-            }
-        }
-    }
-    
     /// Check all rules and generate alerts
     pub fn check_alerts(&self) -> Vec<Alert> {
         let mut new_alerts = Vec::new();

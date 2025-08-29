@@ -2,6 +2,10 @@
 //!
 //! This module demonstrates how different parts of the codebase can use
 //! only the configuration traits they need, following Interface Segregation Principle.
+//!
+//! For runnable examples, see:
+//! - examples/config_usage.rs - Configuration usage patterns
+//! - examples/interactive_cli.rs - Interactive CLI functionality
 
 use super::traits::*;
 use super::Config;
@@ -144,6 +148,7 @@ pub fn display_summary<C: BasicConfiguration>(config: &C) {
 }
 
 /// Example function that validates protocol ratios
+#[allow(dead_code)]
 pub fn validate_protocols<C: ProtocolConfiguration>(config: &C) -> Result<()> {
     if !config.validate_ratios() {
         return Err(crate::error::ConfigError::InvalidValue {
@@ -156,6 +161,7 @@ pub fn validate_protocols<C: ProtocolConfiguration>(config: &C) -> Result<()> {
 }
 
 /// Example: Using views for focused access
+#[allow(dead_code)]
 pub fn use_config_views(config: &Config) {
     use super::trait_impls::ConfigExt;
     
