@@ -5,9 +5,11 @@
 
 pub mod builder;
 pub mod strategies;
+pub mod strategy_factory;
 pub mod types;
 
 pub use builder::PacketBuilder;
+pub use strategy_factory::{StrategyFactory, StrategyRegistry, StrategyBuilder, global_registry};
 pub use types::PacketType;
 
 use crate::error::Result;
