@@ -1,4 +1,4 @@
-# 🚀 Router Flood - Advanced Educational Network Stress Tester
+# 🚀 Router Flood - Advanced Network Stress Tester
 
 [![Rust](https://img.shields.io/badge/rust-1.70+-orange.svg)](https://www.rust-lang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
