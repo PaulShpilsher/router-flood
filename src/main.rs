@@ -96,6 +96,9 @@ async fn run_application() -> Result<()> {
 
     // Set up network interface
     let selected_interface = setup_network_interface(&config)?;
+    
+    // Initialize in-place stats display
+    router_flood::stats::init_display(true);
 
     // Set up terminal control to hide ^C characters
     let _terminal_guard = TerminalGuard::new().map_err(|e| {
