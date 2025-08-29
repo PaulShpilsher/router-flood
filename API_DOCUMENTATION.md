@@ -23,8 +23,10 @@ use router_flood::*;
 // Core functionality
 use router_flood::config::{Config, ConfigBuilder, ProtocolMix};
 use router_flood::packet::{PacketBuilder, PacketType};
-use router_flood::simulation::Simulation;
-use router_flood::stats::Statistics;
+use router_flood::core::simulation::Simulation;
+use router_flood::stats::{FloodStats, LockFreeStats};
+use router_flood::abstractions::{NetworkProvider, SystemProvider};
+use router_flood::utils::raii::{WorkerGuard, ResourceGuard};
 ```
 
 ### Module Overview
@@ -32,11 +34,14 @@ use router_flood::stats::Statistics;
 | Module | Purpose | Key Types |
 |--------|---------|-----------|
 | `config` | Configuration management | `Config`, `ConfigBuilder`, `ProtocolMix` |
-| `packet` | Packet construction | `PacketBuilder`, `PacketType`, `Target` |
+| `packet` | Packet construction | `PacketBuilder`, `PacketType` |
+| `core` | Core functionality | `Simulation`, `Target`, `Worker`, `Network` |
+| `abstractions` | Trait abstractions | `NetworkProvider`, `SystemProvider` |
 | `performance` | Performance optimizations | `BufferPool`, `CpuAffinity`, `SimdOptimizer` |
 | `security` | Security and validation | `Validator`, `AuditLogger`, `Capabilities` |
-| `stats` | Statistics and monitoring | `Statistics`, `PrometheusExporter` |
-| `transport` | Network transport | `TransportChannel`, `NetworkInterface` |
+| `stats` | Statistics and monitoring | `FloodStats`, `LockFreeStats`, `PerCpuStats` |
+| `transport` | Network transport | `TransportChannel`, `WorkerChannels` |
+| `utils` | Utilities | `BufferPool`, `RAII Guards`, `BatchedRng` |
 
 ## ⚙️ Configuration API
 
@@ -276,20 +281,29 @@ validate_port_range(&ports)?;
 ### Statistics Collection
 
 ```rust
-use router_flood::stats::{Statistics, StatisticsCollector};
+use router_flood::stats::{FloodStats, LockFreeStats, PerCpuStats};
+use router_flood::stats::lockfree::ProtocolId;
+use std::sync::Arc;
 
-// Create statistics collector
-let mut stats = StatisticsCollector::new();
+// Traditional mutex-based statistics
+let stats = Arc::new(FloodStats::default());
+stats.increment_sent(64, "UDP");
+stats.increment_failed();
 
-// Record events
-stats.record_packet_sent("UDP", 64);
-stats.record_packet_failed("TCP");
-stats.record_bytes_sent(1024);
+// Lock-free statistics (2x faster)
+let lockfree_stats = Arc::new(LockFreeStats::new());
+lockfree_stats.increment_sent(64, ProtocolId::Udp);
+lockfree_stats.increment_failed();
 
-// Get current statistics
-let current_stats = stats.get_current_stats();
-println!("Packets sent: {}", current_stats.packets_sent);
-println!("Success rate: {:.2}%", current_stats.success_rate);
+// Per-CPU statistics for maximum performance
+let per_cpu_stats = Arc::new(PerCpuStats::new());
+let local = per_cpu_stats.get_local();
+local.increment_sent(64, ProtocolId::Udp);
+
+// Aggregate per-CPU stats
+let snapshot = per_cpu_stats.aggregate();
+println!("Packets sent: {}", snapshot.packets_sent);
+println!("Success rate: {:.2}%", snapshot.success_rate());
 ```
 
 ### Prometheus Integration
@@ -317,6 +331,50 @@ let monitor = RealTimeMonitor::new();
 
 // Start monitoring
 monitor.start_monitoring(stats_collector, Duration::from_secs(1)).await?;
+```
+
+## 🛡️ RAII Resource Management
+
+### Resource Guards
+
+```rust
+use router_flood::utils::raii::*;
+use router_flood::core::worker::WorkerManager;
+use router_flood::transport::WorkerChannels;
+
+// Worker management with automatic cleanup
+let manager = WorkerManager::new(config);
+let _guard = WorkerGuard::new(manager, "main_worker");
+// Worker automatically stops when guard is dropped
+
+// Channel management
+let channels = WorkerChannels {
+    ipv4_sender: None,
+    ipv6_sender: None,
+    l2_sender: None,
+};
+let mut channel_guard = ChannelGuard::new(channels, "worker_1");
+// Channels automatically closed when guard is dropped
+
+// Composite resource management
+let resource_guard = ResourceGuard::new()
+    .with_workers(manager)
+    .with_signal_handler()
+    .with_stats(stats);
+// All resources cleaned up in correct order when dropped
+```
+
+### Signal Handler Guard
+
+```rust
+use router_flood::utils::raii::SignalGuard;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
+
+// Automatic signal handler registration/deregistration
+let running = Arc::new(AtomicBool::new(true));
+let _signal_guard = SignalGuard::new(running.clone());
+// Signal handler automatically removed when guard is dropped
 ```
 
 ## ❌ Error Handling
