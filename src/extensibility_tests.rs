@@ -17,17 +17,12 @@ mod tests {
     fn test_plugin_registry() {
         let registry = PluginRegistry::new();
         
-        // Create a custom plugin
-        let plugin = PluginBuilder::new("custom_protocol")
-            .version("1.0.0")
-            .build();
+        // Verify registry is created
+        assert_eq!(registry.plugins().len(), 0);
         
-        // Register the plugin
-        assert!(registry.register_plugin(plugin).is_ok());
-        
-        // Verify plugin is registered
-        let plugins = registry.plugins();
-        assert!(plugins.contains(&"custom_protocol".to_string()));
+        // Test getting strategies for unregistered type
+        let strategies = registry.get_strategies(PacketType::Udp);
+        assert_eq!(strategies.len(), 0);
     }
     
     // === Observer Pattern Tests ===

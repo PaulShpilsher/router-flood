@@ -108,18 +108,6 @@ impl PoolStatistics for BasicPoolStats {
     }
 }
 
-/// Adapter to convert old-style buffer pools to the new trait
-pub struct BufferPoolAdapter<T> {
-    #[allow(dead_code)]
-    inner: T,
-}
-
-impl<T> BufferPoolAdapter<T> {
-    /// Create a new adapter for a legacy buffer pool
-    pub fn new(inner: T) -> Self {
-        Self { inner }
-    }
-}
 
 /// Macro to implement BufferPool trait for types with get_buffer/return_buffer methods
 #[macro_export]

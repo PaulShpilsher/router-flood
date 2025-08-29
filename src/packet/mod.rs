@@ -14,7 +14,7 @@ pub mod decorator;
 pub use builder::PacketBuilder;
 pub use strategy_factory::{StrategyFactory, StrategyRegistry, StrategyBuilder, global_registry};
 pub use types::PacketType;
-pub use plugin::{StrategyPlugin, PluginRegistry, PluginBuilder};
+pub use plugin::{StrategyPlugin, PluginRegistry};
 pub use chain::{PacketHandler, HandlerChain, ChainBuilder, PacketContext, ProcessResult};
 pub use decorator::{DecoratorBuilder, StrategyDecorator};
 

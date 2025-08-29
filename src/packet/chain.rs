@@ -225,8 +225,6 @@ impl PacketHandler for LoggingHandler {
 
 /// Handler that rate limits packet processing
 pub struct RateLimitHandler {
-    #[allow(dead_code)]
-    max_rate: u64,
     last_time: std::sync::Mutex<std::time::Instant>,
     interval_ns: u64,
 }
@@ -234,7 +232,6 @@ pub struct RateLimitHandler {
 impl RateLimitHandler {
     pub fn new(max_rate: u64) -> Self {
         Self {
-            max_rate,
             last_time: std::sync::Mutex::new(std::time::Instant::now()),
             interval_ns: 1_000_000_000 / max_rate,
         }

@@ -76,27 +76,6 @@ impl EnhancedCli {
         interactive.run().await
     }
 
-    /// Prompt for user input with default value
-    /// 
-    /// Delegates to the prompt utilities
-    /// 
-    /// # Deprecated
-    /// This method is deprecated. Use `PromptUtils::prompt_for_input` directly.
-    #[deprecated(since = "0.0.2", note = "Use PromptUtils::prompt_for_input directly")]
-    pub fn prompt_for_input(&self, prompt: &str, default: &str) -> Result<String> {
-        PromptUtils::prompt_for_input(prompt, default)
-    }
-
-    /// Prompt for yes/no input
-    /// 
-    /// Delegates to the prompt utilities
-    /// 
-    /// # Deprecated
-    /// This method is deprecated. Use `PromptUtils::prompt_yes_no` directly.
-    #[deprecated(since = "0.0.2", note = "Use PromptUtils::prompt_yes_no directly")]
-    pub fn prompt_yes_no(&self, prompt: &str, default: bool) -> Result<bool> {
-        PromptUtils::prompt_yes_no(prompt, default)
-    }
 }
 
 impl Default for EnhancedCli {
