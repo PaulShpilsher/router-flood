@@ -110,6 +110,7 @@ impl PoolStatistics for BasicPoolStats {
 
 /// Adapter to convert old-style buffer pools to the new trait
 pub struct BufferPoolAdapter<T> {
+    #[allow(dead_code)]
     inner: T,
 }
 

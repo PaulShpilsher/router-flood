@@ -6,10 +6,24 @@
 pub mod builder;
 pub mod schema;
 pub mod validation;
+pub mod traits;
+pub mod trait_impls;
+
+#[cfg(test)]
+pub mod usage_examples;
 
 pub use builder::ConfigBuilder;
 pub use schema::{ConfigSchema, ConfigTemplates};
 pub use validation::ConfigValidator;
+pub use traits::{
+    TargetConfiguration, ProtocolConfiguration, PerformanceConfiguration,
+    PacketConfiguration, SafetyConfiguration, SecurityConfiguration,
+    MonitoringConfiguration, ExportConfiguration,
+    ReadConfiguration, BasicConfiguration, PacketGenerationConfiguration,
+    ObservabilityConfiguration,
+    TargetView, SafetyView, is_private_ip, validate_safety,
+};
+pub use trait_impls::ConfigExt;
 
 use serde::{Deserialize, Serialize};
 use std::path::Path;
