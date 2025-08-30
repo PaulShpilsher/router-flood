@@ -61,7 +61,7 @@ fn parse_target_ip(config: &router_flood::config::Config) -> Result<IpAddr> {
     config.target.ip.parse()
         .map_err(|_| router_flood::error::ValidationError::InvalidIpRange {
             ip: config.target.ip.clone(),
-            reason: error_messages::INVALID_IP_FORMAT.to_string(),
+            reason: error_messages::INVALID_IP_FORMAT,
         }.into())
 }
 

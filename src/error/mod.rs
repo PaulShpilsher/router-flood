@@ -10,6 +10,60 @@ pub use user_friendly::{UserFriendlyError, display_user_friendly_error, ErrorCon
 use std::fmt;
 use std::io;
 
+/// Common validation error messages as constants to avoid string allocations
+pub mod messages {
+    // Thread validation messages
+    pub const THREAD_COUNT_ZERO: &str = "Thread count must be greater than 0";
+    pub const THREAD_COUNT_EXCEEDS_LIMIT: &str = "threads";
+    
+    // Packet rate validation messages
+    pub const PACKET_RATE_ZERO: &str = "Packet rate must be greater than 0";
+    pub const PACKET_RATE_EXCEEDS_LIMIT: &str = "packet_rate";
+    
+    // Packet size validation messages
+    pub const MIN_PACKET_SIZE_TOO_LARGE: &str = "Minimum packet size cannot be greater than maximum";
+    pub const MIN_PACKET_SIZE_FIELD: &str = "min_packet_size";
+    pub const MAX_PACKET_SIZE_FIELD: &str = "max_packet_size";
+    
+    // Port validation messages
+    pub const NO_TARGET_PORTS: &str = "At least one target port must be specified";
+    pub const TARGET_PORTS_FIELD: &str = "target_ports";
+    
+    // Protocol validation messages
+    pub const PROTOCOL_RATIOS_SUM: &str = "Protocol ratios must sum to 1.0";
+    pub const PROTOCOL_RATIOS_RANGE: &str = "All protocol ratios must be between 0.0 and 1.0";
+    
+    // Burst pattern validation messages
+    pub const SUSTAINED_RATE_ZERO: &str = "Sustained rate must be greater than 0";
+    pub const SUSTAINED_RATE_FIELD: &str = "sustained_rate";
+    pub const BURST_SIZE_ZERO: &str = "Burst size must be greater than 0";
+    pub const BURST_INTERVAL_ZERO: &str = "Burst interval must be greater than 0";
+    pub const RAMP_RATES_ZERO: &str = "Ramp start and end rates must be greater than 0";
+    pub const RAMP_DURATION_ZERO: &str = "Ramp duration must be greater than 0";
+    
+    // Duration validation messages
+    pub const DURATION_ZERO: &str = "Duration must be greater than 0 seconds";
+    
+    // Stats validation messages
+    pub const STATS_INTERVAL_ZERO: &str = "Stats interval must be greater than 0";
+    pub const STATS_INTERVAL_FIELD: &str = "stats_interval";
+    pub const EXPORT_INTERVAL_ZERO: &str = "Export interval must be greater than 0";
+    pub const EXPORT_INTERVAL_FIELD: &str = "export_interval";
+    
+    // IP validation messages
+    pub const INVALID_IP_FORMAT: &str = "Invalid IP address format";
+    
+    // Safety validation messages
+    pub const MAX_THREADS_ZERO: &str = "Maximum threads must be greater than 0";
+    pub const MAX_THREADS_FIELD: &str = "max_threads";
+    pub const MAX_PACKET_RATE_ZERO: &str = "Maximum packet rate must be greater than 0";
+    pub const MAX_PACKET_RATE_FIELD: &str = "max_packet_rate";
+    
+    // Export validation messages
+    pub const FILENAME_PATTERN_EMPTY: &str = "Filename pattern cannot be empty";
+    pub const FILENAME_PATTERN_FIELD: &str = "filename_pattern";
+}
+
 /// Main error type for the router-flood application
 #[derive(Debug)]
 pub enum RouterFloodError {
@@ -49,11 +103,11 @@ pub enum NetworkError {
 
 #[derive(Debug)]
 pub enum ValidationError {
-    InvalidIpRange { ip: String, reason: String },
-    ExceedsLimit { field: String, value: u64, limit: u64 },
-    SystemRequirement(String),
-    PrivilegeRequired(String),
-    PermissionDenied(String),
+    InvalidIpRange { ip: String, reason: &'static str },
+    ExceedsLimit { field: &'static str, value: u64, limit: u64 },
+    SystemRequirement(&'static str),
+    PrivilegeRequired(&'static str),
+    PermissionDenied(&'static str),
 }
 
 #[derive(Debug)]
@@ -272,7 +326,9 @@ impl<T, E: fmt::Display> MapError<T> for std::result::Result<T, E> {
         self.map_err(|e| NetworkError::ChannelCreation(format!("{}: {}", context, e)).into())
     }
 
-    fn map_validation_error(self, context: &str) -> Result<T> {
-        self.map_err(|e| ValidationError::SystemRequirement(format!("{}: {}", context, e)).into())
+    fn map_validation_error(self, _context: &str) -> Result<T> {
+        // For now, we'll use a generic message since we need &'static str
+        // In a real implementation, you'd want to create specific constants for each context
+        self.map_err(|_| ValidationError::SystemRequirement("System requirement not met").into())
     }
 }

@@ -17,16 +17,16 @@ pub struct PrometheusExporter {
 
 impl PrometheusExporter {
     /// Create a new Prometheus exporter
-    pub fn new(namespace: impl Into<String>) -> Self {
+    pub fn new(namespace: &str) -> Self {
         Self {
-            namespace: namespace.into(),
+            namespace: namespace.to_string(),
             labels: HashMap::new(),
         }
     }
 
     /// Add a label to all metrics
-    pub fn with_label(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
-        self.labels.insert(key.into(), value.into());
+    pub fn with_label(mut self, key: &str, value: &str) -> Self {
+        self.labels.insert(key.to_string(), value.to_string());
         self
     }
 

@@ -63,7 +63,7 @@ fn test_end_to_end_packet_generation() {
 #[test]
 fn test_mock_transport_integration() {
     let transport = MockTransport::new();
-    let target_ip: IpAddr = "192.168.1.1".parse().unwrap();
+    let target_ip: IpAddr = "192.168.1.1".to_string().parse().unwrap();
     
     // Test sending different types of packets
     let test_data = vec![
@@ -181,7 +181,7 @@ fn test_protocol_selection_accuracy() {
     };
     
     let mut packet_builder = PacketBuilder::new((64, 1400), protocol_mix);
-    let target_ip: IpAddr = "192.168.1.1".parse().unwrap();
+    let target_ip: IpAddr = "192.168.1.1".to_string().parse().unwrap();
     
     // With 100% UDP ratio, should always select UDP
     for _ in 0..100 {
@@ -249,7 +249,7 @@ fn test_error_handling_robustness() {
     let result = packet_builder.build_packet_into_buffer(
         &mut small_buffer,
         PacketType::Udp,
-        "192.168.1.1".parse().unwrap(),
+        "192.168.1.1".to_string().parse().unwrap(),
         80,
     );
     
@@ -281,7 +281,7 @@ fn test_performance_optimizations() {
     };
     
     let mut packet_builder = PacketBuilder::new((64, 1400), protocol_mix);
-    let target_ip: IpAddr = "192.168.1.1".parse().unwrap();
+    let target_ip: IpAddr = "192.168.1.1".to_string().parse().unwrap();
     
     // Test zero-copy performance
     let start = Instant::now();

@@ -16,3 +16,5 @@ pub use pool_adapters::{create_pool, create_observable_pool};
 pub use raii::{ResourceGuard, WorkerGuard, SignalGuard, StatsGuard, TerminalRAIIGuard};
 pub use rng::BatchedRng;
 pub use terminal::TerminalController;
+pub mod protocol_utils;
+pub use protocol_utils::{ProtocolUtils, PacketTypeExt};

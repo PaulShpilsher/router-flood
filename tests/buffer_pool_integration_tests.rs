@@ -85,7 +85,7 @@ fn test_zero_copy_with_buffer_pool_simulation() {
     
     // Simulate multiple packet building cycles
     for _ in 0..10 {
-        let target_ip: std::net::IpAddr = "192.168.1.1".parse().unwrap();
+        let target_ip: std::net::IpAddr = "192.168.1.1".to_string().parse().unwrap();
         let packet_type = packet_builder.next_packet_type_for_ip(target_ip);
         
         // Get buffer from pool

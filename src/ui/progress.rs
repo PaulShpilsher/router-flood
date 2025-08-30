@@ -18,8 +18,8 @@ pub struct ProgressIndicator {
 
 impl ProgressIndicator {
     /// Create a new progress indicator
-    pub fn new(message: impl Into<String>) -> Self {
-        let message = message.into();
+    pub fn new(message: &str) -> Self {
+        let message = message.to_string();
         print!("🔄 {} ", message);
         let _ = io::stdout().flush(); // Ignore flush errors for UI
         

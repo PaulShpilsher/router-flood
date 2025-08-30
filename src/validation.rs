@@ -27,7 +27,7 @@ pub fn validate_target_ip(ip: &IpAddr) -> Result<()> {
             } else {
                 Err(ValidationError::InvalidIpRange {
                     ip: ip.to_string(),
-                    reason: error_messages::PRIVATE_RANGE_REQUIRED.to_string(),
+                    reason: error_messages::PRIVATE_RANGE_REQUIRED,
                 }.into())
             }
         }
@@ -36,7 +36,7 @@ pub fn validate_target_ip(ip: &IpAddr) -> Result<()> {
             if ipv6.is_loopback() {
                 return Err(ValidationError::InvalidIpRange {
                     ip: ip.to_string(),
-                    reason: "Cannot target IPv6 loopback address".to_string(),
+                    reason: "Cannot target IPv6 loopback address",
                 }.into());
             }
 
@@ -51,7 +51,7 @@ pub fn validate_target_ip(ip: &IpAddr) -> Result<()> {
             } else {
                 Err(ValidationError::InvalidIpRange {
                     ip: ip.to_string(),
-                    reason: error_messages::PRIVATE_RANGE_REQUIRED.to_string(),
+                    reason: error_messages::PRIVATE_RANGE_REQUIRED,
                 }.into())
             }
         }
@@ -75,7 +75,7 @@ pub fn validate_comprehensive_security(
     if is_loopback_or_multicast(ip) {
         return Err(ValidationError::InvalidIpRange {
             ip: ip.to_string(),
-            reason: error_messages::LOOPBACK_PROHIBITED.to_string(),
+            reason: error_messages::LOOPBACK_PROHIBITED,
         }.into());
     }
 
@@ -85,7 +85,7 @@ pub fn validate_comprehensive_security(
     // Check thread limits
     if threads > MAX_THREADS {
         return Err(ValidationError::ExceedsLimit {
-            field: "threads".to_string(),
+            field: "threads",
             value: threads as u64,
             limit: MAX_THREADS as u64,
         }.into());
@@ -94,7 +94,7 @@ pub fn validate_comprehensive_security(
     // Check rate limits
     if rate > MAX_PACKET_RATE {
         return Err(ValidationError::ExceedsLimit {
-            field: "packet_rate".to_string(),
+            field: "packet_rate",
             value: rate,
             limit: MAX_PACKET_RATE,
         }.into());
@@ -114,7 +114,7 @@ pub fn validate_system_requirements(dry_run: bool) -> Result<()> {
     // Check if running as root (required for raw sockets, but not for dry-run)
     if !dry_run && unsafe { libc::geteuid() } != ROOT_UID {
         return Err(ValidationError::PrivilegeRequired(
-            error_messages::ROOT_REQUIRED.to_string()
+            error_messages::ROOT_REQUIRED
         ).into());
     }
 

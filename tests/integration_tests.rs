@@ -146,7 +146,7 @@ fn test_error_type_conversions() {
     
     let validation_error = ValidationError::InvalidIpRange {
         ip: "8.8.8.8".to_string(),
-        reason: "Not private".to_string(),
+        reason: "Not private",
     };
     let router_error: RouterFloodError = validation_error.into();
     

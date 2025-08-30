@@ -167,7 +167,7 @@ async fn test_multiple_guards_concurrent_access() {
         let stats_clone = stats.clone();
         let counter_clone = counter.clone();
         let handle = tokio::spawn(async move {
-            let guard = StatsGuard::new(stats_clone, format!("worker_{}", i));
+            let guard = StatsGuard::new(stats_clone, &format!("worker_{}", i));
             
             // Simulate some work
             sleep(Duration::from_millis(10)).await;
