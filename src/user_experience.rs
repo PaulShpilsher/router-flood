@@ -302,7 +302,7 @@ impl UserExperienceRunner {
 
     /// Display detailed mode summary
     fn display_detailed_summary(&self) {
-        println!("⚙️ Advanced Test Mode - Full Control");
+        println!("⚙️ Detailed Test Mode - Full Control");
         println!();
         println!("Target Configuration:");
         println!("  IP: {}", self.config.target.ip);

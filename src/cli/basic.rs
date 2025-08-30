@@ -60,7 +60,7 @@ fn get_long_help() -> &'static str {
 
 /// Parse command line arguments and return matches
 pub fn parse_arguments() -> ArgMatches {
-    Command::new("Router Flood - Enhanced Network Stress Tester")
+    Command::new("Router Flood - Interactive Network Stress Tester")
         .version(env!("CARGO_PKG_VERSION"))
         .about("Educational DDoS simulation for local network testing with multi-protocol support")
         .long_about(get_long_help())

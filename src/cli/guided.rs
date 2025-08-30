@@ -113,8 +113,8 @@ impl GuidedCli {
     /// Build detailed command - all options for power users
     fn build_detailed_command() -> Command {
         Command::new("advanced")
-            .about("⚙️ Advanced test with full control")
-            .long_about("Advanced mode provides full control over all testing parameters.")
+            .about("⚙️ Detailed test with full control")
+            .long_about("Detailed mode provides full control over all testing parameters.")
             .args(Self::get_detailed_args())
     }
 

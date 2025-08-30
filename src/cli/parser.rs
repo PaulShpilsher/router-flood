@@ -98,7 +98,7 @@ impl CliParser {
 
     /// Get interactive help text
     fn get_interactive_help() -> &'static str {
-        r#"🚀 Router Flood - Advanced Educational Network Stress Tester
+        r#"🚀 Router Flood - Interactive Educational Network Stress Tester
 
 A comprehensive, safety-first network testing tool designed for educational purposes
 and authorized network testing scenarios.
