@@ -281,3 +281,6 @@ impl FloodStats {
         Ok(())
     }
 }
+// Include the protocol breakdown module
+pub mod protocol_breakdown;
+pub use protocol_breakdown::{ProtocolBreakdown, ProtocolIndex};

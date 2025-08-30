@@ -154,7 +154,7 @@ proptest! {
         let mut config = get_default_config();
         config.attack.threads = threads;
         config.attack.packet_rate = packet_rate;
-        config.target.ip = target_ip.to_string();
+        config.target.ip = target_ip;
         config.target.ports = ports;
         config.target.protocol_mix = protocol_mix;
         config.attack.packet_size_range = packet_size_range;
@@ -214,7 +214,7 @@ proptest! {
         ports in prop::collection::vec(valid_port_strategy(), 1..=20)
     ) {
         let ports_str = ports.iter()
-            .map(|p| p.to_string())
+            .map(|p| p)
             .collect::<Vec<_>>()
             .join(",");
         

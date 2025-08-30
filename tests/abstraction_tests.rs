@@ -91,7 +91,7 @@ fn test_abstraction_allows_testing_without_privileges() {
         if system.is_root() {
             Ok(())
         } else {
-            Err("This operation requires root privileges".to_string())
+            Err("This operation requires root privileges")
         }
     }
     

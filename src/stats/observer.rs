@@ -10,9 +10,9 @@ use std::sync::{Arc, RwLock, Weak};
 #[derive(Debug, Clone)]
 pub enum StatsEvent {
     /// Packet successfully sent
-    PacketSent { bytes: u64, protocol: String },
+    PacketSent { bytes: u64, protocol: &'static str },
     /// Packet failed to send
-    PacketFailed { protocol: String },
+    PacketFailed { protocol: &'static str },
     /// Statistics interval reached
     IntervalReached { stats: SessionStats },
     /// Session started

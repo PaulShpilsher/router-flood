@@ -9,7 +9,7 @@ use router_flood::config::{
 pub fn create_test_config() -> Config {
     Config {
         target: TargetConfig {
-            ip: "192.168.1.1".to_string(),
+            ip: "192.168.1.1",
             ports: vec![80, 443],
             protocol_mix: ProtocolMix {
                 udp_ratio: 1.0,
@@ -47,7 +47,7 @@ pub fn create_test_config() -> Config {
         export: ExportConfig {
             enabled: false,
             format: ExportFormat::Json,
-            filename_pattern: "test".to_string(),
+            filename_pattern: "test",
             include_system_stats: false,
         },
     }

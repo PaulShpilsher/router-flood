@@ -21,7 +21,7 @@ fn test_lock_free_adapter_with_export_config() {
     let export_config = ExportConfig {
         enabled: true,
         format: ExportFormat::Json,
-        filename_pattern: "test_stats".to_string(),
+        filename_pattern: "test_stats",
         include_system_stats: false,
     };
     

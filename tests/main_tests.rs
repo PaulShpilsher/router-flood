@@ -14,14 +14,14 @@ fn parse_target_ip(config: &router_flood::config::Config) -> router_flood::error
     config.target.ip.parse()
         .map_err(|_| router_flood::error::ValidationError::InvalidIpRange {
             ip: config.target.ip.clone(),
-            reason: error_messages::INVALID_IP_FORMAT.to_string(),
+            reason: error_messages::INVALID_IP_FORMAT,
         }.into())
 }
 
 #[test]
 fn test_parse_target_ip_valid() {
     let mut config = get_default_config();
-    config.target.ip = "192.168.1.1".to_string();
+    config.target.ip = "192.168.1.1";
     
     let result = parse_target_ip(&config);
     assert!(result.is_ok());
@@ -34,7 +34,7 @@ fn test_parse_target_ip_valid() {
 #[test]
 fn test_parse_target_ip_invalid() {
     let mut config = get_default_config();
-    config.target.ip = "invalid.ip.address".to_string();
+    config.target.ip = "invalid.ip.address";
     
     let result = parse_target_ip(&config);
     assert!(result.is_err());
@@ -51,7 +51,7 @@ fn test_parse_target_ip_invalid() {
 #[test]
 fn test_parse_target_ip_ipv6() {
     let mut config = get_default_config();
-    config.target.ip = "::1".to_string();
+    config.target.ip = "::1";
     
     let result = parse_target_ip(&config);
     assert!(result.is_ok());
@@ -74,7 +74,7 @@ fn test_parse_target_ip_edge_cases() {
 
     for (ip_str, should_succeed) in test_cases {
         let mut config = get_default_config();
-        config.target.ip = ip_str.to_string();
+        config.target.ip = ip_str;
         
         let result = parse_target_ip(&config);
         if should_succeed {

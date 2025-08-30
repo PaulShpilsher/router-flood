@@ -18,8 +18,8 @@ impl TestNetworkProvider {
         
         let interfaces = vec![
             NetworkInterface {
-                name: "lo".to_string(),
-                description: "Loopback".to_string(),
+                name: "lo",
+                description: "Loopback",
                 index: 1,
                 mac: None,
                 ips: vec![
@@ -29,8 +29,8 @@ impl TestNetworkProvider {
                 flags: 0,
             },
             NetworkInterface {
-                name: "eth0".to_string(),
-                description: "Ethernet".to_string(),
+                name: "eth0",
+                description: "Ethernet",
                 index: 2,
                 mac: None,
                 ips: vec![
@@ -40,8 +40,8 @@ impl TestNetworkProvider {
                 flags: 0x1043, // IFF_UP | IFF_BROADCAST | IFF_RUNNING | IFF_MULTICAST
             },
             NetworkInterface {
-                name: "wlan0".to_string(),
-                description: "Wireless".to_string(),
+                name: "wlan0",
+                description: "Wireless",
                 index: 3,
                 mac: None,
                 ips: vec![
@@ -286,7 +286,7 @@ fn test_combined_abstraction_usage() {
     
     let (has_priv, iface) = result.unwrap();
     assert!(has_priv);
-    assert_eq!(iface, Some("eth0".to_string()));
+    assert_eq!(iface, Some("eth0"));
 }
 
 // Extension trait test

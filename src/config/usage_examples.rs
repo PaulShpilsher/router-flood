@@ -48,7 +48,7 @@ impl<C: SafetyConfiguration> SafetyValidator<C> {
     pub fn validate_operation(&self, threads: usize, rate: u64) -> Result<()> {
         if threads > self.config.max_threads() {
             return Err(crate::error::ValidationError::ExceedsLimit {
-                field: "threads".to_string(),
+                field: "threads",
                 value: threads as u64,
                 limit: self.config.max_threads() as u64,
             }.into());
@@ -56,7 +56,7 @@ impl<C: SafetyConfiguration> SafetyValidator<C> {
         
         if rate > self.config.max_packet_rate() {
             return Err(crate::error::ValidationError::ExceedsLimit {
-                field: "packet_rate".to_string(),
+                field: "packet_rate",
                 value: rate,
                 limit: self.config.max_packet_rate(),
             }.into());

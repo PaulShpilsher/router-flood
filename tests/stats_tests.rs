@@ -10,7 +10,7 @@ fn create_test_export_config() -> ExportConfig {
     ExportConfig {
         enabled: true,
         format: ExportFormat::Json,
-        filename_pattern: "test_export".to_string(),
+        filename_pattern: "test_export",
         include_system_stats: false,
     }
 }

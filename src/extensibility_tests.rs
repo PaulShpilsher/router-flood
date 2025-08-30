@@ -46,7 +46,7 @@ mod tests {
         // Send events
         subject.notify(&StatsEvent::PacketSent {
             bytes: 1024,
-            protocol: "UDP".to_string(),
+            protocol: "UDP",
         });
         
         // Verify metrics were updated
@@ -102,7 +102,7 @@ mod tests {
             vec![0u8; 100],
             100,
             target,
-            "TCP".to_string(),
+            "TCP",
         );
         
         // Process through chain
@@ -132,7 +132,7 @@ mod tests {
             vec![0u8; 50],
             50,
             target,
-            "UDP".to_string(),
+            "UDP",
         );
         
         // Should fail size validation
@@ -249,7 +249,7 @@ mod tests {
                 vec![0u8; 100],
                 100,
                 target,
-                "TCP".to_string(),
+                "TCP",
             );
             
             // Process through chain
@@ -257,7 +257,7 @@ mod tests {
                 // Notify observers of successful packet
                 subject.notify(&StatsEvent::PacketSent {
                     bytes: 100,
-                    protocol: "TCP".to_string(),
+                    protocol: "TCP",
                 });
             }
         }
@@ -308,7 +308,7 @@ mod tests {
             vec![0u8; 100],
             100,
             target,
-            "HTTP".to_string(),
+            "HTTP",
         );
         
         chain.process(&mut context).unwrap();
@@ -351,15 +351,15 @@ mod tests {
         // Send mixed events
         subject.notify(&StatsEvent::PacketSent {
             bytes: 100,
-            protocol: "TCP".to_string(),
+            protocol: "TCP",
         });
         subject.notify(&StatsEvent::PacketSent {
             bytes: 200,
-            protocol: "UDP".to_string(),
+            protocol: "UDP",
         });
         subject.notify(&StatsEvent::PacketSent {
             bytes: 300,
-            protocol: "UDP".to_string(),
+            protocol: "UDP",
         });
         
         // Should only count UDP packets

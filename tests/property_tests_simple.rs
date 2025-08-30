@@ -71,7 +71,7 @@ proptest! {
         target_ip in valid_ipv4_private()
     ) {
         let result = ConfigBuilder::new()
-            .target_ip(&target_ip.to_string())
+            .target_ip(&target_ip)
             .threads(threads)
             .packet_rate(packet_rate)
             .packet_size_range(min_size, max_size)

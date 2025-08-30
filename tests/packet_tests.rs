@@ -9,14 +9,14 @@ use router_flood::packet::*;
 #[test]
 fn test_packet_type_display() {
     // Test that PacketType enum variants can be created and displayed
-    assert_eq!(PacketType::Udp.to_string(), "UDP");
-    assert_eq!(PacketType::TcpSyn.to_string(), "TCP-SYN");
-    assert_eq!(PacketType::TcpAck.to_string(), "TCP-ACK");
-    assert_eq!(PacketType::Icmp.to_string(), "ICMP");
-    assert_eq!(PacketType::Ipv6Udp.to_string(), "IPv6-UDP");
-    assert_eq!(PacketType::Ipv6Tcp.to_string(), "IPv6-TCP");
-    assert_eq!(PacketType::Ipv6Icmp.to_string(), "IPv6-ICMP");
-    assert_eq!(PacketType::Arp.to_string(), "ARP");
+    assert_eq!(PacketType::Udp, "UDP");
+    assert_eq!(PacketType::TcpSyn, "TCP-SYN");
+    assert_eq!(PacketType::TcpAck, "TCP-ACK");
+    assert_eq!(PacketType::Icmp, "ICMP");
+    assert_eq!(PacketType::Ipv6Udp, "IPv6-UDP");
+    assert_eq!(PacketType::Ipv6Tcp, "IPv6-TCP");
+    assert_eq!(PacketType::Ipv6Icmp, "IPv6-ICMP");
+    assert_eq!(PacketType::Arp, "ARP");
 }
 
 #[test]

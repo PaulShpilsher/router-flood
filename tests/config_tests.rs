@@ -131,7 +131,7 @@ monitoring:
     // Verify loaded values
     assert_eq!(config.target.ip, "10.0.0.1");
     assert_eq!(config.target.ports, vec![80, 443, 22]);
-    assert_eq!(config.target.interface, Some("eth0".to_string()));
+    assert_eq!(config.target.interface, Some("eth0"));
     assert_eq!(config.attack.threads, 8);
     assert_eq!(config.attack.packet_rate, 500);
     assert_eq!(config.attack.duration, Some(60));
@@ -174,7 +174,7 @@ fn test_config_builder_pattern() {
     let mut config = get_default_config();
     
     // Test modifying config through builder-like pattern
-    config.target.ip = "172.16.0.1".to_string();
+    config.target.ip = "172.16.0.1";
     config.target.ports = vec![8080, 9090];
     config.attack.threads = 16;
     config.attack.packet_rate = 1000;

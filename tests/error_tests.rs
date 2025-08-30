@@ -10,84 +10,84 @@ use std::io;
 #[test]
 fn test_config_error_creation() {
     let error = ConfigError::InvalidValue {
-        field: "threads".to_string(),
-        value: "abc".to_string(),
-        reason: "must be a number".to_string(),
+        field: "threads",
+        value: "abc",
+        reason: "must be a number",
     };
     
-    assert_eq!(error.to_string(), "Invalid value 'abc' for field 'threads': must be a number");
+    assert_eq!(error, "Invalid value 'abc' for field 'threads': must be a number");
 }
 
 #[test]
 fn test_config_error_file_not_found() {
-    let error = ConfigError::FileNotFound("config.yaml".to_string());
-    assert_eq!(error.to_string(), "Configuration file not found: config.yaml");
+    let error = ConfigError::FileNotFound("config.yaml");
+    assert_eq!(error, "Configuration file not found: config.yaml");
 }
 
 #[test]
 fn test_config_error_parse_error() {
-    let error = ConfigError::ParseError("invalid YAML syntax".to_string());
-    assert_eq!(error.to_string(), "Failed to parse configuration: invalid YAML syntax");
+    let error = ConfigError::ParseError("invalid YAML syntax");
+    assert_eq!(error, "Failed to parse configuration: invalid YAML syntax");
 }
 
 #[test]
 fn test_validation_error_creation() {
     let error = ValidationError::InvalidIpRange {
-        ip: "8.8.8.8".to_string(),
-        reason: "not in private range".to_string(),
+        ip: "8.8.8.8",
+        reason: "not in private range",
     };
     
-    assert_eq!(error.to_string(), "IP address 8.8.8.8 is invalid: not in private range");
+    assert_eq!(error, "IP address 8.8.8.8 is invalid: not in private range");
 }
 
 #[test]
 fn test_validation_error_port_range() {
     let error = ValidationError::ExceedsLimit {
-        field: "ports".to_string(),
+        field: "ports",
         value: 70000,
         limit: 65535,
     };
     
-    assert!(error.to_string().contains("port"));
+    assert!(error.contains("port"));
 }
 
 #[test]
 fn test_validation_error_resource_limit() {
-    let error = ValidationError::SystemRequirement("Insufficient file descriptors".to_string());
+    let error = ValidationError::SystemRequirement("Insufficient file descriptors");
     
-    assert!(error.to_string().contains("file descriptors"));
+    assert!(error.contains("file descriptors"));
 }
 
 #[test]
 fn test_validation_error_permission_denied() {
-    let error = ValidationError::PrivilegeRequired("root privileges required".to_string());
-    assert!(error.to_string().contains("root privileges"));
+    let error = ValidationError::PrivilegeRequired("root privileges required");
+    assert!(error.contains("root privileges"));
 }
 
 #[test]
 fn test_network_error_creation() {
-    let error = NetworkError::InterfaceNotFound("eth0".to_string());
-    assert_eq!(error.to_string(), "Network interface not found: eth0");
+    let error = NetworkError::InterfaceNotFound("eth0");
+    assert_eq!(error, "Network interface not found: eth0");
 }
 
 #[test]
 fn test_network_error_channel_creation() {
-    let error = NetworkError::ChannelCreation("failed to create raw socket".to_string());
-    assert_eq!(error.to_string(), "Failed to create network channel: failed to create raw socket");
+    let error = NetworkError::ChannelCreation("failed to create raw socket");
+    assert_eq!(error, "Failed to create network channel: failed to create raw socket");
 }
 
 #[test]
 fn test_network_error_packet_send() {
-    let error = NetworkError::PacketSend("network unreachable".to_string());
-    assert_eq!(error.to_string(), "Failed to send packet: network unreachable");
+    let error = NetworkError::PacketSend("network unreachable");
+    assert_eq!(error, "Failed to send packet: network unreachable");
 }
 
 #[test]
 fn test_router_flood_error_from_config_error() {
     let config_error = ConfigError::InvalidValue {
-        field: "rate".to_string(),
-        value: "invalid".to_string(),
-        reason: "must be numeric".to_string(),
+        field: "rate",
+        value: "invalid",
+        reason: "must be numeric",
     };
     
     let router_error: RouterFloodError = config_error.into();
@@ -103,8 +103,8 @@ fn test_router_flood_error_from_config_error() {
 #[test]
 fn test_router_flood_error_from_validation_error() {
     let validation_error = ValidationError::InvalidIpRange {
-        ip: "127.0.0.1".to_string(),
-        reason: "loopback not allowed".to_string(),
+        ip: "127.0.0.1",
+        reason: "loopback not allowed",
     };
     
     let router_error: RouterFloodError = validation_error.into();
@@ -119,7 +119,7 @@ fn test_router_flood_error_from_validation_error() {
 
 #[test]
 fn test_router_flood_error_from_network_error() {
-    let network_error = NetworkError::PacketSend("connection timeout".to_string());
+    let network_error = NetworkError::PacketSend("connection timeout");
     
     let router_error: RouterFloodError = network_error.into();
     
@@ -148,14 +148,14 @@ fn test_router_flood_error_from_io_error() {
 #[test]
 fn test_error_display_implementation() {
     let errors = vec![
-        RouterFloodError::Config(ConfigError::FileNotFound("test.yaml".to_string())),
-        RouterFloodError::Validation(ValidationError::PermissionDenied("need root".to_string())),
-        RouterFloodError::Network(NetworkError::InterfaceNotFound("wlan0".to_string())),
+        RouterFloodError::Config(ConfigError::FileNotFound("test.yaml")),
+        RouterFloodError::Validation(ValidationError::PermissionDenied("need root")),
+        RouterFloodError::Network(NetworkError::InterfaceNotFound("wlan0")),
         RouterFloodError::Io(io::Error::new(io::ErrorKind::NotFound, "file not found")),
     ];
     
     for error in errors {
-        let display_string = error.to_string();
+        let display_string = error;
         assert!(!display_string.is_empty(), "Error display should not be empty");
         assert!(display_string.len() > 5, "Error display should be descriptive");
     }
@@ -164,9 +164,9 @@ fn test_error_display_implementation() {
 #[test]
 fn test_error_debug_implementation() {
     let error = RouterFloodError::Config(ConfigError::InvalidValue {
-        field: "threads".to_string(),
-        value: "abc".to_string(),
-        reason: "must be numeric".to_string(),
+        field: "threads",
+        value: "abc",
+        reason: "must be numeric",
     });
     
     let debug_string = format!("{:?}", error);
@@ -179,7 +179,7 @@ fn test_error_debug_implementation() {
 fn test_error_chain_propagation() {
     // Test that errors can be chained and propagated correctly
     fn inner_function() -> Result<()> {
-        Err(ConfigError::FileNotFound("inner.yaml".to_string()).into())
+        Err(ConfigError::FileNotFound("inner.yaml").into())
     }
     
     fn middle_function() -> Result<()> {
@@ -207,10 +207,10 @@ fn test_error_chain_propagation() {
 fn test_error_context_preservation() {
     // Test that error context is preserved through conversions
     let original_message = "original error message";
-    let config_error = ConfigError::ParseError(original_message.to_string());
+    let config_error = ConfigError::ParseError(original_message);
     let router_error: RouterFloodError = config_error.into();
     
-    let error_string = router_error.to_string();
+    let error_string = router_error;
     assert!(error_string.contains(original_message), 
            "Original error message should be preserved: '{}'", error_string);
 }
@@ -227,7 +227,7 @@ fn test_result_type_alias() {
     assert_eq!(result.unwrap(), 42);
     
     fn test_error_function() -> Result<i32> {
-        Err(ConfigError::FileNotFound("test".to_string()).into())
+        Err(ConfigError::FileNotFound("test").into())
     }
     
     let error_result = test_error_function();
@@ -237,20 +237,20 @@ fn test_result_type_alias() {
 #[test]
 fn test_error_equality() {
     // Test error equality where applicable
-    let error1 = ConfigError::FileNotFound("test.yaml".to_string());
-    let error2 = ConfigError::FileNotFound("test.yaml".to_string());
-    let error3 = ConfigError::FileNotFound("other.yaml".to_string());
+    let error1 = ConfigError::FileNotFound("test.yaml");
+    let error2 = ConfigError::FileNotFound("test.yaml");
+    let error3 = ConfigError::FileNotFound("other.yaml");
     
-    assert_eq!(error1.to_string(), error2.to_string());
-    assert_ne!(error1.to_string(), error3.to_string());
+    assert_eq!(error1, error2);
+    assert_ne!(error1, error3);
 }
 
 #[test]
 fn test_error_categorization() {
     // Test that we can categorize errors appropriately
-    let config_err = RouterFloodError::Config(ConfigError::FileNotFound("test".to_string()));
-    let validation_err = RouterFloodError::Validation(ValidationError::PermissionDenied("test".to_string()));
-    let network_err = RouterFloodError::Network(NetworkError::InterfaceNotFound("test".to_string()));
+    let config_err = RouterFloodError::Config(ConfigError::FileNotFound("test"));
+    let validation_err = RouterFloodError::Validation(ValidationError::PermissionDenied("test"));
+    let network_err = RouterFloodError::Network(NetworkError::InterfaceNotFound("test"));
     let io_err = RouterFloodError::Io(io::Error::new(io::ErrorKind::NotFound, "test"));
     
     // Test pattern matching
