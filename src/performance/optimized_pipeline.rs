@@ -45,7 +45,7 @@ impl OptimizedPacketProcessor {
         target_ip: IpAddr,
         target_port: u16,
         payload_size: usize,
-    ) -> Result<ProcessedPacket> {
+    ) -> Result<ProcessedPacket<'_>> {
         let start_time = Instant::now();
         
         // Reset the packet builder for reuse

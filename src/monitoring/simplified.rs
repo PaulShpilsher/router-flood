@@ -9,7 +9,7 @@ use std::time::{Duration, Instant};
 use serde::{Deserialize, Serialize};
 use tokio::time;
 
-use crate::utils::shared::{AtomicCounter, RateCalculator, format_bytes, format_duration};
+use crate::utils::shared::{AtomicCounter, format_bytes, format_duration};
 
 /// Essential metrics for monitoring
 #[derive(Debug, Clone, Serialize, Deserialize)]

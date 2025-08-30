@@ -87,7 +87,7 @@ impl LockFreeMemoryPool {
     
     /// Allocate a memory block from the pool
     #[inline]
-    pub fn allocate(&self) -> Option<PooledMemory> {
+    pub fn allocate(&self) -> Option<PooledMemory<'_>> {
         // Try to get a block from the free list
         loop {
             let head = self.free_list.load(Ordering::Acquire);
@@ -338,7 +338,7 @@ impl MemoryPoolManager {
     }
     
     /// Allocate memory of the specified size
-    pub fn allocate(&self, size: usize) -> Option<ManagedMemory> {
+    pub fn allocate(&self, size: usize) -> Option<ManagedMemory<'_>> {
         // Find the best-fit size class
         let pool_index = self.find_size_class(size)?;
         let pool = &self.pools[pool_index];
