@@ -3,6 +3,7 @@
 //! This module contains the core components that power the network testing engine.
 
 pub mod network;
+pub mod optimized_worker;
 pub mod simulation;
 pub mod simple_interfaces;
 pub mod target;
@@ -17,4 +18,9 @@ pub use worker::WorkerManager;
 pub use simple_interfaces::{
     StatsCollector, PacketBuilder as PacketBuilderTrait, TargetProvider, WorkerConfig,
     SimpleWorker, SimpleWorkerFactory, SimpleWorkerManager
+};
+
+// Re-export optimized worker components
+pub use optimized_worker::{
+    OptimizedWorker, OptimizedWorkerManager, WorkerMetrics
 };
