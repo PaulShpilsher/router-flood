@@ -28,12 +28,12 @@ pub struct PacketMetadata {
 
 impl PacketContext {
     /// Create a new packet context
-    pub fn new(buffer: Vec<u8>, size: usize, target: Target, protocol: String) -> Self {
+    pub fn new(buffer: Vec<u8>, size: usize, target: Target, protocol: &str) -> Self {
         Self {
             buffer,
             size,
             target,
-            protocol,
+            protocol: protocol.to_string(),
             metadata: PacketMetadata::default(),
         }
     }

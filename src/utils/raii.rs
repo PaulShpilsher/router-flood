@@ -24,8 +24,8 @@ pub struct WorkerGuard {
 
 impl WorkerGuard {
     /// Create a new worker guard
-    pub fn new(manager: WorkerManager, name: impl Into<String>) -> Self {
-        let name = name.into();
+    pub fn new(manager: WorkerManager, name: &str) -> Self {
+        let name = name.to_string();
         debug!("WorkerGuard created for: {}", name);
         Self {
             manager: Some(manager),
@@ -71,8 +71,8 @@ pub struct ChannelGuard {
 
 impl ChannelGuard {
     /// Create a new channel guard
-    pub fn new(channels: WorkerChannels, name: impl Into<String>) -> Self {
-        let name = name.into();
+    pub fn new(channels: WorkerChannels, name: &str) -> Self {
+        let name = name.to_string();
         debug!("ChannelGuard created for: {}", name);
         Self {
             channels: Some(channels),
@@ -163,8 +163,8 @@ pub struct StatsGuard {
 
 impl StatsGuard {
     /// Create a new stats guard
-    pub fn new(stats: Arc<FloodStats>, name: impl Into<String>) -> Self {
-        let name = name.into();
+    pub fn new(stats: Arc<FloodStats>, name: &str) -> Self {
+        let name = name.to_string();
         debug!("StatsGuard created for: {}", name);
         Self { stats, name }
     }

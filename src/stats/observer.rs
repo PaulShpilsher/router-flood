@@ -138,9 +138,9 @@ pub struct FileObserver {
 
 impl FileObserver {
     /// Create a new file observer
-    pub fn new(file_path: impl Into<String>) -> Self {
+    pub fn new(file_path: &str) -> Self {
         Self {
-            file_path: file_path.into(),
+            file_path: file_path.to_string(),
         }
     }
 }
@@ -240,7 +240,7 @@ impl ObserverBuilder {
     }
     
     /// Add file logging
-    pub fn with_file(self, path: impl Into<String>) -> Self {
+    pub fn with_file(self, path: &str) -> Self {
         self.add(Arc::new(FileObserver::new(path)))
     }
     

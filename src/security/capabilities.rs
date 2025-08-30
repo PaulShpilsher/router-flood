@@ -207,9 +207,9 @@ pub struct TamperProofAuditLog {
 
 impl TamperProofAuditLog {
     /// Create a new tamper-proof audit log
-    pub fn new(log_file: impl Into<String>, session_id: impl Into<String>) -> Result<Self> {
-        let log_file = log_file.into();
-        let session_id = session_id.into();
+    pub fn new(log_file: &str, session_id: &str) -> Result<Self> {
+        let log_file = log_file.to_string();
+        let session_id = session_id.to_string();
         
         // Initialize with genesis hash
         let genesis_data = format!("GENESIS:{}", session_id);

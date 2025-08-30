@@ -37,11 +37,11 @@ pub struct Metric {
 }
 
 impl Metric {
-    pub fn new(name: String, metric_type: MetricType, description: String) -> Self {
+    pub fn new(name: &str, metric_type: MetricType, description: &str) -> Self {
         Self {
-            name,
+            name: name.to_string(),
             metric_type,
-            description,
+            description: description.to_string(),
             current_value: AtomicF64::new(0.0_f64.to_bits()),
             history: RwLock::new(Vec::new()),
             max_history: 1000, // Keep last 1000 values
@@ -104,11 +104,11 @@ impl MetricsCollector {
     }
     
     /// Register a new metric
-    pub fn register_metric(&self, name: String, metric_type: MetricType, description: String) -> Arc<Metric> {
-        let metric = Arc::new(Metric::new(name.clone(), metric_type, description));
+    pub fn register_metric(&self, name: &str, metric_type: MetricType, description: &str) -> Arc<Metric> {
+        let metric = Arc::new(Metric::new(name, metric_type, description));
         
         if let Ok(mut metrics) = self.metrics.write() {
-            metrics.insert(name, Arc::clone(&metric));
+            metrics.insert(name.to_string(), Arc::clone(&metric));
         }
         
         metric
@@ -221,54 +221,54 @@ impl RouterFloodMetrics {
     pub fn new(collector: &MetricsCollector) -> Self {
         Self {
             packets_sent: collector.register_metric(
-                "packets_sent_total".to_string(),
+                "packets_sent_total",
                 MetricType::Counter,
-                "Total number of packets sent".to_string(),
+                "Total number of packets sent",
             ),
             packets_failed: collector.register_metric(
-                "packets_failed_total".to_string(),
+                "packets_failed_total",
                 MetricType::Counter,
-                "Total number of failed packet sends".to_string(),
+                "Total number of failed packet sends",
             ),
             bytes_sent: collector.register_metric(
-                "bytes_sent_total".to_string(),
+                "bytes_sent_total",
                 MetricType::Counter,
-                "Total bytes sent".to_string(),
+                "Total bytes sent",
             ),
             packet_build_time: collector.register_metric(
-                "packet_build_duration_ms".to_string(),
+                "packet_build_duration_ms",
                 MetricType::Timer,
-                "Time taken to build packets in milliseconds".to_string(),
+                "Time taken to build packets in milliseconds",
             ),
             send_time: collector.register_metric(
-                "packet_send_duration_ms".to_string(),
+                "packet_send_duration_ms",
                 MetricType::Timer,
-                "Time taken to send packets in milliseconds".to_string(),
+                "Time taken to send packets in milliseconds",
             ),
             buffer_pool_utilization: collector.register_metric(
-                "buffer_pool_utilization_ratio".to_string(),
+                "buffer_pool_utilization_ratio",
                 MetricType::Gauge,
-                "Buffer pool utilization ratio (0.0 to 1.0)".to_string(),
+                "Buffer pool utilization ratio (0.0 to 1.0)",
             ),
             worker_threads_active: collector.register_metric(
-                "worker_threads_active".to_string(),
+                "worker_threads_active",
                 MetricType::Gauge,
-                "Number of active worker threads".to_string(),
+                "Number of active worker threads",
             ),
             cpu_usage: collector.register_metric(
-                "cpu_usage_percent".to_string(),
+                "cpu_usage_percent",
                 MetricType::Gauge,
-                "CPU usage percentage".to_string(),
+                "CPU usage percentage",
             ),
             memory_usage: collector.register_metric(
-                "memory_usage_bytes".to_string(),
+                "memory_usage_bytes",
                 MetricType::Gauge,
-                "Memory usage in bytes".to_string(),
+                "Memory usage in bytes",
             ),
             network_throughput: collector.register_metric(
-                "network_throughput_mbps".to_string(),
+                "network_throughput_mbps",
                 MetricType::Gauge,
-                "Network throughput in Mbps".to_string(),
+                "Network throughput in Mbps",
             ),
         }
     }
