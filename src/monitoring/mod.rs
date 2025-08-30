@@ -1,17 +1,21 @@
-//! Advanced monitoring and observability system
+//! Monitoring and metrics collection
 //!
-//! This module provides real-time performance monitoring, metrics collection,
-//! alerting capabilities, and Prometheus metrics export for the router-flood tool.
+//! This module provides comprehensive monitoring capabilities including
+//! Prometheus metrics, alerting, and dashboard functionality.
 
-pub mod dashboard;
-pub mod metrics;
 pub mod alerts;
+pub mod dashboard;
 pub mod export;
+pub mod metrics;
 pub mod prometheus;
+pub mod simplified;
 
-pub use dashboard::PerformanceDashboard;
-pub use metrics::{MetricsCollector, MetricType, MetricValue};
 pub use alerts::{AlertManager, AlertRule};
-pub use dashboard::AlertLevel;
+pub use dashboard::PerformanceDashboard;
 pub use export::{MetricsExporter, ExportFormat};
+pub use metrics::{MetricsCollector, MetricValue};
 pub use prometheus::PrometheusExporter;
+pub use simplified::{
+    EssentialMetrics, SimpleMetricsCollector, SimpleDisplay, SimpleExporter,
+    SimpleMonitor, SimpleMonitoringConfig, SimpleMonitoringSystem
+};
