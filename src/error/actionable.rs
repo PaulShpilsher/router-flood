@@ -27,8 +27,7 @@ pub enum ErrorSeverity {
     Critical,
 }
 
-// Compatibility alias for backward compatibility
-pub type EnhancedUserError = UserError;
+
 
 impl UserError {
     /// Create a new actionable user error
@@ -270,8 +269,8 @@ fn create_invalid_value_error(field: &str, value: &str, reason: &str) -> UserErr
                 "Use 'json' for structured data or 'csv' for spreadsheets."
             )
             .with_examples(vec![
-                "router-flood advanced --target 192.168.1.1 --export json",
-                "router-flood advanced --target 192.168.1.1 --export csv"
+                "router-flood detailed --target 192.168.1.1 --export json",
+                "router-flood detailed --target 192.168.1.1 --export csv"
             ])
             .with_severity(ErrorSeverity::Error)
         }
@@ -429,8 +428,7 @@ pub fn display_actionable_user_error(error: &RouterFloodError) {
     println!();
 }
 
-// Compatibility alias for backward compatibility
-pub use display_actionable_user_error as display_enhanced_user_error;
+
 
 /// Quick help for common scenarios
 pub fn show_quick_help() {

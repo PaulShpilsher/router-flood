@@ -15,10 +15,9 @@ pub mod user_friendly;
 pub mod actionable;
 
 pub use user_friendly::{UserFriendlyError, display_user_friendly_error, ErrorContext};
-// Enhanced error handling exports
+// Actionable error handling exports
 pub use actionable::{
-    UserError, EnhancedUserError, ErrorSeverity, 
-    display_actionable_user_error, display_enhanced_user_error, show_quick_help
+    UserError, ErrorSeverity, display_actionable_user_error, show_quick_help
 };
 
 use std::fmt;

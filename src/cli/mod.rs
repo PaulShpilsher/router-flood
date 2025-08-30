@@ -24,6 +24,6 @@ pub use basic::{
     parse_export_format
 };
 
-pub use enhanced::{InteractiveCli, EnhancedCli}; // EnhancedCli is compatibility alias
+pub use enhanced::{InteractiveCli};
 // Guided CLI exports
-pub use guided::{GuidedCli, GuidanceLevel, CliMode, validate_target_ip}; // CliMode is compatibility alias
+pub use guided::{GuidedCli, GuidanceLevel, validate_target_ip};

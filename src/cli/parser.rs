@@ -8,7 +8,7 @@ use clap::{Arg, Command, value_parser};
 pub struct CliParser;
 
 impl CliParser {
-    /// Build the enhanced command structure
+    /// Build the interactive command structure
     pub fn build_command() -> Command {
         Command::new("router-flood")
             .version(env!("CARGO_PKG_VERSION"))

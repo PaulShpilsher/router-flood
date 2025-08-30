@@ -17,12 +17,11 @@ pub enum GuidanceLevel {
     Quick,
     /// Standard mode - common options for typical use
     Standard,
-    /// Advanced mode - all options for power users
-    Advanced,
+    /// Detailed mode - all options for power users
+    Detailed,
 }
 
-// Compatibility alias for backward compatibility
-pub type CliMode = GuidanceLevel;
+
 
 /// Guided CLI builder with progressive disclosure
 pub struct GuidedCli;
@@ -112,7 +111,7 @@ impl GuidedCli {
 
     /// Build detailed command - all options for power users
     fn build_detailed_command() -> Command {
-        Command::new("advanced")
+        Command::new("detailed")
             .about("⚙️ Detailed test with full control")
             .long_about("Detailed mode provides full control over all testing parameters.")
             .args(Self::get_detailed_args())
@@ -170,7 +169,7 @@ A safe, educational tool for testing private networks with built-in safety featu
   router-flood test --target 192.168.1.1 --duration 30
 
   # Advanced usage with full control
-  router-flood advanced --target 192.168.1.1 --ports 80,443 --threads 4
+  router-flood detailed --target 192.168.1.1 --ports 80,443 --threads 4
 
 🛡️ SAFETY FEATURES:
   • Only works with private IP addresses
@@ -262,7 +261,7 @@ A safe, educational tool for testing private networks with built-in safety featu
         match matches.subcommand() {
             Some(("quick", _)) => GuidanceLevel::Quick,
             Some(("test", _)) => GuidanceLevel::Standard,
-            Some(("advanced", _)) => GuidanceLevel::Advanced,
+            Some(("detailed", _)) => GuidanceLevel::Detailed,
             _ => GuidanceLevel::Standard, // Default to standard mode
         }
     }
@@ -278,7 +277,7 @@ A safe, educational tool for testing private networks with built-in safety featu
             Some(("test", sub_matches)) => {
                 Self::apply_standard_config(&mut config, sub_matches)?;
             }
-            Some(("advanced", sub_matches)) => {
+            Some(("detailed", sub_matches)) => {
                 Self::apply_detailed_config(&mut config, sub_matches)?;
             }
             _ => {
@@ -369,7 +368,7 @@ A safe, educational tool for testing private networks with built-in safety featu
 
         config.safety.dry_run = matches.get_flag("dry-run");
 
-        info!("⚙️ Advanced mode: Full control over all parameters");
+        info!("⚙️ Detailed mode: Full control over all parameters");
         Ok(())
     }
 
@@ -471,10 +470,10 @@ A safe, educational tool for testing private networks with built-in safety featu
 
 ⚙️ ADVANCED USAGE:
   # Full control over parameters
-  router-flood advanced --target 192.168.1.1 --ports 22,80,443 --threads 8 --rate 500
+  router-flood detailed --target 192.168.1.1 --ports 22,80,443 --threads 8 --rate 500
 
   # Export results to file
-  router-flood advanced --target 10.0.0.1 --export json --duration 120
+  router-flood detailed --target 10.0.0.1 --export json --duration 120
 
 📋 CONFIGURATION:
   # Create config from current settings

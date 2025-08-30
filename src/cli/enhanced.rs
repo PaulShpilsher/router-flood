@@ -86,8 +86,7 @@ impl InteractiveCli {
 
 }
 
-// Compatibility alias for backward compatibility
-pub type EnhancedCli = InteractiveCli;
+
 
 impl Default for InteractiveCli {
     fn default() -> Self {

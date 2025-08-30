@@ -3,7 +3,7 @@
 //! These tests were moved from src/cli/interactive.rs to maintain
 //! separation between implementation and test code.
 
-use router_flood::cli::enhanced::{InteractiveCli, EnhancedCli}; // EnhancedCli is compatibility alias
+use router_flood::cli::enhanced::{InteractiveCli};
 
 #[test]
 fn test_interactive_cli_creation() {

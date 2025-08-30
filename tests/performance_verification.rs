@@ -40,7 +40,7 @@ fn test_batch_packet_building_performance() {
 
 #[test]
 fn test_batch_config_builder_performance() {
-    // Test the enhanced configuration builder
+    // Test the preset configuration builder
     let config = ConfigBuilder::new()
         .target_ip("192.168.1.1")
         .target_ports(vec![80, 443, 8080])

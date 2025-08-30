@@ -88,7 +88,7 @@ impl UserExperienceRunner {
         match self.mode {
             GuidanceLevel::Quick => self.display_quick_summary(),
             GuidanceLevel::Standard => self.display_standard_summary(),
-            GuidanceLevel::Advanced => self.display_detailed_summary(),
+            GuidanceLevel::Detailed => self.display_detailed_summary(),
         }
     }
 
