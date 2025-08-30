@@ -1,1 +1,533 @@
-//! Guided CLI interface for progressive user experience\n//!\n//! This module implements a progressive disclosure CLI that reduces complexity\n//! by 40% while maintaining full functionality through intelligent defaults.\n\nuse clap::{Arg, ArgMatches, Command, value_parser};\nuse std::net::IpAddr;\nuse tracing::info;\n\nuse crate::config::{Config, ExportFormat};\nuse crate::error::{ConfigError, Result, RouterFloodError};\n\n/// Guided CLI modes for progressive disclosure\n#[derive(Debug, Clone)]\npub enum CliMode {\n    /// Quick mode - minimal options for beginners\n    Quick,\n    /// Standard mode - common options for typical use\n    Standard,\n    /// Advanced mode - all options for power users\n    Advanced,\n}\n\n/// Guided CLI builder with progressive disclosure\npub struct GuidedCli;\n\nimpl GuidedCli {\n    /// Build the guided command structure with progressive disclosure\n    pub fn build_command() -> Command {\n        Command::new(\"router-flood\")\n            .version(env!(\"CARGO_PKG_VERSION\"))\n            .about(\"🚀 Educational Network Stress Tester\")\n            .long_about(Self::get_guided_help())\n            .subcommand_required(false)\n            .arg_required_else_help(false)\n            .subcommand(Self::build_quick_command())\n            .subcommand(Self::build_test_command())\n            .subcommand(Self::build_advanced_command())\n            .subcommand(Self::build_config_command())\n            .subcommand(Self::build_help_command())\n            .args(Self::get_global_args())\n    }\n\n    /// Build quick mode command - minimal options for beginners\n    fn build_quick_command() -> Command {\n        Command::new(\"quick\")\n            .about(\"🎯 Quick test with smart defaults\")\n            .long_about(\"Quick mode provides the simplest way to test your network.\\nJust specify a target IP and we'll handle the rest with safe defaults.\")\n            .arg(\n                Arg::new(\"target\")\n                    .help(\"Target IP address (private network only)\")\n                    .long_help(\"Target IP address for testing. Must be in private ranges:\\n  • 192.168.x.x (home networks)\\n  • 10.x.x.x (corporate networks)\\n  • 172.16-31.x.x (enterprise networks)\")\n                    .required(true)\n                    .value_name(\"IP\")\n            )\n            .arg(\n                Arg::new(\"dry-run\")\n                    .long(\"dry-run\")\n                    .help(\"Safe mode - no actual packets sent\")\n                    .action(clap::ArgAction::SetTrue)\n            )\n    }\n\n    /// Build standard test command - common options\n    fn build_test_command() -> Command {\n        Command::new(\"test\")\n            .about(\"🔧 Standard test with common options\")\n            .long_about(\"Standard mode provides commonly used options for typical testing scenarios.\")\n            .arg(\n                Arg::new(\"target\")\n                    .long(\"target\")\n                    .short('t')\n                    .help(\"Target IP address\")\n                    .required(true)\n                    .value_name(\"IP\")\n            )\n            .arg(\n                Arg::new(\"ports\")\n                    .long(\"ports\")\n                    .short('p')\n                    .help(\"Target ports (default: 80,443)\")\n                    .value_name(\"PORTS\")\n                    .default_value(\"80,443\")\n            )\n            .arg(\n                Arg::new(\"duration\")\n                    .long(\"duration\")\n                    .short('d')\n                    .help(\"Test duration in seconds (default: 30)\")\n                    .value_parser(value_parser!(u64))\n                    .default_value(\"30\")\n                    .value_name(\"SECONDS\")\n            )\n            .arg(\n                Arg::new(\"intensity\")\n                    .long(\"intensity\")\n                    .help(\"Test intensity level\")\n                    .value_parser([\"low\", \"medium\", \"high\"])\n                    .default_value(\"medium\")\n                    .value_name(\"LEVEL\")\n            )\n            .arg(\n                Arg::new(\"dry-run\")\n                    .long(\"dry-run\")\n                    .help(\"Safe mode - no actual packets sent\")\n                    .action(clap::ArgAction::SetTrue)\n            )\n    }\n\n    /// Build advanced command - all options for power users\n    fn build_advanced_command() -> Command {\n        Command::new(\"advanced\")\n            .about(\"⚙️ Advanced test with full control\")\n            .long_about(\"Advanced mode provides full control over all testing parameters.\")\n            .args(Self::get_advanced_args())\n    }\n\n    /// Build config management command\n    fn build_config_command() -> Command {\n        Command::new(\"config\")\n            .about(\"📋 Configuration management\")\n            .subcommand(\n                Command::new(\"create\")\n                    .about(\"Create configuration from current settings\")\n                    .arg(\n                        Arg::new(\"output\")\n                            .long(\"output\")\n                            .short('o')\n                            .help(\"Output file path\")\n                            .default_value(\"my-config.yaml\")\n                            .value_name(\"FILE\")\n                    )\n            )\n            .subcommand(\n                Command::new(\"validate\")\n                    .about(\"Validate configuration file\")\n                    .arg(\n                        Arg::new(\"file\")\n                            .help(\"Configuration file to validate\")\n                            .required(true)\n                            .value_name(\"FILE\")\n                    )\n            )\n            .subcommand(\n                Command::new(\"examples\")\n                    .about(\"Show configuration examples\")\n            )\n    }\n\n    /// Build help command with examples\n    fn build_help_command() -> Command {\n        Command::new(\"examples\")\n            .about(\"📚 Show usage examples\")\n    }\n\n    /// Get guided help text\n    fn get_guided_help() -> &'static str {\n        r#\"🚀 Router Flood - Educational Network Stress Tester\n\nA safe, educational tool for testing private networks with built-in safety features.\n\n🎯 QUICK START:\n  # Safest way to start (no packets sent)\n  router-flood quick 192.168.1.1 --dry-run\n\n  # Standard test with common settings\n  router-flood test --target 192.168.1.1 --duration 30\n\n  # Advanced usage with full control\n  router-flood advanced --target 192.168.1.1 --ports 80,443 --threads 4\n\n🛡️ SAFETY FEATURES:\n  • Only works with private IP addresses\n  • Built-in rate limiting and safety checks\n  • Dry-run mode for safe testing\n  • No root privileges required for dry-run\n\n📚 LEARN MORE:\n  router-flood examples    # Show detailed examples\n  router-flood config examples    # Configuration examples\n\"#\n    }\n\n    /// Get global arguments (minimal set)\n    fn get_global_args() -> Vec<Arg> {\n        vec![\n            Arg::new(\"verbose\")\n                .long(\"verbose\")\n                .short('v')\n                .help(\"Show detailed output\")\n                .action(clap::ArgAction::SetTrue),\n            Arg::new(\"quiet\")\n                .long(\"quiet\")\n                .short('q')\n                .help(\"Minimal output\")\n                .action(clap::ArgAction::SetTrue),\n            Arg::new(\"config\")\n                .long(\"config\")\n                .short('c')\n                .help(\"Use configuration file\")\n                .value_name(\"FILE\"),\n        ]\n    }\n\n    /// Get advanced arguments (full set)\n    fn get_advanced_args() -> Vec<Arg> {\n        vec![\n            Arg::new(\"target\")\n                .long(\"target\")\n                .short('t')\n                .help(\"Target IP address\")\n                .required(true)\n                .value_name(\"IP\"),\n            Arg::new(\"ports\")\n                .long(\"ports\")\n                .short('p')\n                .help(\"Target ports (comma-separated)\")\n                .default_value(\"80,443\")\n                .value_name(\"PORTS\"),\n            Arg::new(\"threads\")\n                .long(\"threads\")\n                .help(\"Number of worker threads\")\n                .value_parser(value_parser!(usize))\n                .default_value(\"4\")\n                .value_name(\"NUM\"),\n            Arg::new(\"rate\")\n                .long(\"rate\")\n                .help(\"Packets per second per thread\")\n                .value_parser(value_parser!(u64))\n                .default_value(\"100\")\n                .value_name(\"PPS\"),\n            Arg::new(\"duration\")\n                .long(\"duration\")\n                .short('d')\n                .help(\"Test duration in seconds\")\n                .value_parser(value_parser!(u64))\n                .value_name(\"SECONDS\"),\n            Arg::new(\"dry-run\")\n                .long(\"dry-run\")\n                .help(\"Safe mode - no actual packets sent\")\n                .action(clap::ArgAction::SetTrue),\n            Arg::new(\"export\")\n                .long(\"export\")\n                .help(\"Export results\")\n                .value_parser([\"json\", \"csv\"])\n                .value_name(\"FORMAT\"),\n        ]\n    }\n\n    /// Process CLI arguments with intelligent defaults\n    pub fn process_arguments(matches: &ArgMatches) -> Result<(Config, CliMode)> {\n        let mode = Self::determine_mode(matches);\n        let config = Self::build_config_from_mode(matches, &mode)?;\n        Ok((config, mode))\n    }\n\n    /// Determine CLI mode from subcommand\n    fn determine_mode(matches: &ArgMatches) -> CliMode {\n        match matches.subcommand() {\n            Some((\"quick\", _)) => CliMode::Quick,\n            Some((\"test\", _)) => CliMode::Standard,\n            Some((\"advanced\", _)) => CliMode::Advanced,\n            _ => CliMode::Standard, // Default to standard mode\n        }\n    }\n\n    /// Build configuration based on CLI mode with intelligent defaults\n    fn build_config_from_mode(matches: &ArgMatches, _mode: &CliMode) -> Result<Config> {\n        let mut config = crate::config::get_default_config();\n\n        match matches.subcommand() {\n            Some((\"quick\", sub_matches)) => {\n                Self::apply_quick_config(&mut config, sub_matches)?;\n            }\n            Some((\"test\", sub_matches)) => {\n                Self::apply_standard_config(&mut config, sub_matches)?;\n            }\n            Some((\"advanced\", sub_matches)) => {\n                Self::apply_advanced_config(&mut config, sub_matches)?;\n            }\n            _ => {\n                // Handle legacy direct arguments\n                Self::apply_legacy_config(&mut config, matches)?;\n            }\n        }\n\n        // Apply global overrides\n        Self::apply_global_overrides(&mut config, matches)?;\n\n        Ok(config)\n    }\n\n    /// Apply quick mode configuration with minimal options\n    fn apply_quick_config(config: &mut Config, matches: &ArgMatches) -> Result<()> {\n        if let Some(target) = matches.get_one::<String>(\"target\") {\n            config.target.ip = target.clone();\n        }\n\n        // Quick mode defaults: safe and simple\n        config.target.ports = vec![80]; // Single common port\n        config.attack.threads = 2; // Conservative thread count\n        config.attack.packet_rate = 50; // Low rate for safety\n        config.attack.duration = Some(10); // Short duration\n        config.safety.dry_run = matches.get_flag(\"dry-run\");\n\n        if config.safety.dry_run {\n            info!(\"🔍 Quick mode with dry-run: Safe testing enabled\");\n        } else {\n            info!(\"🎯 Quick mode: Conservative settings for safe testing\");\n        }\n\n        Ok(())\n    }\n\n    /// Apply standard mode configuration with common options\n    fn apply_standard_config(config: &mut Config, matches: &ArgMatches) -> Result<()> {\n        if let Some(target) = matches.get_one::<String>(\"target\") {\n            config.target.ip = target.clone();\n        }\n\n        if let Some(ports_str) = matches.get_one::<String>(\"ports\") {\n            config.target.ports = Self::parse_ports(ports_str)?;\n        }\n\n        if let Some(duration) = matches.get_one::<u64>(\"duration\") {\n            config.attack.duration = Some(*duration);\n        }\n\n        // Apply intensity level\n        if let Some(intensity) = matches.get_one::<String>(\"intensity\") {\n            Self::apply_intensity_level(config, intensity);\n        }\n\n        config.safety.dry_run = matches.get_flag(\"dry-run\");\n\n        info!(\"🔧 Standard mode: Balanced settings for typical testing\");\n        Ok(())\n    }\n\n    /// Apply advanced mode configuration with full control\n    fn apply_advanced_config(config: &mut Config, matches: &ArgMatches) -> Result<()> {\n        if let Some(target) = matches.get_one::<String>(\"target\") {\n            config.target.ip = target.clone();\n        }\n\n        if let Some(ports_str) = matches.get_one::<String>(\"ports\") {\n            config.target.ports = Self::parse_ports(ports_str)?;\n        }\n\n        if let Some(threads) = matches.get_one::<usize>(\"threads\") {\n            config.attack.threads = *threads;\n        }\n\n        if let Some(rate) = matches.get_one::<u64>(\"rate\") {\n            config.attack.packet_rate = *rate;\n        }\n\n        if let Some(duration) = matches.get_one::<u64>(\"duration\") {\n            config.attack.duration = Some(*duration);\n        }\n\n        if let Some(export_format) = matches.get_one::<String>(\"export\") {\n            config.export.enabled = true;\n            config.export.format = Self::parse_export_format(export_format)?;\n        }\n\n        config.safety.dry_run = matches.get_flag(\"dry-run\");\n\n        info!(\"⚙️ Advanced mode: Full control over all parameters\");\n        Ok(())\n    }\n\n    /// Apply legacy configuration for backward compatibility\n    fn apply_legacy_config(config: &mut Config, matches: &ArgMatches) -> Result<()> {\n        // This maintains compatibility with the old CLI interface\n        if let Some(target) = matches.get_one::<String>(\"target\") {\n            config.target.ip = target.clone();\n        }\n\n        if let Some(ports_str) = matches.get_one::<String>(\"ports\") {\n            config.target.ports = Self::parse_ports(ports_str)?;\n        }\n\n        // Apply other legacy options...\n        Ok(())\n    }\n\n    /// Apply global overrides that work across all modes\n    fn apply_global_overrides(_config: &mut Config, _matches: &ArgMatches) -> Result<()> {\n        // Handle config file override\n        // Handle verbosity\n        Ok(())\n    }\n\n    /// Apply intensity level to configuration\n    fn apply_intensity_level(config: &mut Config, intensity: &str) {\n        match intensity {\n            \"low\" => {\n                config.attack.threads = 2;\n                config.attack.packet_rate = 50;\n            }\n            \"medium\" => {\n                config.attack.threads = 4;\n                config.attack.packet_rate = 100;\n            }\n            \"high\" => {\n                config.attack.threads = 8;\n                config.attack.packet_rate = 200;\n            }\n            _ => {\n                // Default to medium\n                config.attack.threads = 4;\n                config.attack.packet_rate = 100;\n            }\n        }\n    }\n\n    /// Parse comma-separated ports with better error messages\n    fn parse_ports(ports_str: &str) -> Result<Vec<u16>> {\n        ports_str\n            .split(',')\n            .map(|s| {\n                s.trim()\n                    .parse::<u16>()\n                    .map_err(|_| ConfigError::InvalidValue {\n                        field: \"ports\".to_string(),\n                        value: s.trim().to_string(),\n                        reason: format!(\"'{}' is not a valid port number. Use numbers between 1-65535.\", s.trim()),\n                    })\n            })\n            .collect::<std::result::Result<Vec<_>, _>>()\n            .map_err(RouterFloodError::from)\n    }\n\n    /// Parse export format with better error messages\n    fn parse_export_format(format_str: &str) -> Result<ExportFormat> {\n        match format_str.to_lowercase().as_str() {\n            \"json\" => Ok(ExportFormat::Json),\n            \"csv\" => Ok(ExportFormat::Csv),\n            _ => Err(ConfigError::InvalidValue {\n                field: \"export\".to_string(),\n                value: format_str.to_string(),\n                reason: \"Export format must be 'json' or 'csv'. Use 'json' for structured data or 'csv' for spreadsheets.\".to_string(),\n            }.into()),\n        }\n    }\n\n    /// Show usage examples\n    pub fn show_examples() {\n        println!(r#\"📚 Router Flood Usage Examples\n\n🎯 QUICK START (Safest):\n  # Test without sending packets (completely safe)\n  router-flood quick 192.168.1.1 --dry-run\n\n  # Quick test with minimal settings\n  router-flood quick 192.168.1.1\n\n🔧 STANDARD TESTING:\n  # Test web server ports for 30 seconds\n  router-flood test --target 192.168.1.100 --ports 80,443 --duration 30\n\n  # Low intensity test (gentle)\n  router-flood test --target 10.0.0.1 --intensity low --duration 60\n\n  # High intensity test (aggressive)\n  router-flood test --target 192.168.1.1 --intensity high --duration 10\n\n⚙️ ADVANCED USAGE:\n  # Full control over parameters\n  router-flood advanced --target 192.168.1.1 --ports 22,80,443 --threads 8 --rate 500\n\n  # Export results to file\n  router-flood advanced --target 10.0.0.1 --export json --duration 120\n\n📋 CONFIGURATION:\n  # Create config from current settings\n  router-flood config create --output my-test.yaml\n\n  # Validate existing config\n  router-flood config validate my-test.yaml\n\n🛡️ SAFETY TIPS:\n  • Always start with --dry-run for new targets\n  • Use 'quick' mode when learning\n  • Test on your own networks only\n  • Start with low intensity and short duration\n\"#);\n    }\n}\n\n/// Helper function to validate IP address with user-friendly messages\npub fn validate_target_ip(ip_str: &str) -> Result<IpAddr> {\n    let ip: IpAddr = ip_str.parse()\n        .map_err(|_| ConfigError::InvalidValue {\n            field: \"target\".to_string(),\n            value: ip_str.to_string(),\n            reason: format!(\"'{}' is not a valid IP address. Example: 192.168.1.1\", ip_str),\n        })?;\n\n    // Validate private IP ranges\n    if !is_private_ip(&ip) {\n        return Err(ConfigError::InvalidValue {\n            field: \"target\".to_string(),\n            value: ip_str.to_string(),\n            reason: \"Only private IP addresses are allowed for safety. Use 192.168.x.x, 10.x.x.x, or 172.16-31.x.x\".to_string(),\n        }.into());\n    }\n\n    Ok(ip)\n}\n\n/// Check if IP address is in private ranges\nfn is_private_ip(ip: &IpAddr) -> bool {\n    match ip {\n        IpAddr::V4(ipv4) => {\n            let octets = ipv4.octets();\n            // 192.168.0.0/16\n            (octets[0] == 192 && octets[1] == 168) ||\n            // 10.0.0.0/8\n            (octets[0] == 10) ||\n            // 172.16.0.0/12\n            (octets[0] == 172 && (16..=31).contains(&octets[1]))\n        }\n        IpAddr::V6(_) => {\n            // For now, we'll be conservative and not allow IPv6\n            false\n        }\n    }\n}\n"
+//! Guided CLI interface for progressive user experience
+//!
+//! This module implements a progressive disclosure CLI that reduces complexity
+//! by 40% while maintaining full functionality through intelligent defaults.
+
+use clap::{Arg, ArgMatches, Command, value_parser};
+use std::net::IpAddr;
+use tracing::info;
+
+use crate::config::{Config, ExportFormat};
+use crate::error::{ConfigError, Result, RouterFloodError};
+
+/// Guidance levels for progressive disclosure
+#[derive(Debug, Clone)]
+pub enum GuidanceLevel {
+    /// Quick mode - minimal options for beginners
+    Quick,
+    /// Standard mode - common options for typical use
+    Standard,
+    /// Advanced mode - all options for power users
+    Advanced,
+}
+
+// Compatibility alias for backward compatibility
+pub type CliMode = GuidanceLevel;
+
+/// Guided CLI builder with progressive disclosure
+pub struct GuidedCli;
+
+impl GuidedCli {
+    /// Build the guided command structure with progressive disclosure
+    pub fn build_command() -> Command {
+        Command::new("router-flood")
+            .version(env!("CARGO_PKG_VERSION"))
+            .about("🚀 Educational Network Stress Tester")
+            .long_about(Self::get_guided_help())
+            .subcommand_required(false)
+            .arg_required_else_help(false)
+            .subcommand(Self::build_quick_command())
+            .subcommand(Self::build_test_command())
+            .subcommand(Self::build_detailed_command())
+            .subcommand(Self::build_config_command())
+            .subcommand(Self::build_help_command())
+            .args(Self::get_global_args())
+    }
+
+    /// Build quick mode command - minimal options for beginners
+    fn build_quick_command() -> Command {
+        Command::new("quick")
+            .about("🎯 Quick test with smart defaults")
+            .long_about("Quick mode provides the simplest way to test your network.\nJust specify a target IP and we'll handle the rest with safe defaults.")
+            .arg(
+                Arg::new("target")
+                    .help("Target IP address (private network only)")
+                    .long_help("Target IP address for testing. Must be in private ranges:\n  • 192.168.x.x (home networks)\n  • 10.x.x.x (corporate networks)\n  • 172.16-31.x.x (enterprise networks)")
+                    .required(true)
+                    .value_name("IP")
+            )
+            .arg(
+                Arg::new("dry-run")
+                    .long("dry-run")
+                    .help("Safe mode - no actual packets sent")
+                    .action(clap::ArgAction::SetTrue)
+            )
+    }
+
+    /// Build standard test command - common options
+    fn build_test_command() -> Command {
+        Command::new("test")
+            .about("🔧 Standard test with common options")
+            .long_about("Standard mode provides commonly used options for typical testing scenarios.")
+            .arg(
+                Arg::new("target")
+                    .long("target")
+                    .short('t')
+                    .help("Target IP address")
+                    .required(true)
+                    .value_name("IP")
+            )
+            .arg(
+                Arg::new("ports")
+                    .long("ports")
+                    .short('p')
+                    .help("Target ports (default: 80,443)")
+                    .value_name("PORTS")
+                    .default_value("80,443")
+            )
+            .arg(
+                Arg::new("duration")
+                    .long("duration")
+                    .short('d')
+                    .help("Test duration in seconds (default: 30)")
+                    .value_parser(value_parser!(u64))
+                    .default_value("30")
+                    .value_name("SECONDS")
+            )
+            .arg(
+                Arg::new("intensity")
+                    .long("intensity")
+                    .help("Test intensity level")
+                    .value_parser(["low", "medium", "high"])
+                    .default_value("medium")
+                    .value_name("LEVEL")
+            )
+            .arg(
+                Arg::new("dry-run")
+                    .long("dry-run")
+                    .help("Safe mode - no actual packets sent")
+                    .action(clap::ArgAction::SetTrue)
+            )
+    }
+
+    /// Build detailed command - all options for power users
+    fn build_detailed_command() -> Command {
+        Command::new("advanced")
+            .about("⚙️ Advanced test with full control")
+            .long_about("Advanced mode provides full control over all testing parameters.")
+            .args(Self::get_detailed_args())
+    }
+
+    /// Build config management command
+    fn build_config_command() -> Command {
+        Command::new("config")
+            .about("📋 Configuration management")
+            .subcommand(
+                Command::new("create")
+                    .about("Create configuration from current settings")
+                    .arg(
+                        Arg::new("output")
+                            .long("output")
+                            .short('o')
+                            .help("Output file path")
+                            .default_value("my-config.yaml")
+                            .value_name("FILE")
+                    )
+            )
+            .subcommand(
+                Command::new("validate")
+                    .about("Validate configuration file")
+                    .arg(
+                        Arg::new("file")
+                            .help("Configuration file to validate")
+                            .required(true)
+                            .value_name("FILE")
+                    )
+            )
+            .subcommand(
+                Command::new("examples")
+                    .about("Show configuration examples")
+            )
+    }
+
+    /// Build help command with examples
+    fn build_help_command() -> Command {
+        Command::new("examples")
+            .about("📚 Show usage examples")
+    }
+
+    /// Get guided help text
+    fn get_guided_help() -> &'static str {
+        r#"🚀 Router Flood - Educational Network Stress Tester
+
+A safe, educational tool for testing private networks with built-in safety features.
+
+🎯 QUICK START:
+  # Safest way to start (no packets sent)
+  router-flood quick 192.168.1.1 --dry-run
+
+  # Standard test with common settings
+  router-flood test --target 192.168.1.1 --duration 30
+
+  # Advanced usage with full control
+  router-flood advanced --target 192.168.1.1 --ports 80,443 --threads 4
+
+🛡️ SAFETY FEATURES:
+  • Only works with private IP addresses
+  • Built-in rate limiting and safety checks
+  • Dry-run mode for safe testing
+  • No root privileges required for dry-run
+
+📚 LEARN MORE:
+  router-flood examples    # Show detailed examples
+  router-flood config examples    # Configuration examples
+"#
+    }
+
+    /// Get global arguments (minimal set)
+    fn get_global_args() -> Vec<Arg> {
+        vec![
+            Arg::new("verbose")
+                .long("verbose")
+                .short('v')
+                .help("Show detailed output")
+                .action(clap::ArgAction::SetTrue),
+            Arg::new("quiet")
+                .long("quiet")
+                .short('q')
+                .help("Minimal output")
+                .action(clap::ArgAction::SetTrue),
+            Arg::new("config")
+                .long("config")
+                .short('c')
+                .help("Use configuration file")
+                .value_name("FILE"),
+        ]
+    }
+
+    /// Get detailed arguments (full set)
+    fn get_detailed_args() -> Vec<Arg> {
+        vec![
+            Arg::new("target")
+                .long("target")
+                .short('t')
+                .help("Target IP address")
+                .required(true)
+                .value_name("IP"),
+            Arg::new("ports")
+                .long("ports")
+                .short('p')
+                .help("Target ports (comma-separated)")
+                .default_value("80,443")
+                .value_name("PORTS"),
+            Arg::new("threads")
+                .long("threads")
+                .help("Number of worker threads")
+                .value_parser(value_parser!(usize))
+                .default_value("4")
+                .value_name("NUM"),
+            Arg::new("rate")
+                .long("rate")
+                .help("Packets per second per thread")
+                .value_parser(value_parser!(u64))
+                .default_value("100")
+                .value_name("PPS"),
+            Arg::new("duration")
+                .long("duration")
+                .short('d')
+                .help("Test duration in seconds")
+                .value_parser(value_parser!(u64))
+                .value_name("SECONDS"),
+            Arg::new("dry-run")
+                .long("dry-run")
+                .help("Safe mode - no actual packets sent")
+                .action(clap::ArgAction::SetTrue),
+            Arg::new("export")
+                .long("export")
+                .help("Export results")
+                .value_parser(["json", "csv"])
+                .value_name("FORMAT"),
+        ]
+    }
+
+    /// Process CLI arguments with intelligent defaults
+    pub fn process_arguments(matches: &ArgMatches) -> Result<(Config, GuidanceLevel)> {
+        let mode = Self::determine_mode(matches);
+        let config = Self::build_config_from_mode(matches, &mode)?;
+        Ok((config, mode))
+    }
+
+    /// Determine guidance level from subcommand
+    fn determine_mode(matches: &ArgMatches) -> GuidanceLevel {
+        match matches.subcommand() {
+            Some(("quick", _)) => GuidanceLevel::Quick,
+            Some(("test", _)) => GuidanceLevel::Standard,
+            Some(("advanced", _)) => GuidanceLevel::Advanced,
+            _ => GuidanceLevel::Standard, // Default to standard mode
+        }
+    }
+
+    /// Build configuration based on guidance level with intelligent defaults
+    fn build_config_from_mode(matches: &ArgMatches, _mode: &GuidanceLevel) -> Result<Config> {
+        let mut config = crate::config::get_default_config();
+
+        match matches.subcommand() {
+            Some(("quick", sub_matches)) => {
+                Self::apply_quick_config(&mut config, sub_matches)?;
+            }
+            Some(("test", sub_matches)) => {
+                Self::apply_standard_config(&mut config, sub_matches)?;
+            }
+            Some(("advanced", sub_matches)) => {
+                Self::apply_detailed_config(&mut config, sub_matches)?;
+            }
+            _ => {
+                // Handle legacy direct arguments
+                Self::apply_legacy_config(&mut config, matches)?;
+            }
+        }
+
+        // Apply global overrides
+        Self::apply_global_overrides(&mut config, matches)?;
+
+        Ok(config)
+    }
+
+    /// Apply quick mode configuration with minimal options
+    fn apply_quick_config(config: &mut Config, matches: &ArgMatches) -> Result<()> {
+        if let Some(target) = matches.get_one::<String>("target") {
+            config.target.ip = target.clone();
+        }
+
+        // Quick mode defaults: safe and simple
+        config.target.ports = vec![80]; // Single common port
+        config.attack.threads = 2; // Conservative thread count
+        config.attack.packet_rate = 50; // Low rate for safety
+        config.attack.duration = Some(10); // Short duration
+        config.safety.dry_run = matches.get_flag("dry-run");
+
+        if config.safety.dry_run {
+            info!("🔍 Quick mode with dry-run: Safe testing enabled");
+        } else {
+            info!("🎯 Quick mode: Conservative settings for safe testing");
+        }
+
+        Ok(())
+    }
+
+    /// Apply standard mode configuration with common options
+    fn apply_standard_config(config: &mut Config, matches: &ArgMatches) -> Result<()> {
+        if let Some(target) = matches.get_one::<String>("target") {
+            config.target.ip = target.clone();
+        }
+
+        if let Some(ports_str) = matches.get_one::<String>("ports") {
+            config.target.ports = Self::parse_ports(ports_str)?;
+        }
+
+        if let Some(duration) = matches.get_one::<u64>("duration") {
+            config.attack.duration = Some(*duration);
+        }
+
+        // Apply intensity level
+        if let Some(intensity) = matches.get_one::<String>("intensity") {
+            Self::apply_intensity_level(config, intensity);
+        }
+
+        config.safety.dry_run = matches.get_flag("dry-run");
+
+        info!("🔧 Standard mode: Balanced settings for typical testing");
+        Ok(())
+    }
+
+    /// Apply detailed mode configuration with full control
+    fn apply_detailed_config(config: &mut Config, matches: &ArgMatches) -> Result<()> {
+        if let Some(target) = matches.get_one::<String>("target") {
+            config.target.ip = target.clone();
+        }
+
+        if let Some(ports_str) = matches.get_one::<String>("ports") {
+            config.target.ports = Self::parse_ports(ports_str)?;
+        }
+
+        if let Some(threads) = matches.get_one::<usize>("threads") {
+            config.attack.threads = *threads;
+        }
+
+        if let Some(rate) = matches.get_one::<u64>("rate") {
+            config.attack.packet_rate = *rate;
+        }
+
+        if let Some(duration) = matches.get_one::<u64>("duration") {
+            config.attack.duration = Some(*duration);
+        }
+
+        if let Some(export_format) = matches.get_one::<String>("export") {
+            config.export.enabled = true;
+            config.export.format = Self::parse_export_format(export_format)?;
+        }
+
+        config.safety.dry_run = matches.get_flag("dry-run");
+
+        info!("⚙️ Advanced mode: Full control over all parameters");
+        Ok(())
+    }
+
+    /// Apply legacy configuration for backward compatibility
+    fn apply_legacy_config(config: &mut Config, matches: &ArgMatches) -> Result<()> {
+        // This maintains compatibility with the old CLI interface
+        if let Some(target) = matches.get_one::<String>("target") {
+            config.target.ip = target.clone();
+        }
+
+        if let Some(ports_str) = matches.get_one::<String>("ports") {
+            config.target.ports = Self::parse_ports(ports_str)?;
+        }
+
+        // Apply other legacy options...
+        Ok(())
+    }
+
+    /// Apply global overrides that work across all modes
+    fn apply_global_overrides(_config: &mut Config, _matches: &ArgMatches) -> Result<()> {
+        // Handle config file override
+        // Handle verbosity
+        Ok(())
+    }
+
+    /// Apply intensity level to configuration
+    fn apply_intensity_level(config: &mut Config, intensity: &str) {
+        match intensity {
+            "low" => {
+                config.attack.threads = 2;
+                config.attack.packet_rate = 50;
+            }
+            "medium" => {
+                config.attack.threads = 4;
+                config.attack.packet_rate = 100;
+            }
+            "high" => {
+                config.attack.threads = 8;
+                config.attack.packet_rate = 200;
+            }
+            _ => {
+                // Default to medium
+                config.attack.threads = 4;
+                config.attack.packet_rate = 100;
+            }
+        }
+    }
+
+    /// Parse comma-separated ports with better error messages
+    fn parse_ports(ports_str: &str) -> Result<Vec<u16>> {
+        ports_str
+            .split(',')
+            .map(|s| {
+                s.trim()
+                    .parse::<u16>()
+                    .map_err(|_| ConfigError::InvalidValue {
+                        field: "ports".to_string(),
+                        value: s.trim().to_string(),
+                        reason: format!("'{}' is not a valid port number. Use numbers between 1-65535.", s.trim()),
+                    })
+            })
+            .collect::<std::result::Result<Vec<_>, _>>()
+            .map_err(RouterFloodError::from)
+    }
+
+    /// Parse export format with better error messages
+    fn parse_export_format(format_str: &str) -> Result<ExportFormat> {
+        match format_str.to_lowercase().as_str() {
+            "json" => Ok(ExportFormat::Json),
+            "csv" => Ok(ExportFormat::Csv),
+            _ => Err(ConfigError::InvalidValue {
+                field: "export".to_string(),
+                value: format_str.to_string(),
+                reason: "Export format must be 'json' or 'csv'. Use 'json' for structured data or 'csv' for spreadsheets.".to_string(),
+            }.into()),
+        }
+    }
+
+    /// Show usage examples
+    pub fn show_examples() {
+        println!(r#"📚 Router Flood Usage Examples
+
+🎯 QUICK START (Safest):
+  # Test without sending packets (completely safe)
+  router-flood quick 192.168.1.1 --dry-run
+
+  # Quick test with minimal settings
+  router-flood quick 192.168.1.1
+
+🔧 STANDARD TESTING:
+  # Test web server ports for 30 seconds
+  router-flood test --target 192.168.1.100 --ports 80,443 --duration 30
+
+  # Low intensity test (gentle)
+  router-flood test --target 10.0.0.1 --intensity low --duration 60
+
+  # High intensity test (aggressive)
+  router-flood test --target 192.168.1.1 --intensity high --duration 10
+
+⚙️ ADVANCED USAGE:
+  # Full control over parameters
+  router-flood advanced --target 192.168.1.1 --ports 22,80,443 --threads 8 --rate 500
+
+  # Export results to file
+  router-flood advanced --target 10.0.0.1 --export json --duration 120
+
+📋 CONFIGURATION:
+  # Create config from current settings
+  router-flood config create --output my-test.yaml
+
+  # Validate existing config
+  router-flood config validate my-test.yaml
+
+🛡️ SAFETY TIPS:
+  • Always start with --dry-run for new targets
+  • Use 'quick' mode when learning
+  • Test on your own networks only
+  • Start with low intensity and short duration
+"#);
+    }
+}
+
+/// Helper function to validate IP address with user-friendly messages
+pub fn validate_target_ip(ip_str: &str) -> Result<IpAddr> {
+    let ip: IpAddr = ip_str.parse()
+        .map_err(|_| ConfigError::InvalidValue {
+            field: "target".to_string(),
+            value: ip_str.to_string(),
+            reason: format!("'{}' is not a valid IP address. Example: 192.168.1.1", ip_str),
+        })?;
+
+    // Validate private IP ranges
+    if !is_private_ip(&ip) {
+        return Err(ConfigError::InvalidValue {
+            field: "target".to_string(),
+            value: ip_str.to_string(),
+            reason: "Only private IP addresses are allowed for safety. Use 192.168.x.x, 10.x.x.x, or 172.16-31.x.x".to_string(),
+        }.into());
+    }
+
+    Ok(ip)
+}
+
+/// Check if IP address is in private ranges
+fn is_private_ip(ip: &IpAddr) -> bool {
+    match ip {
+        IpAddr::V4(ipv4) => {
+            let octets = ipv4.octets();
+            // 192.168.0.0/16
+            (octets[0] == 192 && octets[1] == 168) ||
+            // 10.0.0.0/8
+            (octets[0] == 10) ||
+            // 172.16.0.0/12
+            (octets[0] == 172 && (16..=31).contains(&octets[1]))
+        }
+        IpAddr::V6(_) => {
+            // For now, we'll be conservative and not allow IPv6
+            false
+        }
+    }
+}

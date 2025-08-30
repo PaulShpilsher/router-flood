@@ -1,6 +1,6 @@
-//! Simplified interfaces for dependency injection without async trait objects
+//! Streamlined interfaces for dependency injection without async trait objects
 //!
-//! This module provides simplified interfaces that avoid async trait objects
+//! This module provides streamlined interfaces that avoid async trait objects
 //! while still enabling dependency injection and module decoupling.
 
 use std::net::IpAddr;
@@ -11,7 +11,7 @@ use std::time::Duration;
 use crate::error::Result;
 use crate::packet::PacketType;
 
-/// Simplified stats collector interface
+/// Streamlined stats collector interface
 pub trait StatsCollector: Send + Sync {
     /// Record a successfully sent packet
     fn record_packet_sent(&self, protocol: &str, size: usize);
@@ -26,7 +26,7 @@ pub trait StatsCollector: Send + Sync {
     fn get_failure_count(&self) -> u64;
 }
 
-/// Simplified packet builder interface (no async)
+/// Streamlined packet builder interface (no async)
 pub trait PacketBuilder: Send + Sync {
     /// Build a packet for the given parameters
     fn build_packet(
@@ -43,7 +43,7 @@ pub trait PacketBuilder: Send + Sync {
     fn next_packet_type_for_ip(&mut self, target_ip: IpAddr) -> PacketType;
 }
 
-/// Simplified target provider interface
+/// Streamlined target provider interface
 pub trait TargetProvider: Send + Sync {
     /// Get the next target port in rotation
     fn next_port(&self) -> u16;
@@ -73,7 +73,7 @@ pub trait WorkerConfig: Send + Sync {
     fn dry_run(&self) -> bool;
 }
 
-/// Simplified worker that doesn't use async trait objects
+/// Streamlined worker that doesn't use async trait objects
 pub struct SimpleWorker {
     id: usize,
     stats_collector: Arc<dyn StatsCollector>,
@@ -208,7 +208,7 @@ impl SimpleWorkerFactory {
     }
 }
 
-/// Simplified worker manager
+/// Streamlined worker manager
 pub struct SimpleWorkerManager {
     workers: Vec<SimpleWorker>,
     running: Arc<AtomicBool>,

@@ -1,4 +1,4 @@
-//! Simplified property-based tests that compile correctly
+//! Basic property-based tests that compile correctly
 
 use proptest::prelude::*;
 use router_flood::packet::{PacketBuilder, PacketType};

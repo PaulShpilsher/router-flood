@@ -3,9 +3,9 @@
 //! This module provides comprehensive error types and handling utilities
 //! to replace unwrap/expect patterns throughout the codebase.
 //!
-//! ## Phase 4 - Enhanced User Experience
+//! ## Interactive User Experience
 //!
-//! The Phase 4 error system provides:
+//! The interactive error system provides:
 //! - Actionable error messages with specific guidance
 //! - Examples showing how to fix common issues
 //! - Progressive help based on error context
@@ -15,10 +15,10 @@ pub mod user_friendly;
 pub mod user_friendly_enhanced;
 
 pub use user_friendly::{UserFriendlyError, display_user_friendly_error, ErrorContext};
-// Phase 4 enhanced error handling exports (temporarily commented for compilation)
-// pub use user_friendly_enhanced::{
-//     EnhancedUserError, ErrorSeverity, display_enhanced_user_error, show_quick_help
-// };
+// Enhanced error handling exports
+pub use user_friendly_enhanced::{
+    EnhancedUserError, ErrorSeverity, display_enhanced_user_error, show_quick_help
+};
 
 use std::fmt;
 use std::io;

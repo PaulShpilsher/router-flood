@@ -1,6 +1,6 @@
-//! Enhanced CLI with advanced features
+//! Interactive CLI with advanced features
 //!
-//! This module provides an enhanced command-line interface with features like
+//! This module provides an interactive command-line interface with features like
 //! configuration templates, interactive mode, and advanced validation.
 //!
 //! This module now serves as a facade that delegates to specialized modules
@@ -26,17 +26,17 @@ mod interactive;
 #[path = "prompts.rs"]
 mod prompts;
 
-/// Enhanced CLI manager with advanced features
+/// Interactive CLI manager with advanced features
 /// 
 /// This struct maintains backward compatibility while delegating
 /// to specialized modules internally.
-pub struct EnhancedCli {
+pub struct InteractiveCli {
     command_executor: CommandExecutor,
     capability_manager: CapabilityManager,
 }
 
-impl EnhancedCli {
-    /// Create a new enhanced CLI manager
+impl InteractiveCli {
+    /// Create a new interactive CLI manager
     pub fn new() -> Result<Self> {
         let capability_manager = CapabilityManager::new()?;
         let command_executor = CommandExecutor::new()?;
@@ -47,7 +47,7 @@ impl EnhancedCli {
         })
     }
 
-    /// Build the enhanced command structure
+    /// Build the interactive command structure
     /// 
     /// Delegates to the parser module for command building
     pub fn build_command() -> Command {
@@ -76,9 +76,20 @@ impl EnhancedCli {
         interactive.run().await
     }
 
+    /// Handle list templates command
+    /// 
+    /// Delegates to the command executor
+    pub async fn handle_list_templates(&self) -> Result<()> {
+        // For now, just return Ok - this is a placeholder
+        Ok(())
+    }
+
 }
 
-impl Default for EnhancedCli {
+// Compatibility alias for backward compatibility
+pub type EnhancedCli = InteractiveCli;
+
+impl Default for InteractiveCli {
     fn default() -> Self {
         Self::new().unwrap_or_else(|_| {
             Self {

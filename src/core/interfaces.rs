@@ -121,7 +121,7 @@ pub trait Worker: Send + Sync {
     fn id(&self) -> usize;
 }
 
-/// Simplified worker implementation using dependency injection
+/// Streamlined worker implementation using dependency injection
 pub struct InjectedWorker {
     id: usize,
     stats_collector: Arc<dyn StatsCollector>,

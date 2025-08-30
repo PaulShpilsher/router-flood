@@ -1,1 +1,163 @@
-//! Enhanced input validation for Phase 5 security hardening\n//!\n//! This module provides comprehensive input validation with security-focused\n//! checks to prevent various attack vectors and ensure data integrity.\n\nuse std::net::{IpAddr, Ipv4Addr, Ipv6Addr};\nuse std::str::FromStr;\nuse regex::Regex;\nuse once_cell::sync::Lazy;\n\nuse crate::error::{Result, ValidationError, ConfigError};\n\n/// Enhanced input validator with security focus\npub struct SecurityInputValidator {\n    config: ValidationConfig,\n}\n\n/// Validation configuration\n#[derive(Debug, Clone)]\npub struct ValidationConfig {\n    pub max_string_length: usize,\n    pub max_array_size: usize,\n    pub allow_special_chars: bool,\n    pub strict_ip_validation: bool,\n    pub enable_pattern_detection: bool,\n}\n\n/// Validation result with security context\n#[derive(Debug)]\npub struct ValidationResult<T> {\n    pub value: T,\n    pub warnings: Vec<String>,\n    pub security_notes: Vec<String>,\n}\n\n/// Sanitized string wrapper\n#[derive(Debug, Clone, PartialEq, Eq)]\npub struct SanitizedString {\n    value: String,\n    original_length: usize,\n    was_modified: bool,\n}\n\n/// Validated IP address with security metadata\n#[derive(Debug, Clone)]\npub struct ValidatedIpAddr {\n    pub addr: IpAddr,\n    pub is_private: bool,\n    pub is_loopback: bool,\n    pub is_multicast: bool,\n    pub security_level: IpSecurityLevel,\n}\n\n/// IP address security classification\n#[derive(Debug, Clone, PartialEq)]\npub enum IpSecurityLevel {\n    Safe,      // Private, loopback, or link-local\n    Restricted, // Special use addresses\n    Forbidden,  // Public or dangerous addresses\n}\n\n// Compiled regex patterns for security validation\nstatic SUSPICIOUS_PATTERNS: Lazy<Vec<Regex>> = Lazy::new(|| {\n    vec![\n        Regex::new(r\"(?i)\\.\\.[\\\\/]\").unwrap(),                    // Path traversal\n        Regex::new(r\"(?i)<script[^>]*>\").unwrap(),                  // XSS script tags\n        Regex::new(r\"(?i)javascript:\\s*\").unwrap(),                // JavaScript URLs\n        Regex::new(r\"(?i)(drop|delete|insert|update)\\s+\").unwrap(), // SQL keywords\n        Regex::new(r\"(?i)\\$\\{[^}]*\\}\").unwrap(),                   // Template injection\n        Regex::new(r\"(?i)#\\{[^}]*\\}\").unwrap(),                    // Ruby template injection\n        Regex::new(r\"(?i)<%[^>]*%>\").unwrap(),                     // ASP/JSP injection\n        Regex::new(r\"(?i)\\\\x[0-9a-f]{2}\").unwrap(),               // Hex encoding\n        Regex::new(r\"(?i)%[0-9a-f]{2}\").unwrap(),                 // URL encoding\n    ]\n});\n\nstatic FILENAME_PATTERN: Lazy<Regex> = Lazy::new(|| {\n    Regex::new(r\"^[a-zA-Z0-9._-]+$\").unwrap()\n});\n\nstatic SAFE_IDENTIFIER_PATTERN: Lazy<Regex> = Lazy::new(|| {\n    Regex::new(r\"^[a-zA-Z][a-zA-Z0-9_-]*$\").unwrap()\n});\n\nimpl Default for ValidationConfig {\n    fn default() -> Self {\n        Self {\n            max_string_length: 1024,\n            max_array_size: 1000,\n            allow_special_chars: false,\n            strict_ip_validation: true,\n            enable_pattern_detection: true,\n        }\n    }\n}\n\nimpl SecurityInputValidator {\n    /// Create a new security input validator\n    pub fn new(config: ValidationConfig) -> Self {\n        Self { config }\n    }\n\n    /// Create validator with strict security settings\n    pub fn strict() -> Self {\n        Self {\n            config: ValidationConfig {\n                max_string_length: 512,\n                max_array_size: 100,\n                allow_special_chars: false,\n                strict_ip_validation: true,\n                enable_pattern_detection: true,\n            },\n        }\n    }\n\n    /// Validate and sanitize a string input\n    pub fn validate_string(&self, input: &str, field_name: &str) -> Result<ValidationResult<SanitizedString>> {\n        let mut warnings = Vec::new();\n        let mut security_notes = Vec::new();\n        let original_length = input.len();\n        \n        // Check length\n        if input.len() > self.config.max_string_length {\n            return Err(ValidationError::ExceedsLimit {\n                field: field_name,\n                value: input.len() as u64,\n                limit: self.config.max_string_length as u64,\n            }.into());\n        }\n        \n        // Check for suspicious patterns\n        if self.config.enable_pattern_detection {\n            for (i, pattern) in SUSPICIOUS_PATTERNS.iter().enumerate() {\n                if pattern.is_match(input) {\n                    security_notes.push(format!(\"Suspicious pattern {} detected in {}\", i + 1, field_name));\n                }\n            }\n        }\n        \n        // Sanitize the input\n        let sanitized = self.sanitize_string(input);\n        let was_modified = sanitized != input;\n        \n        if was_modified {\n            warnings.push(format!(\"Input '{}' was sanitized\", field_name));\n        }\n        \n        Ok(ValidationResult {\n            value: SanitizedString {\n                value: sanitized,\n                original_length,\n                was_modified,\n            },\n            warnings,\n            security_notes,\n        })\n    }\n\n    /// Validate an IP address with security checks\n    pub fn validate_ip_address(&self, ip_str: &str) -> Result<ValidationResult<ValidatedIpAddr>> {\n        let mut warnings = Vec::new();\n        let mut security_notes = Vec::new();\n        \n        // Parse IP address\n        let addr = IpAddr::from_str(ip_str)\n            .map_err(|_| ConfigError::InvalidValue {\n                field: \"ip_address\".to_string(),\n                value: ip_str.to_string(),\n                reason: \"Invalid IP address format\".to_string(),\n            })?;\n        \n        // Analyze IP address properties\n        let (is_private, is_loopback, is_multicast, security_level) = match addr {\n            IpAddr::V4(ipv4) => {\n                let is_private = ipv4.is_private();\n                let is_loopback = ipv4.is_loopback();\n                let is_multicast = ipv4.is_multicast();\n                \n                let security_level = if is_private || is_loopback {\n                    IpSecurityLevel::Safe\n                } else if ipv4.is_link_local() || ipv4.is_broadcast() {\n                    IpSecurityLevel::Restricted\n                } else {\n                    IpSecurityLevel::Forbidden\n                };\n                \n                (is_private, is_loopback, is_multicast, security_level)\n            }\n            IpAddr::V6(ipv6) => {\n                let is_private = ipv6.is_unique_local();\n                let is_loopback = ipv6.is_loopback();\n                let is_multicast = ipv6.is_multicast();\n                \n                let security_level = if is_private || is_loopback || ipv6.is_link_local() {\n                    IpSecurityLevel::Safe\n                } else {\n                    IpSecurityLevel::Forbidden\n                };\n                \n                (is_private, is_loopback, is_multicast, security_level)\n            }\n        };\n        \n        // Security validation\n        if self.config.strict_ip_validation {\n            match security_level {\n                IpSecurityLevel::Forbidden => {\n                    return Err(ValidationError::InvalidIpRange {\n                        ip: ip_str.to_string(),\n                        reason: \"Public IP addresses are not allowed for security\",\n                    }.into());\n                }\n                IpSecurityLevel::Restricted => {\n                    warnings.push(\"IP address is in restricted range\".to_string());\n                }\n                IpSecurityLevel::Safe => {\n                    security_notes.push(\"IP address is in safe range\".to_string());\n                }\n            }\n        }\n        \n        // Additional security checks\n        if is_multicast {\n            warnings.push(\"Multicast IP address detected\".to_string());\n        }\n        \n        Ok(ValidationResult {\n            value: ValidatedIpAddr {\n                addr,\n                is_private,\n                is_loopback,\n                is_multicast,\n                security_level,\n            },\n            warnings,\n            security_notes,\n        })\n    }\n\n    /// Validate a port number\n    pub fn validate_port(&self, port: u16) -> Result<ValidationResult<u16>> {\n        let mut warnings = Vec::new();\n        let mut security_notes = Vec::new();\n        \n        // Check for well-known ports that might be suspicious\n        let suspicious_ports = [\n            21,   // FTP\n            23,   // Telnet\n            25,   // SMTP\n            53,   // DNS\n            135,  // RPC\n            139,  // NetBIOS\n            445,  // SMB\n            1433, // SQL Server\n            3389, // RDP\n        ];\n        \n        if suspicious_ports.contains(&port) {\n            warnings.push(format!(\"Port {} is commonly targeted by attackers\", port));\n        }\n        \n        // Check for privileged ports\n        if port < 1024 {\n            security_notes.push(\"Privileged port (< 1024) specified\".to_string());\n        }\n        \n        Ok(ValidationResult {\n            value: port,\n            warnings,\n            security_notes,\n        })\n    }\n\n    /// Validate a list of ports\n    pub fn validate_port_list(&self, ports: &[u16]) -> Result<ValidationResult<Vec<u16>>> {\n        let mut warnings = Vec::new();\n        let mut security_notes = Vec::new();\n        \n        // Check array size\n        if ports.len() > self.config.max_array_size {\n            return Err(ValidationError::ExceedsLimit {\n                field: \"port_list\",\n                value: ports.len() as u64,\n                limit: self.config.max_array_size as u64,\n            }.into());\n        }\n        \n        // Validate each port\n        let mut validated_ports = Vec::new();\n        for &port in ports {\n            let result = self.validate_port(port)?;\n            validated_ports.push(result.value);\n            warnings.extend(result.warnings);\n            security_notes.extend(result.security_notes);\n        }\n        \n        // Check for suspicious patterns\n        if self.is_port_scan_pattern(ports) {\n            warnings.push(\"Port list resembles a port scan pattern\".to_string());\n        }\n        \n        Ok(ValidationResult {\n            value: validated_ports,\n            warnings,\n            security_notes,\n        })\n    }\n\n    /// Validate a filename\n    pub fn validate_filename(&self, filename: &str) -> Result<ValidationResult<SanitizedString>> {\n        let mut warnings = Vec::new();\n        let mut security_notes = Vec::new();\n        \n        // Check for path traversal\n        if filename.contains(\"..\") || filename.contains('/') || filename.contains('\\\\') {\n            return Err(ConfigError::InvalidValue {\n                field: \"filename\".to_string(),\n                value: filename.to_string(),\n                reason: \"Filename contains path traversal characters\".to_string(),\n            }.into());\n        }\n        \n        // Check filename pattern\n        if !FILENAME_PATTERN.is_match(filename) {\n            warnings.push(\"Filename contains unusual characters\".to_string());\n        }\n        \n        // Sanitize filename\n        let sanitized = self.sanitize_filename(filename);\n        let was_modified = sanitized != filename;\n        \n        if was_modified {\n            warnings.push(\"Filename was sanitized\".to_string());\n        }\n        \n        Ok(ValidationResult {\n            value: SanitizedString {\n                value: sanitized,\n                original_length: filename.len(),\n                was_modified,\n            },\n            warnings,\n            security_notes,\n        })\n    }\n\n    /// Validate an identifier (variable name, etc.)\n    pub fn validate_identifier(&self, identifier: &str) -> Result<ValidationResult<String>> {\n        let mut warnings = Vec::new();\n        let mut security_notes = Vec::new();\n        \n        // Check pattern\n        if !SAFE_IDENTIFIER_PATTERN.is_match(identifier) {\n            return Err(ConfigError::InvalidValue {\n                field: \"identifier\".to_string(),\n                value: identifier.to_string(),\n                reason: \"Identifier must start with letter and contain only alphanumeric, underscore, or hyphen\".to_string(),\n            }.into());\n        }\n        \n        // Check for reserved words\n        let reserved_words = [\n            \"admin\", \"root\", \"system\", \"config\", \"password\", \"secret\",\n            \"key\", \"token\", \"auth\", \"login\", \"user\", \"guest\"\n        ];\n        \n        if reserved_words.contains(&identifier.to_lowercase().as_str()) {\n            warnings.push(\"Identifier uses a reserved word\".to_string());\n        }\n        \n        Ok(ValidationResult {\n            value: identifier.to_string(),\n            warnings,\n            security_notes,\n        })\n    }\n\n    /// Sanitize a string by removing/replacing dangerous characters\n    fn sanitize_string(&self, input: &str) -> String {\n        let mut sanitized = input.to_string();\n        \n        // Remove null bytes\n        sanitized = sanitized.replace('\\0', \"\");\n        \n        // Replace control characters with spaces\n        sanitized = sanitized.chars()\n            .map(|c| if c.is_control() && c != '\\n' && c != '\\r' && c != '\\t' { ' ' } else { c })\n            .collect();\n        \n        // Remove suspicious patterns if not allowing special chars\n        if !self.config.allow_special_chars {\n            // Remove HTML/XML tags\n            sanitized = Regex::new(r\"<[^>]*>\").unwrap().replace_all(&sanitized, \"\").to_string();\n            \n            // Remove script-like patterns\n            sanitized = Regex::new(r\"(?i)javascript:\\s*\").unwrap().replace_all(&sanitized, \"\").to_string();\n        }\n        \n        // Trim whitespace\n        sanitized.trim().to_string()\n    }\n\n    /// Sanitize a filename\n    fn sanitize_filename(&self, filename: &str) -> String {\n        filename.chars()\n            .filter(|c| c.is_alphanumeric() || *c == '.' || *c == '_' || *c == '-')\n            .collect::<String>()\n            .trim_matches('.')\n            .to_string()\n    }\n\n    /// Check if port list resembles a port scan pattern\n    fn is_port_scan_pattern(&self, ports: &[u16]) -> bool {\n        if ports.len() < 10 {\n            return false;\n        }\n        \n        // Check for sequential ports\n        let mut sequential_count = 0;\n        for window in ports.windows(2) {\n            if window[1] == window[0] + 1 {\n                sequential_count += 1;\n            }\n        }\n        \n        // If more than 70% are sequential, it's likely a scan\n        (sequential_count as f64 / (ports.len() - 1) as f64) > 0.7\n    }\n}\n\nimpl SanitizedString {\n    /// Get the sanitized value\n    pub fn value(&self) -> &str {\n        &self.value\n    }\n    \n    /// Check if the string was modified during sanitization\n    pub fn was_modified(&self) -> bool {\n        self.was_modified\n    }\n    \n    /// Get the original length before sanitization\n    pub fn original_length(&self) -> usize {\n        self.original_length\n    }\n    \n    /// Convert to owned String\n    pub fn into_string(self) -> String {\n        self.value\n    }\n}\n\nimpl std::fmt::Display for SanitizedString {\n    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {\n        write!(f, \"{}\", self.value)\n    }\n}\n\nimpl AsRef<str> for SanitizedString {\n    fn as_ref(&self) -> &str {\n        &self.value\n    }\n}\n\n/// Convenience function to create a strict validator\npub fn create_strict_validator() -> SecurityInputValidator {\n    SecurityInputValidator::strict()\n}\n\n/// Convenience function to validate an IP address with strict settings\npub fn validate_ip_strict(ip_str: &str) -> Result<ValidatedIpAddr> {\n    let validator = SecurityInputValidator::strict();\n    let result = validator.validate_ip_address(ip_str)?;\n    Ok(result.value)\n}\n\n/// Convenience function to validate a port list with strict settings\npub fn validate_ports_strict(ports: &[u16]) -> Result<Vec<u16>> {\n    let validator = SecurityInputValidator::strict();\n    let result = validator.validate_port_list(ports)?;\n    Ok(result.value)\n}\n"
+//! Input validation for security hardening
+//!
+//! This module provides input validation with security-focused checks.
+
+use std::net::IpAddr;
+use crate::error::{Result, ValidationError};
+
+/// Input validator with security focus
+pub struct InputValidator {
+    config: ValidationConfig,
+}
+
+/// Validation configuration
+#[derive(Debug, Clone)]
+pub struct ValidationConfig {
+    pub max_string_length: usize,
+    pub max_array_size: usize,
+    pub allow_special_chars: bool,
+    pub strict_ip_validation: bool,
+    pub enable_pattern_detection: bool,
+}
+
+/// Validation result with security context
+#[derive(Debug)]
+pub struct ValidationResult<T> {
+    pub value: T,
+    pub warnings: Vec<String>,
+}
+
+/// Sanitized string wrapper
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SanitizedString {
+    value: String,
+}
+
+/// Validated IP address with security metadata
+#[derive(Debug, Clone)]
+pub struct ValidatedIpAddr {
+    pub addr: IpAddr,
+    pub is_private: bool,
+    pub security_level: IpSecurityLevel,
+}
+
+/// IP address security classification
+#[derive(Debug, Clone, PartialEq)]
+pub enum IpSecurityLevel {
+    Safe,
+    Restricted,
+    Forbidden,
+}
+
+impl Default for ValidationConfig {
+    fn default() -> Self {
+        Self {
+            max_string_length: 1024,
+            max_array_size: 1000,
+            allow_special_chars: false,
+            strict_ip_validation: true,
+            enable_pattern_detection: true,
+        }
+    }
+}
+
+impl InputValidator {
+    pub fn new(config: ValidationConfig) -> Self {
+        Self { config }
+    }
+
+    pub fn validate_ip_address(&self, ip_str: &str) -> Result<ValidationResult<ValidatedIpAddr>> {
+        let addr: IpAddr = ip_str.parse()
+            .map_err(|_| ValidationError::InvalidIpRange {
+                ip: ip_str.to_string(),
+                reason: "Invalid IP address format",
+            })?;
+        
+        let is_private = match addr {
+            IpAddr::V4(ipv4) => ipv4.is_private(),
+            IpAddr::V6(ipv6) => ipv6.is_unique_local(),
+        };
+        
+        let security_level = if is_private {
+            IpSecurityLevel::Safe
+        } else {
+            IpSecurityLevel::Forbidden
+        };
+        
+        Ok(ValidationResult {
+            value: ValidatedIpAddr {
+                addr,
+                is_private,
+                security_level,
+            },
+            warnings: Vec::new(),
+        })
+    }
+
+    pub fn validate_port_list(&self, ports: &[u16]) -> Result<ValidationResult<Vec<u16>>> {
+        if ports.len() > self.config.max_array_size {
+            return Err(ValidationError::ExceedsLimit {
+                field: "port_list",
+                value: ports.len() as u64,
+                limit: self.config.max_array_size as u64,
+            }.into());
+        }
+        Ok(ValidationResult {
+            value: ports.to_vec(),
+            warnings: Vec::new(),
+        })
+    }
+}
+
+impl SanitizedString {
+    pub fn new(value: String) -> Self {
+        Self { value }
+    }
+    
+    pub fn value(&self) -> &str {
+        &self.value
+    }
+}
+
+/// Convenience function to create an input validator
+pub fn create_input_validator() -> InputValidator {
+    InputValidator::new(ValidationConfig::default())
+}
+
+/// Convenience function to validate an IP address
+pub fn validate_ip_address(ip_str: &str) -> Result<ValidatedIpAddr> {
+    let addr: IpAddr = ip_str.parse()
+        .map_err(|_| ValidationError::InvalidIpRange {
+            ip: ip_str.to_string(),
+            reason: "Invalid IP address format",
+        })?;
+    
+    let is_private = match addr {
+        IpAddr::V4(ipv4) => ipv4.is_private(),
+        IpAddr::V6(ipv6) => ipv6.is_unique_local(),
+    };
+    
+    let security_level = if is_private {
+        IpSecurityLevel::Safe
+    } else {
+        IpSecurityLevel::Forbidden
+    };
+    
+    Ok(ValidatedIpAddr {
+        addr,
+        is_private,
+        security_level,
+    })
+}
+
+/// Convenience function to validate a port list
+pub fn validate_port_list(ports: &[u16]) -> Result<Vec<u16>> {
+    if ports.len() > 1000 {
+        return Err(ValidationError::ExceedsLimit {
+            field: "port_list",
+            value: ports.len() as u64,
+            limit: 1000,
+        }.into());
+    }
+    Ok(ports.to_vec())
+}

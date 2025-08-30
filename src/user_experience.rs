@@ -1,17 +1,17 @@
 //! User Experience Enhancement Integration
 //!
 //! This module integrates user experience improvements:
-//! 1. Simplified CLI with progressive disclosure
+//! 1. Guided CLI with progressive disclosure
 //! 2. Streamlined configuration system
-//! 3. Enhanced user-friendly error messages
+//! 3. Interactive user-friendly error messages
 //!
 //! This system reduces complexity by 40% while maintaining full functionality
 //! through intelligent defaults and better user guidance.
 
 use clap::ArgMatches;
-use tracing::{info, warn};
+use tracing::info;
 
-use crate::cli::guided::{GuidedCli, CliMode};
+use crate::cli::guided::{GuidedCli, GuidanceLevel};
 use crate::config::preset::PresetConfig;
 use crate::config::Config;
 use crate::error::{Result, RouterFloodError};
@@ -20,7 +20,7 @@ use crate::error::user_friendly_enhanced::{display_enhanced_user_error, show_qui
 /// Enhanced user experience application runner
 pub struct UserExperienceRunner {
     config: PresetConfig,
-    mode: CliMode,
+    mode: GuidanceLevel,
     legacy_config: Config,
 }
 
@@ -45,7 +45,7 @@ impl UserExperienceRunner {
             }
         }
 
-        // Process arguments with simplified CLI
+        // Process arguments with guided CLI
         let (legacy_config, mode) = GuidedCli::process_arguments(matches)
             .map_err(|e| {
                 display_enhanced_user_error(&e);
@@ -73,22 +73,22 @@ impl UserExperienceRunner {
         &self.legacy_config
     }
 
-    /// Get the simplified configuration
+    /// Get the preset configuration
     pub fn simple_config(&self) -> &PresetConfig {
         &self.config
     }
 
-    /// Get the CLI mode
-    pub fn cli_mode(&self) -> &CliMode {
+    /// Get the guidance level
+    pub fn guidance_level(&self) -> &GuidanceLevel {
         &self.mode
     }
 
     /// Display configuration summary based on mode
     pub fn display_config_summary(&self) {
         match self.mode {
-            CliMode::Quick => self.display_quick_summary(),
-            CliMode::Standard => self.display_standard_summary(),
-            CliMode::Advanced => self.display_advanced_summary(),
+            GuidanceLevel::Quick => self.display_quick_summary(),
+            GuidanceLevel::Standard => self.display_standard_summary(),
+            GuidanceLevel::Advanced => self.display_detailed_summary(),
         }
     }
 
@@ -96,8 +96,9 @@ impl UserExperienceRunner {
     fn handle_config_subcommand(sub_matches: &ArgMatches) -> Result<Self> {
         match sub_matches.subcommand() {
             Some(("create", create_matches)) => {
+                let default_output = "my-config.yaml".to_string();
                 let output = create_matches.get_one::<String>("output")
-                    .unwrap_or(&"my-config.yaml".to_string());
+                    .unwrap_or(&default_output);
                 
                 Self::create_config_file(output)?;
                 std::process::exit(0);
@@ -194,7 +195,7 @@ impl UserExperienceRunner {
         println!("{}", PresetConfig::generate_example());
     }
 
-    /// Convert legacy config to simple config (best effort)
+    /// Convert legacy config to preset config (best effort)
     fn legacy_to_simple_config(legacy: &Config) -> PresetConfig {
         let intensity = Self::determine_intensity_from_legacy(legacy);
         
@@ -239,7 +240,7 @@ impl UserExperienceRunner {
         }
     }
 
-    /// Convert legacy protocol mix to simplified protocol config
+    /// Convert legacy protocol mix to preset protocol config
     fn legacy_to_protocol_config(mix: &crate::config::ProtocolMix) -> crate::config::preset::ProtocolConfig {
         crate::config::preset::ProtocolConfig {
             udp: mix.udp_ratio > 0.0,
@@ -248,7 +249,7 @@ impl UserExperienceRunner {
         }
     }
 
-    /// Convert legacy export format to simplified format
+    /// Convert legacy export format to preset format
     fn legacy_to_export_format(format: &crate::config::ExportFormat) -> crate::config::preset::ExportFormat {
         match format {
             crate::config::ExportFormat::Json => crate::config::preset::ExportFormat::Json,
@@ -259,7 +260,7 @@ impl UserExperienceRunner {
 
     /// Display quick mode summary
     fn display_quick_summary(&self) {
-        println!("🎯 Quick Test Mode - Simplified and Safe");
+        println!("🎯 Quick Test Mode - Guided and Safe");
         println!();
         println!("Target: {}", self.config.target.ip);
         println!("Ports: {:?}", self.config.target.ports);
@@ -299,8 +300,8 @@ impl UserExperienceRunner {
         println!();
     }
 
-    /// Display advanced mode summary
-    fn display_advanced_summary(&self) {
+    /// Display detailed mode summary
+    fn display_detailed_summary(&self) {
         println!("⚙️ Advanced Test Mode - Full Control");
         println!();
         println!("Target Configuration:");
@@ -344,12 +345,12 @@ impl UserExperienceRunner {
     pub fn show_migration_help() {
         println!(r#"🔄 Configuration Migration Help
 
-The simplified configuration format reduces complexity by 40% while maintaining 
+The preset configuration format reduces complexity by 40% while maintaining 
 all essential functionality.
 
 📋 KEY CHANGES:
   • Intensity levels replace complex thread/rate settings
-  • Simplified protocol configuration (UDP/TCP/ICMP)
+  • Preset protocol configuration (UDP/TCP/ICMP)
   • Streamlined export options
   • Better default values
 
@@ -405,7 +406,7 @@ pub fn handle_user_experience_error(error: RouterFloodError) {
 /// Initialize enhanced user experience with logging
 pub fn init_user_experience() {
     info!("🚀 Router Flood - Enhanced User Experience");
-    info!("   • Simplified CLI with progressive disclosure");
+    info!("   • Guided CLI with progressive disclosure");
     info!("   • Streamlined configuration (40% complexity reduction)");
     info!("   • Enhanced error messages with actionable guidance");
 }

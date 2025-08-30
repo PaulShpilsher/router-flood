@@ -1,8 +1,8 @@
-//! Advanced usage examples for Router Flood
+//! Monitoring & security usage examples for Router Flood
 
 #![allow(clippy::uninlined_format_args)]
 //!
-//! This example demonstrates advanced features including SIMD optimizations,
+//! This example demonstrates monitoring and security features including SIMD optimizations,
 //! Prometheus metrics, and performance tuning.
 
 use router_flood::{
@@ -17,7 +17,7 @@ use std::time::Instant;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    println!("🚀 Router Flood - Advanced Usage Examples");
+    println!("🚀 Router Flood - Monitoring & Security Usage Examples");
     println!("==========================================");
 
     // Example 1: SIMD Performance Optimization
@@ -38,7 +38,7 @@ async fn main() -> Result<()> {
     // Example 6: Performance Benchmarking
     performance_benchmark_example().await?;
 
-    println!("\n✅ All advanced examples completed successfully!");
+    println!("\n✅ All monitoring & security examples completed successfully!");
     Ok(())
 }
 

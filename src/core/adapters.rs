@@ -273,7 +273,7 @@ impl crate::core::interfaces::WorkerFactory for DefaultWorkerFactory {
     }
 }
 
-/// Simplified worker manager using dependency injection
+/// Streamlined worker manager using dependency injection
 pub struct InjectedWorkerManager {
     workers: Vec<Box<dyn crate::core::interfaces::Worker>>,
     running: Arc<std::sync::atomic::AtomicBool>,

@@ -1,10 +1,10 @@
-//! Advanced Features Integration
+//! Monitoring & Security Integration
 //!
-//! This module integrates advanced enhancements:
-//! 1. Lightweight real-time dashboard with essential metrics
+//! This module integrates monitoring and security enhancements:
+//! 1. Lightweight dashboard with essential metrics
 //! 2. Security hardening with threat detection and input validation
 //!
-//! This system focuses on advanced features while maintaining simplicity
+//! This system focuses on monitoring and security while maintaining simplicity
 //! and following YAGNI principles.
 
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -14,37 +14,37 @@ use tokio::time;
 use tracing::{info, warn, error};
 
 use crate::monitoring::{
-    RealtimeDashboard, DashboardConfig, DashboardBuilder, AlertThresholds,
-    SimpleMetricsCollector
+    Dashboard, DashboardConfig, DashboardBuilder, AlertThresholds,
+    EssentialMetricsCollector
 };
 use crate::security::{
-    ThreatDetector, ThreatDetectionConfig, SecurityInputValidator,
+    ThreatDetector, ThreatDetectionConfig, InputValidator,
     ValidationConfig, CapabilityManager
 };
 use crate::error::Result;
 
-/// Advanced features application runner
-pub struct AdvancedFeaturesRunner {
-    dashboard: Option<RealtimeDashboard>,
+/// Monitoring & security application runner
+pub struct MonitoringSecurityRunner {
+    dashboard: Option<Dashboard>,
     threat_detector: ThreatDetector,
-    input_validator: SecurityInputValidator,
+    input_validator: InputValidator,
     capability_manager: CapabilityManager,
-    metrics_collector: Arc<SimpleMetricsCollector>,
-    config: AdvancedFeaturesConfig,
+    metrics_collector: Arc<EssentialMetricsCollector>,
+    config: MonitoringSecurityConfig,
 }
 
-/// Advanced features configuration
+/// Monitoring & security configuration
 #[derive(Debug, Clone)]
-pub struct AdvancedFeaturesConfig {
-    pub enable_realtime_dashboard: bool,
+pub struct MonitoringSecurityConfig {
+    pub enable_dashboard: bool,
     pub enable_threat_detection: bool,
-    pub enable_enhanced_validation: bool,
+    pub enable_input_validation: bool,
     pub dashboard_config: DashboardConfig,
     pub threat_config: ThreatDetectionConfig,
     pub validation_config: ValidationConfig,
 }
 
-/// Security context for advanced features
+/// Security context for monitoring & security
 #[derive(Debug)]
 pub struct SecurityContext {
     pub threats_detected: u64,
@@ -62,7 +62,7 @@ pub enum SecurityLevel {
     Critical,
 }
 
-/// Monitoring summary for advanced features
+/// Monitoring summary for monitoring & security
 #[derive(Debug)]
 pub struct MonitoringSummary {
     pub dashboard_active: bool,
@@ -72,12 +72,12 @@ pub struct MonitoringSummary {
     pub performance_score: f64,
 }
 
-impl Default for AdvancedFeaturesConfig {
+impl Default for MonitoringSecurityConfig {
     fn default() -> Self {
         Self {
-            enable_realtime_dashboard: true,
+            enable_dashboard: true,
             enable_threat_detection: true,
-            enable_enhanced_validation: true,
+            enable_input_validation: true,
             dashboard_config: DashboardBuilder::new()
                 .update_interval(Duration::from_secs(1))
                 .compact_mode(false)
@@ -109,23 +109,23 @@ impl Default for AdvancedFeaturesConfig {
     }
 }
 
-impl AdvancedFeaturesRunner {
-    /// Create a new advanced features runner
-    pub fn new(config: AdvancedFeaturesConfig) -> Result<Self> {
-        let metrics_collector = Arc::new(SimpleMetricsCollector::new());
+impl MonitoringSecurityRunner {
+    /// Create a new monitoring & security runner
+    pub fn new(config: MonitoringSecurityConfig) -> Result<Self> {
+        let metrics_collector = Arc::new(EssentialMetricsCollector::new());
         
         // Initialize threat detector
         let threat_detector = ThreatDetector::new(config.threat_config.clone());
         
         // Initialize input validator
-        let input_validator = SecurityInputValidator::new(config.validation_config.clone());
+        let input_validator = InputValidator::new(config.validation_config.clone());
         
         // Initialize capability manager
         let capability_manager = CapabilityManager::new()?;
         
         // Initialize dashboard if enabled
-        let dashboard = if config.enable_realtime_dashboard {
-            Some(RealtimeDashboard::new(
+        let dashboard = if config.enable_dashboard {
+            Some(Dashboard::new(
                 Arc::clone(&metrics_collector),
                 config.dashboard_config.clone(),
             ))
@@ -143,22 +143,20 @@ impl AdvancedFeaturesRunner {
         })
     }
 
-    /// Start advanced features monitoring and security
+    /// Start monitoring and security
     pub async fn start(&self, running: Arc<AtomicBool>) -> Result<()> {
-        info!("🚀 Starting Advanced Features");
+        info!("🚀 Starting Monitoring & Security");
         
         // Display security context
         self.display_security_status();
         
         // Start dashboard if enabled
         if let Some(ref dashboard) = self.dashboard {
-            info!("📊 Starting real-time dashboard");
+            info!("📊 Starting dashboard");
             let dashboard_running = Arc::clone(&running);
-            let dashboard_clone = dashboard.clone();
             
-            tokio::spawn(async move {
-                dashboard_clone.start(dashboard_running).await;
-            });
+            // Note: Dashboard doesn't implement Clone, so we'll start it directly
+            dashboard.start(dashboard_running).await;
         }
         
         // Start security monitoring
@@ -170,13 +168,13 @@ impl AdvancedFeaturesRunner {
         Ok(())
     }
 
-    /// Validate configuration with advanced security enhancements
+    /// Validate configuration with security enhancements
     pub fn validate_configuration(&self, config_data: &str) -> Result<()> {
-        if !self.config.enable_enhanced_validation {
+        if !self.config.enable_input_validation {
             return Ok(());
         }
         
-        info!("🔍 Validating configuration with enhanced security");
+        info!("🔍 Validating configuration with security enhancements");
         
         // Threat detection validation
         let validation_result = self.threat_detector.validate_configuration(config_data)?;
@@ -201,13 +199,13 @@ impl AdvancedFeaturesRunner {
         Ok(())
     }
 
-    /// Validate target IP with enhanced security
+    /// Validate target IP with security enhancements
     pub fn validate_target_ip(&self, ip_str: &str) -> Result<()> {
-        if !self.config.enable_enhanced_validation {
+        if !self.config.enable_input_validation {
             return Ok(());
         }
         
-        // Enhanced input validation
+        // Input validation
         let validation_result = self.input_validator.validate_ip_address(ip_str)?;
         
         if !validation_result.warnings.is_empty() {
@@ -223,13 +221,13 @@ impl AdvancedFeaturesRunner {
         Ok(())
     }
 
-    /// Validate ports with enhanced security
+    /// Validate ports with security enhancements
     pub fn validate_ports(&self, ports: &[u16]) -> Result<()> {
-        if !self.config.enable_enhanced_validation {
+        if !self.config.enable_input_validation {
             return Ok(());
         }
         
-        // Enhanced input validation
+        // Input validation
         let validation_result = self.input_validator.validate_port_list(ports)?;
         
         if !validation_result.warnings.is_empty() {
@@ -246,7 +244,7 @@ impl AdvancedFeaturesRunner {
     }
 
     /// Get metrics collector for integration
-    pub fn metrics_collector(&self) -> Arc<SimpleMetricsCollector> {
+    pub fn metrics_collector(&self) -> Arc<EssentialMetricsCollector> {
         Arc::clone(&self.metrics_collector)
     }
 
@@ -289,7 +287,7 @@ impl AdvancedFeaturesRunner {
 
     /// Display security status
     fn display_security_status(&self) {
-        println!("🔒 Advanced Features Security Status");
+        println!("🔒 Monitoring & Security Status");
         println!("═══════════════════════════════════");
         
         // Capability status
@@ -301,12 +299,12 @@ impl AdvancedFeaturesRunner {
         
         // Feature status
         println!("\\n🛡️ Security Features:");
-        println!("Real-time Dashboard: {}", 
-            if self.config.enable_realtime_dashboard { "✅ Enabled" } else { "❌ Disabled" });
+        println!("Dashboard: {}", 
+            if self.config.enable_dashboard { "✅ Enabled" } else { "❌ Disabled" });
         println!("Threat Detection: {}", 
             if self.config.enable_threat_detection { "✅ Enabled" } else { "❌ Disabled" });
-        println!("Enhanced Validation: {}", 
-            if self.config.enable_enhanced_validation { "✅ Enabled" } else { "❌ Disabled" });
+        println!("Input Validation: {}", 
+            if self.config.enable_input_validation { "✅ Enabled" } else { "❌ Disabled" });
         
         println!();
     }
@@ -348,7 +346,7 @@ impl AdvancedFeaturesRunner {
         let threat_summary = self.threat_detector.get_threat_summary();
         
         let report = serde_json::json!({
-            "advanced_features_report": {
+            "monitoring_security_report": {
                 "timestamp": chrono::Utc::now().to_rfc3339(),
                 "security_context": {
                     "threats_detected": security_context.threats_detected,
@@ -371,28 +369,28 @@ impl AdvancedFeaturesRunner {
         tokio::fs::write(filename, json).await
             .map_err(|e| crate::error::StatsError::FileWriteError(e.to_string()))?;
         
-        info!("📄 Advanced features report exported to {}", filename);
+        info!("📄 Monitoring & security report exported to {}", filename);
         Ok(())
     }
 }
 
-/// Initialize advanced features with default configuration
-pub fn init_advanced_features() -> Result<AdvancedFeaturesRunner> {
-    let config = AdvancedFeaturesConfig::default();
-    AdvancedFeaturesRunner::new(config)
+/// Initialize monitoring & security with default configuration
+pub fn init_monitoring_security() -> Result<MonitoringSecurityRunner> {
+    let config = MonitoringSecurityConfig::default();
+    MonitoringSecurityRunner::new(config)
 }
 
-/// Initialize advanced features with custom configuration
-pub fn init_advanced_features_with_config(config: AdvancedFeaturesConfig) -> Result<AdvancedFeaturesRunner> {
-    AdvancedFeaturesRunner::new(config)
+/// Initialize monitoring & security with custom configuration
+pub fn init_monitoring_security_with_config(config: MonitoringSecurityConfig) -> Result<MonitoringSecurityRunner> {
+    MonitoringSecurityRunner::new(config)
 }
 
-/// Create a minimal advanced features configuration for testing
-pub fn create_minimal_config() -> AdvancedFeaturesConfig {
-    AdvancedFeaturesConfig {
-        enable_realtime_dashboard: false,
+/// Create a minimal monitoring & security configuration for testing
+pub fn create_minimal_config() -> MonitoringSecurityConfig {
+    MonitoringSecurityConfig {
+        enable_dashboard: false,
         enable_threat_detection: true,
-        enable_enhanced_validation: true,
+        enable_input_validation: true,
         dashboard_config: DashboardBuilder::new()
             .compact_mode(true)
             .build(),
@@ -409,12 +407,12 @@ pub fn create_minimal_config() -> AdvancedFeaturesConfig {
     }
 }
 
-/// Create a high-security advanced features configuration
-pub fn create_high_security_config() -> AdvancedFeaturesConfig {
-    AdvancedFeaturesConfig {
-        enable_realtime_dashboard: true,
+/// Create a high-security monitoring & security configuration
+pub fn create_high_security_config() -> MonitoringSecurityConfig {
+    MonitoringSecurityConfig {
+        enable_dashboard: true,
         enable_threat_detection: true,
-        enable_enhanced_validation: true,
+        enable_input_validation: true,
         dashboard_config: DashboardBuilder::new()
             .update_interval(Duration::from_millis(500))
             .alert_thresholds(AlertThresholds {

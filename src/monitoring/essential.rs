@@ -1,4 +1,4 @@
-//! Simplified monitoring system following YAGNI principles
+//! Essential monitoring system following YAGNI principles
 //!
 //! This module provides essential monitoring capabilities without
 //! over-engineering, focusing on core metrics and simple export.
@@ -59,8 +59,8 @@ impl EssentialMetrics {
     }
 }
 
-/// Simplified metrics collector
-pub struct SimpleMetricsCollector {
+/// Essential metrics collector
+pub struct EssentialMetricsCollector {
     packets_sent: AtomicCounter,
     packets_failed: AtomicCounter,
     bytes_sent: AtomicCounter,
@@ -68,7 +68,7 @@ pub struct SimpleMetricsCollector {
     // rate_calculator: RateCalculator, // Unused field removed
 }
 
-impl SimpleMetricsCollector {
+impl EssentialMetricsCollector {
     pub fn new() -> Self {
         Self {
             packets_sent: AtomicCounter::new("packets_sent"),
@@ -104,16 +104,16 @@ impl SimpleMetricsCollector {
     }
 }
 
-impl Default for SimpleMetricsCollector {
+impl Default for EssentialMetricsCollector {
     fn default() -> Self {
         Self::new()
     }
 }
 
-/// Simple display for metrics
-pub struct SimpleDisplay;
+/// Essential display for metrics
+pub struct EssentialDisplay;
 
-impl SimpleDisplay {
+impl EssentialDisplay {
     pub fn display_metrics(metrics: &EssentialMetrics) {
         println!("📊 Network Testing Metrics");
         println!("═══════════════════════════");
@@ -138,10 +138,10 @@ impl SimpleDisplay {
     }
 }
 
-/// Simple export functionality
-pub struct SimpleExporter;
+/// Essential export functionality
+pub struct EssentialExporter;
 
-impl SimpleExporter {
+impl EssentialExporter {
     pub async fn export_json(metrics: &EssentialMetrics, filename: &str) -> Result<(), Box<dyn std::error::Error>> {
         let json = serde_json::to_string_pretty(metrics)?;
         tokio::fs::write(filename, json).await?;
@@ -167,14 +167,14 @@ impl SimpleExporter {
     }
 }
 
-/// Simple monitoring task that periodically displays metrics
-pub struct SimpleMonitor {
-    collector: Arc<SimpleMetricsCollector>,
+/// Essential monitoring task that periodically displays metrics
+pub struct EssentialMonitor {
+    collector: Arc<EssentialMetricsCollector>,
     interval: Duration,
 }
 
-impl SimpleMonitor {
-    pub fn new(collector: Arc<SimpleMetricsCollector>, interval: Duration) -> Self {
+impl EssentialMonitor {
+    pub fn new(collector: Arc<EssentialMetricsCollector>, interval: Duration) -> Self {
         Self { collector, interval }
     }
 
@@ -185,21 +185,21 @@ impl SimpleMonitor {
             interval_timer.tick().await;
             
             let metrics = self.collector.get_metrics();
-            SimpleDisplay::display_compact(&metrics);
+            EssentialDisplay::display_compact(&metrics);
         }
     }
 }
 
-/// Configuration for simple monitoring
+/// Configuration for essential monitoring
 #[derive(Debug, Clone)]
-pub struct SimpleMonitoringConfig {
+pub struct EssentialMonitoringConfig {
     pub display_interval: Duration,
     pub export_enabled: bool,
     pub export_format: ExportFormat,
     pub export_filename: String,
 }
 
-impl Default for SimpleMonitoringConfig {
+impl Default for EssentialMonitoringConfig {
     fn default() -> Self {
         Self {
             display_interval: Duration::from_secs(5),
@@ -216,26 +216,26 @@ pub enum ExportFormat {
     Csv,
 }
 
-/// All-in-one simple monitoring system
-pub struct SimpleMonitoringSystem {
-    collector: Arc<SimpleMetricsCollector>,
-    config: SimpleMonitoringConfig,
+/// All-in-one essential monitoring system
+pub struct EssentialMonitoringSystem {
+    collector: Arc<EssentialMetricsCollector>,
+    config: EssentialMonitoringConfig,
 }
 
-impl SimpleMonitoringSystem {
-    pub fn new(config: SimpleMonitoringConfig) -> Self {
+impl EssentialMonitoringSystem {
+    pub fn new(config: EssentialMonitoringConfig) -> Self {
         Self {
-            collector: Arc::new(SimpleMetricsCollector::new()),
+            collector: Arc::new(EssentialMetricsCollector::new()),
             config,
         }
     }
 
-    pub fn collector(&self) -> Arc<SimpleMetricsCollector> {
+    pub fn collector(&self) -> Arc<EssentialMetricsCollector> {
         Arc::clone(&self.collector)
     }
 
     pub async fn run(&self, running: Arc<std::sync::atomic::AtomicBool>) {
-        let monitor = SimpleMonitor::new(
+        let monitor = EssentialMonitor::new(
             Arc::clone(&self.collector),
             self.config.display_interval,
         );
@@ -254,11 +254,11 @@ impl SimpleMonitoringSystem {
         match self.config.export_format {
             ExportFormat::Json => {
                 let filename = format!("{}_{}.json", self.config.export_filename, timestamp);
-                SimpleExporter::export_json(&metrics, &filename).await?;
+                EssentialExporter::export_json(&metrics, &filename).await?;
             }
             ExportFormat::Csv => {
                 let filename = format!("{}_{}.csv", self.config.export_filename, timestamp);
-                SimpleExporter::export_csv(&metrics, &filename).await?;
+                EssentialExporter::export_csv(&metrics, &filename).await?;
             }
         }
 
@@ -268,7 +268,7 @@ impl SimpleMonitoringSystem {
     pub fn display_final_summary(&self) {
         let metrics = self.collector.get_metrics();
         println!("\n🎯 Final Summary");
-        SimpleDisplay::display_metrics(&metrics);
+        EssentialDisplay::display_metrics(&metrics);
     }
 }
 

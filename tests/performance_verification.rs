@@ -8,7 +8,7 @@ use router_flood::performance::{LockFreeBufferPool, SharedBufferPool};
 use std::net::IpAddr;
 
 #[test]
-fn test_optimized_packet_building_performance() {
+fn test_batch_packet_building_performance() {
     let protocol_mix = router_flood::config::ProtocolMix {
         udp_ratio: 0.6,
         tcp_syn_ratio: 0.25,
@@ -35,11 +35,11 @@ fn test_optimized_packet_building_performance() {
     assert!(size > 0);
     assert_eq!(protocol_name, "UDP");
     
-    println!("✅ Performance: Inline optimized packet building works");
+    println!("✅ Performance: Inline batch packet building works");
 }
 
 #[test]
-fn test_optimized_config_builder_performance() {
+fn test_batch_config_builder_performance() {
     // Test the enhanced configuration builder
     let config = ConfigBuilder::new()
         .target_ip("192.168.1.1")
@@ -54,7 +54,7 @@ fn test_optimized_config_builder_performance() {
     assert_eq!(config.target.ip, "192.168.1.1".to_string());
     assert_eq!(config.target.ports, vec![80, 443, 8080]);
     
-    println!("✅ Performance: Enhanced configuration builder works");
+    println!("✅ Performance: Batch configuration builder works");
 }
 
 #[test]
@@ -117,7 +117,7 @@ fn test_protocol_selection_optimization() {
         assert_eq!(packet_type, PacketType::Udp);
     }
     
-    println!("✅ Performance: Optimized protocol selection works");
+    println!("✅ Performance: Batch protocol selection works");
 }
 
 #[test]

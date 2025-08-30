@@ -3,10 +3,10 @@
 //! A comprehensive, safety-first network testing tool designed for educational purposes
 //! and authorized network testing scenarios.
 //!
-//! ## Phase 4 - User Experience Enhancement
+//! ## Enhanced User Experience
 //!
-//! This version includes Phase 4 improvements:
-//! - Simplified CLI with progressive disclosure
+//! This version includes user experience improvements:
+//! - Guided CLI with progressive disclosure
 //! - Streamlined configuration system (40% complexity reduction)
 //! - Enhanced user-friendly error messages with actionable guidance
 
@@ -21,8 +21,8 @@ pub mod monitor;
 pub mod monitoring;
 pub mod packet;
 pub mod performance;
-// pub mod user_experience; // Temporarily commented - incomplete implementation
-// pub mod advanced_features; // Temporarily commented for compilation
+pub mod user_experience;
+pub mod monitoring_security;
 pub mod security;
 pub mod stats;
 pub mod transport;

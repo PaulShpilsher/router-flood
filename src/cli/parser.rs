@@ -13,7 +13,7 @@ impl CliParser {
         Command::new("router-flood")
             .version(env!("CARGO_PKG_VERSION"))
             .about("Educational DDoS simulation for local network testing")
-            .long_about(Self::get_enhanced_help())
+            .long_about(Self::get_interactive_help())
             .subcommand_required(false)
             .arg_required_else_help(false)
             .subcommand(Self::build_run_command())
@@ -96,8 +96,8 @@ impl CliParser {
             )
     }
 
-    /// Get enhanced help text
-    fn get_enhanced_help() -> &'static str {
+    /// Get interactive help text
+    fn get_interactive_help() -> &'static str {
         r#"🚀 Router Flood - Advanced Educational Network Stress Tester
 
 A comprehensive, safety-first network testing tool designed for educational purposes

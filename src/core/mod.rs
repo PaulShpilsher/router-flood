@@ -14,7 +14,7 @@ pub use simulation::{Simulation, SimulationRAII};
 pub use target::MultiPortTarget;
 pub use worker::WorkerManager;
 
-// Re-export simplified dependency injection interfaces
+// Re-export streamlined dependency injection interfaces
 pub use simple_interfaces::{
     StatsCollector, PacketBuilder as PacketBuilderTrait, TargetProvider, WorkerConfig,
     SimpleWorker, SimpleWorkerFactory, SimpleWorkerManager

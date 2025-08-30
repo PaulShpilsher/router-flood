@@ -1,1 +1,450 @@
-//! Enhanced user-friendly error messages for Phase 4 - User Experience Enhancement\n//!\n//! This module provides actionable, beginner-friendly error messages with\n//! specific guidance on how to fix common issues.\n\nuse std::fmt;\nuse crate::error::{RouterFloodError, ConfigError, NetworkError, ValidationError};\n\n/// Enhanced user-friendly error display with actionable guidance\npub struct EnhancedUserError {\n    pub title: String,\n    pub description: String,\n    pub solution: String,\n    pub examples: Vec<String>,\n    pub severity: ErrorSeverity,\n}\n\n/// Error severity levels for better user experience\n#[derive(Debug, Clone, PartialEq)]\npub enum ErrorSeverity {\n    /// Info - helpful tips, not blocking\n    Info,\n    /// Warning - potential issues, but can continue\n    Warning,\n    /// Error - blocking issues that must be fixed\n    Error,\n    /// Critical - serious issues that could cause problems\n    Critical,\n}\n\nimpl EnhancedUserError {\n    /// Create a new enhanced user error\n    pub fn new(title: &str, description: &str, solution: &str) -> Self {\n        Self {\n            title: title.to_string(),\n            description: description.to_string(),\n            solution: solution.to_string(),\n            examples: Vec::new(),\n            severity: ErrorSeverity::Error,\n        }\n    }\n\n    /// Add examples to help users understand the fix\n    pub fn with_examples(mut self, examples: Vec<&str>) -> Self {\n        self.examples = examples.iter().map(|s| s.to_string()).collect();\n        self\n    }\n\n    /// Set the error severity\n    pub fn with_severity(mut self, severity: ErrorSeverity) -> Self {\n        self.severity = severity;\n        self\n    }\n\n    /// Display the error with formatting\n    pub fn display(&self) {\n        let icon = match self.severity {\n            ErrorSeverity::Info => \"ℹ️\",\n            ErrorSeverity::Warning => \"⚠️\",\n            ErrorSeverity::Error => \"❌\",\n            ErrorSeverity::Critical => \"🚨\",\n        };\n\n        let color = match self.severity {\n            ErrorSeverity::Info => \"\\x1b[36m\",     // Cyan\n            ErrorSeverity::Warning => \"\\x1b[33m\",  // Yellow\n            ErrorSeverity::Error => \"\\x1b[31m\",    // Red\n            ErrorSeverity::Critical => \"\\x1b[35m\", // Magenta\n        };\n        let reset = \"\\x1b[0m\";\n\n        println!();\n        println!(\"{}{} {}{}\", color, icon, self.title, reset);\n        println!();\n        println!(\"📋 Problem:\");\n        println!(\"   {}\", self.description);\n        println!();\n        println!(\"🔧 Solution:\");\n        println!(\"   {}\", self.solution);\n\n        if !self.examples.is_empty() {\n            println!();\n            println!(\"💡 Examples:\");\n            for example in &self.examples {\n                println!(\"   {}\", example);\n            }\n        }\n\n        println!();\n    }\n}\n\n/// Convert RouterFloodError to enhanced user-friendly error\npub fn to_enhanced_user_error(error: &RouterFloodError) -> EnhancedUserError {\n    match error {\n        RouterFloodError::Config(config_error) => config_error_to_user_friendly(config_error),\n        RouterFloodError::Network(network_error) => network_error_to_user_friendly(network_error),\n        RouterFloodError::Validation(validation_error) => validation_error_to_user_friendly(validation_error),\n        RouterFloodError::Packet(packet_error) => {\n            EnhancedUserError::new(\n                \"Packet Generation Error\",\n                &format!(\"Failed to create network packets: {}\", packet_error),\n                \"Check your network configuration and try again with different settings.\"\n            )\n            .with_examples(vec![\n                \"router-flood quick 192.168.1.1 --dry-run\",\n                \"router-flood test --target 192.168.1.1 --intensity low\"\n            ])\n            .with_severity(ErrorSeverity::Error)\n        }\n        RouterFloodError::Stats(stats_error) => {\n            EnhancedUserError::new(\n                \"Statistics Export Error\",\n                &format!(\"Failed to export test results: {}\", stats_error),\n                \"Check that you have write permissions in the current directory.\"\n            )\n            .with_examples(vec![\n                \"chmod 755 .\",\n                \"router-flood test --target 192.168.1.1 --export json\"\n            ])\n            .with_severity(ErrorSeverity::Warning)\n        }\n        RouterFloodError::System(system_error) => {\n            EnhancedUserError::new(\n                \"System Permission Error\",\n                &format!(\"System access denied: {}\", system_error),\n                \"Try running with appropriate permissions or use dry-run mode.\"\n            )\n            .with_examples(vec![\n                \"sudo router-flood test --target 192.168.1.1\",\n                \"router-flood quick 192.168.1.1 --dry-run\"\n            ])\n            .with_severity(ErrorSeverity::Critical)\n        }\n        RouterFloodError::Audit(audit_error) => {\n            EnhancedUserError::new(\n                \"Audit Logging Error\",\n                &format!(\"Failed to create audit log: {}\", audit_error),\n                \"Check write permissions or disable audit logging in config.\"\n            )\n            .with_examples(vec![\n                \"chmod 755 /var/log/\",\n                \"router-flood test --target 192.168.1.1 --dry-run\"\n            ])\n            .with_severity(ErrorSeverity::Warning)\n        }\n        RouterFloodError::Io(io_error) => {\n            EnhancedUserError::new(\n                \"File System Error\",\n                &format!(\"File operation failed: {}\", io_error),\n                \"Check file permissions and available disk space.\"\n            )\n            .with_examples(vec![\n                \"ls -la\",\n                \"df -h\"\n            ])\n            .with_severity(ErrorSeverity::Error)\n        }\n    }\n}\n\n/// Convert configuration errors to user-friendly messages\nfn config_error_to_user_friendly(error: &ConfigError) -> EnhancedUserError {\n    match error {\n        ConfigError::FileNotFound(path) => {\n            EnhancedUserError::new(\n                \"Configuration File Not Found\",\n                &format!(\"Cannot find configuration file: {}\", path),\n                \"Create a configuration file or use command-line options instead.\"\n            )\n            .with_examples(vec![\n                \"router-flood config create --output my-config.yaml\",\n                \"router-flood quick 192.168.1.1 --dry-run\",\n                \"router-flood test --target 192.168.1.1 --ports 80,443\"\n            ])\n            .with_severity(ErrorSeverity::Warning)\n        }\n        ConfigError::ParseError(msg) => {\n            EnhancedUserError::new(\n                \"Configuration Format Error\",\n                &format!(\"Invalid configuration format: {}\", msg),\n                \"Check your YAML syntax or create a new configuration file.\"\n            )\n            .with_examples(vec![\n                \"router-flood config validate my-config.yaml\",\n                \"router-flood config create --output new-config.yaml\",\n                \"yamllint my-config.yaml\"\n            ])\n            .with_severity(ErrorSeverity::Error)\n        }\n        ConfigError::InvalidValue { field, value, reason } => {\n            create_invalid_value_error(field, value, reason)\n        }\n        ConfigError::MissingRequired(field) => {\n            EnhancedUserError::new(\n                \"Missing Required Setting\",\n                &format!(\"Required setting '{}' is missing from configuration.\", field),\n                \"Add the missing setting to your configuration or command line.\"\n            )\n            .with_examples(vec![\n                \"router-flood test --target 192.168.1.1\",\n                \"router-flood config create --output complete-config.yaml\"\n            ])\n            .with_severity(ErrorSeverity::Error)\n        }\n    }\n}\n\n/// Create specific error messages for invalid values\nfn create_invalid_value_error(field: &str, value: &str, reason: &str) -> EnhancedUserError {\n    match field {\n        \"target\" | \"target.ip\" => {\n            EnhancedUserError::new(\n                \"Invalid Target IP Address\",\n                &format!(\"The IP address '{}' is not valid: {}\", value, reason),\n                \"Use a valid private IP address from your local network.\"\n            )\n            .with_examples(vec![\n                \"router-flood quick 192.168.1.1\",\n                \"router-flood test --target 10.0.0.1\",\n                \"router-flood test --target 172.16.0.1\"\n            ])\n            .with_severity(ErrorSeverity::Error)\n        }\n        \"ports\" | \"target.ports\" => {\n            EnhancedUserError::new(\n                \"Invalid Port Configuration\",\n                &format!(\"Port setting '{}' is invalid: {}\", value, reason),\n                \"Use valid port numbers between 1-65535, separated by commas.\"\n            )\n            .with_examples(vec![\n                \"router-flood test --target 192.168.1.1 --ports 80\",\n                \"router-flood test --target 192.168.1.1 --ports 80,443\",\n                \"router-flood test --target 192.168.1.1 --ports 22,80,443,8080\"\n            ])\n            .with_severity(ErrorSeverity::Error)\n        }\n        \"intensity\" => {\n            EnhancedUserError::new(\n                \"Invalid Test Intensity\",\n                &format!(\"Intensity level '{}' is not recognized: {}\", value, reason),\n                \"Use 'low', 'medium', or 'high' for test intensity.\"\n            )\n            .with_examples(vec![\n                \"router-flood test --target 192.168.1.1 --intensity low\",\n                \"router-flood test --target 192.168.1.1 --intensity medium\",\n                \"router-flood test --target 192.168.1.1 --intensity high\"\n            ])\n            .with_severity(ErrorSeverity::Error)\n        }\n        \"duration\" | \"test.duration\" => {\n            EnhancedUserError::new(\n                \"Invalid Test Duration\",\n                &format!(\"Duration '{}' is invalid: {}\", value, reason),\n                \"Use a duration between 1-3600 seconds (1 hour maximum).\"\n            )\n            .with_examples(vec![\n                \"router-flood test --target 192.168.1.1 --duration 30\",\n                \"router-flood test --target 192.168.1.1 --duration 120\",\n                \"router-flood quick 192.168.1.1  # Uses 10 second default\"\n            ])\n            .with_severity(ErrorSeverity::Error)\n        }\n        \"export\" | \"export.format\" => {\n            EnhancedUserError::new(\n                \"Invalid Export Format\",\n                &format!(\"Export format '{}' is not supported: {}\", value, reason),\n                \"Use 'json' for structured data or 'csv' for spreadsheets.\"\n            )\n            .with_examples(vec![\n                \"router-flood advanced --target 192.168.1.1 --export json\",\n                \"router-flood advanced --target 192.168.1.1 --export csv\"\n            ])\n            .with_severity(ErrorSeverity::Error)\n        }\n        _ => {\n            EnhancedUserError::new(\n                \"Configuration Error\",\n                &format!(\"Setting '{}' has invalid value '{}': {}\", field, value, reason),\n                \"Check the configuration documentation and fix the invalid setting.\"\n            )\n            .with_examples(vec![\n                \"router-flood config examples\",\n                \"router-flood examples\"\n            ])\n            .with_severity(ErrorSeverity::Error)\n        }\n    }\n}\n\n/// Convert network errors to user-friendly messages\nfn network_error_to_user_friendly(error: &NetworkError) -> EnhancedUserError {\n    match error {\n        NetworkError::InterfaceNotFound(name) => {\n            EnhancedUserError::new(\n                \"Network Interface Not Found\",\n                &format!(\"Cannot find network interface '{}' on this system.\", name),\n                \"Check available interfaces or let the system auto-detect.\"\n            )\n            .with_examples(vec![\n                \"ip link show\",\n                \"router-flood test --target 192.168.1.1  # Auto-detect interface\",\n                \"ifconfig -a\"\n            ])\n            .with_severity(ErrorSeverity::Error)\n        }\n        NetworkError::ChannelCreation(msg) => {\n            EnhancedUserError::new(\n                \"Network Access Error\",\n                &format!(\"Cannot access network: {}\", msg),\n                \"Try running with sudo or use dry-run mode for testing.\"\n            )\n            .with_examples(vec![\n                \"sudo router-flood test --target 192.168.1.1\",\n                \"router-flood quick 192.168.1.1 --dry-run\"\n            ])\n            .with_severity(ErrorSeverity::Critical)\n        }\n        NetworkError::PacketSend(msg) => {\n            EnhancedUserError::new(\n                \"Packet Transmission Error\",\n                &format!(\"Failed to send network packets: {}\", msg),\n                \"Check network connectivity and permissions.\"\n            )\n            .with_examples(vec![\n                \"ping 192.168.1.1\",\n                \"router-flood quick 192.168.1.1 --dry-run\",\n                \"sudo router-flood test --target 192.168.1.1\"\n            ])\n            .with_severity(ErrorSeverity::Error)\n        }\n        NetworkError::InvalidAddress(addr) => {\n            EnhancedUserError::new(\n                \"Invalid Network Address\",\n                &format!(\"Network address '{}' is not valid.\", addr),\n                \"Use a valid IP address from your local network.\"\n            )\n            .with_examples(vec![\n                \"router-flood quick 192.168.1.1\",\n                \"router-flood test --target 10.0.0.1\",\n                \"nmap -sn 192.168.1.0/24  # Discover local IPs\"\n            ])\n            .with_severity(ErrorSeverity::Error)\n        }\n    }\n}\n\n/// Convert validation errors to user-friendly messages\nfn validation_error_to_user_friendly(error: &ValidationError) -> EnhancedUserError {\n    match error {\n        ValidationError::InvalidIpRange { ip, reason } => {\n            EnhancedUserError::new(\n                \"IP Address Not Allowed\",\n                &format!(\"IP address '{}' cannot be used: {}\", ip, reason),\n                \"Use only private IP addresses for safety (192.168.x.x, 10.x.x.x, 172.16-31.x.x).\"\n            )\n            .with_examples(vec![\n                \"router-flood quick 192.168.1.1  # Home network\",\n                \"router-flood test --target 10.0.0.1  # Corporate network\",\n                \"router-flood test --target 172.16.0.1  # Enterprise network\"\n            ])\n            .with_severity(ErrorSeverity::Critical)\n        }\n        ValidationError::ExceedsLimit { field, value, limit } => {\n            EnhancedUserError::new(\n                \"Safety Limit Exceeded\",\n                &format!(\"Value {} for '{}' exceeds safety limit of {}.\", value, field, limit),\n                \"Reduce the value to stay within safety limits.\"\n            )\n            .with_examples(vec![\n                \"router-flood test --target 192.168.1.1 --intensity low\",\n                \"router-flood test --target 192.168.1.1 --duration 30\"\n            ])\n            .with_severity(ErrorSeverity::Warning)\n        }\n        ValidationError::SystemRequirement(msg) => {\n            EnhancedUserError::new(\n                \"System Requirement Not Met\",\n                &format!(\"System requirement missing: {}\", msg),\n                \"Install required system components or use dry-run mode.\"\n            )\n            .with_examples(vec![\n                \"router-flood quick 192.168.1.1 --dry-run\",\n                \"sudo apt-get install libpcap-dev  # On Ubuntu/Debian\",\n                \"sudo yum install libpcap-devel  # On CentOS/RHEL\"\n            ])\n            .with_severity(ErrorSeverity::Critical)\n        }\n        ValidationError::PrivilegeRequired(msg) => {\n            EnhancedUserError::new(\n                \"Insufficient Privileges\",\n                &format!(\"Additional privileges required: {}\", msg),\n                \"Run with sudo for network access or use dry-run mode for testing.\"\n            )\n            .with_examples(vec![\n                \"sudo router-flood test --target 192.168.1.1\",\n                \"router-flood quick 192.168.1.1 --dry-run  # No privileges needed\"\n            ])\n            .with_severity(ErrorSeverity::Critical)\n        }\n        ValidationError::PermissionDenied(msg) => {\n            EnhancedUserError::new(\n                \"Permission Denied\",\n                &format!(\"Access denied: {}\", msg),\n                \"Check file permissions or run with appropriate privileges.\"\n            )\n            .with_examples(vec![\n                \"sudo router-flood test --target 192.168.1.1\",\n                \"chmod 755 .\",\n                \"router-flood quick 192.168.1.1 --dry-run\"\n            ])\n            .with_severity(ErrorSeverity::Error)\n        }\n    }\n}\n\n/// Display enhanced user-friendly error\npub fn display_enhanced_user_error(error: &RouterFloodError) {\n    let user_error = to_enhanced_user_error(error);\n    user_error.display();\n    \n    // Add general help footer\n    println!(\"📚 Need more help?\");\n    println!(\"   router-flood examples     # Show usage examples\");\n    println!(\"   router-flood config examples  # Configuration examples\");\n    println!(\"   router-flood --help       # Show all options\");\n    println!();\n}\n\n/// Quick help for common scenarios\npub fn show_quick_help() {\n    println!(r#\"🚀 Quick Help - Router Flood\n\n🎯 GETTING STARTED:\n  router-flood quick 192.168.1.1 --dry-run    # Safest way to start\n  router-flood test --target 192.168.1.1      # Standard test\n  router-flood examples                        # Show more examples\n\n🛡️ SAFETY FIRST:\n  • Always start with --dry-run for new targets\n  • Only use private IP addresses (192.168.x.x, 10.x.x.x, 172.16-31.x.x)\n  • Use 'quick' mode when learning\n  • Start with low intensity and short duration\n\n❓ COMMON ISSUES:\n  • Permission denied → Try 'sudo' or use --dry-run\n  • Invalid IP → Use private IP addresses only\n  • Network error → Check connectivity with 'ping'\n  • Config error → Use 'router-flood config create'\n\"#);\n}\n"
+//! Interactive user-friendly error messages for User Experience Enhancement
+//!
+//! This module provides actionable, beginner-friendly error messages with
+//! specific guidance on how to fix common issues.
+
+use crate::error::{RouterFloodError, ConfigError, NetworkError, ValidationError};
+
+/// Enhanced user-friendly error display with actionable guidance
+pub struct EnhancedUserError {
+    pub title: String,
+    pub description: String,
+    pub solution: String,
+    pub examples: Vec<String>,
+    pub severity: ErrorSeverity,
+}
+
+/// Error severity levels for better user experience
+#[derive(Debug, Clone, PartialEq)]
+pub enum ErrorSeverity {
+    /// Info - helpful tips, not blocking
+    Info,
+    /// Warning - potential issues, but can continue
+    Warning,
+    /// Error - blocking issues that must be fixed
+    Error,
+    /// Critical - serious issues that could cause problems
+    Critical,
+}
+
+impl EnhancedUserError {
+    /// Create a new enhanced user error
+    pub fn new(title: &str, description: &str, solution: &str) -> Self {
+        Self {
+            title: title.to_string(),
+            description: description.to_string(),
+            solution: solution.to_string(),
+            examples: Vec::new(),
+            severity: ErrorSeverity::Error,
+        }
+    }
+
+    /// Add examples to help users understand the fix
+    pub fn with_examples(mut self, examples: Vec<&str>) -> Self {
+        self.examples = examples.iter().map(|s| s.to_string()).collect();
+        self
+    }
+
+    /// Set the error severity
+    pub fn with_severity(mut self, severity: ErrorSeverity) -> Self {
+        self.severity = severity;
+        self
+    }
+
+    /// Display the error with formatting
+    pub fn display(&self) {
+        let icon = match self.severity {
+            ErrorSeverity::Info => "ℹ️",
+            ErrorSeverity::Warning => "⚠️",
+            ErrorSeverity::Error => "❌",
+            ErrorSeverity::Critical => "🚨",
+        };
+
+        let color = match self.severity {
+            ErrorSeverity::Info => "\x1b[36m",     // Cyan
+            ErrorSeverity::Warning => "\x1b[33m",  // Yellow
+            ErrorSeverity::Error => "\x1b[31m",    // Red
+            ErrorSeverity::Critical => "\x1b[35m", // Magenta
+        };
+        let reset = "\x1b[0m";
+
+        println!();
+        println!("{}{} {}{}", color, icon, self.title, reset);
+        println!();
+        println!("📋 Problem:");
+        println!("   {}", self.description);
+        println!();
+        println!("🔧 Solution:");
+        println!("   {}", self.solution);
+
+        if !self.examples.is_empty() {
+            println!();
+            println!("💡 Examples:");
+            for example in &self.examples {
+                println!("   {}", example);
+            }
+        }
+
+        println!();
+    }
+}
+
+/// Convert RouterFloodError to enhanced user-friendly error
+pub fn to_enhanced_user_error(error: &RouterFloodError) -> EnhancedUserError {
+    match error {
+        RouterFloodError::Config(config_error) => config_error_to_user_friendly(config_error),
+        RouterFloodError::Network(network_error) => network_error_to_user_friendly(network_error),
+        RouterFloodError::Validation(validation_error) => validation_error_to_user_friendly(validation_error),
+        RouterFloodError::Packet(packet_error) => {
+            EnhancedUserError::new(
+                "Packet Generation Error",
+                &format!("Failed to create network packets: {}", packet_error),
+                "Check your network configuration and try again with different settings."
+            )
+            .with_examples(vec![
+                "router-flood quick 192.168.1.1 --dry-run",
+                "router-flood test --target 192.168.1.1 --intensity low"
+            ])
+            .with_severity(ErrorSeverity::Error)
+        }
+        RouterFloodError::Stats(stats_error) => {
+            EnhancedUserError::new(
+                "Statistics Export Error",
+                &format!("Failed to export test results: {}", stats_error),
+                "Check that you have write permissions in the current directory."
+            )
+            .with_examples(vec![
+                "chmod 755 .",
+                "router-flood test --target 192.168.1.1 --export json"
+            ])
+            .with_severity(ErrorSeverity::Warning)
+        }
+        RouterFloodError::System(system_error) => {
+            EnhancedUserError::new(
+                "System Permission Error",
+                &format!("System access denied: {}", system_error),
+                "Try running with appropriate permissions or use dry-run mode."
+            )
+            .with_examples(vec![
+                "sudo router-flood test --target 192.168.1.1",
+                "router-flood quick 192.168.1.1 --dry-run"
+            ])
+            .with_severity(ErrorSeverity::Critical)
+        }
+        RouterFloodError::Audit(audit_error) => {
+            EnhancedUserError::new(
+                "Audit Logging Error",
+                &format!("Failed to create audit log: {}", audit_error),
+                "Check write permissions or disable audit logging in config."
+            )
+            .with_examples(vec![
+                "chmod 755 /var/log/",
+                "router-flood test --target 192.168.1.1 --dry-run"
+            ])
+            .with_severity(ErrorSeverity::Warning)
+        }
+        RouterFloodError::Io(io_error) => {
+            EnhancedUserError::new(
+                "File System Error",
+                &format!("File operation failed: {}", io_error),
+                "Check file permissions and available disk space."
+            )
+            .with_examples(vec![
+                "ls -la",
+                "df -h"
+            ])
+            .with_severity(ErrorSeverity::Error)
+        }
+    }
+}
+
+/// Convert configuration errors to user-friendly messages
+fn config_error_to_user_friendly(error: &ConfigError) -> EnhancedUserError {
+    match error {
+        ConfigError::FileNotFound(path) => {
+            EnhancedUserError::new(
+                "Configuration File Not Found",
+                &format!("Cannot find configuration file: {}", path),
+                "Create a configuration file or use command-line options instead."
+            )
+            .with_examples(vec![
+                "router-flood config create --output my-config.yaml",
+                "router-flood quick 192.168.1.1 --dry-run",
+                "router-flood test --target 192.168.1.1 --ports 80,443"
+            ])
+            .with_severity(ErrorSeverity::Warning)
+        }
+        ConfigError::ParseError(msg) => {
+            EnhancedUserError::new(
+                "Configuration Format Error",
+                &format!("Invalid configuration format: {}", msg),
+                "Check your YAML syntax or create a new configuration file."
+            )
+            .with_examples(vec![
+                "router-flood config validate my-config.yaml",
+                "router-flood config create --output new-config.yaml",
+                "yamllint my-config.yaml"
+            ])
+            .with_severity(ErrorSeverity::Error)
+        }
+        ConfigError::InvalidValue { field, value, reason } => {
+            create_invalid_value_error(field, value, reason)
+        }
+        ConfigError::MissingRequired(field) => {
+            EnhancedUserError::new(
+                "Missing Required Setting",
+                &format!("Required setting '{}' is missing from configuration.", field),
+                "Add the missing setting to your configuration or command line."
+            )
+            .with_examples(vec![
+                "router-flood test --target 192.168.1.1",
+                "router-flood config create --output complete-config.yaml"
+            ])
+            .with_severity(ErrorSeverity::Error)
+        }
+    }
+}
+
+/// Create specific error messages for invalid values
+fn create_invalid_value_error(field: &str, value: &str, reason: &str) -> EnhancedUserError {
+    match field {
+        "target" | "target.ip" => {
+            EnhancedUserError::new(
+                "Invalid Target IP Address",
+                &format!("The IP address '{}' is not valid: {}", value, reason),
+                "Use a valid private IP address from your local network."
+            )
+            .with_examples(vec![
+                "router-flood quick 192.168.1.1",
+                "router-flood test --target 10.0.0.1",
+                "router-flood test --target 172.16.0.1"
+            ])
+            .with_severity(ErrorSeverity::Error)
+        }
+        "ports" | "target.ports" => {
+            EnhancedUserError::new(
+                "Invalid Port Configuration",
+                &format!("Port setting '{}' is invalid: {}", value, reason),
+                "Use valid port numbers between 1-65535, separated by commas."
+            )
+            .with_examples(vec![
+                "router-flood test --target 192.168.1.1 --ports 80",
+                "router-flood test --target 192.168.1.1 --ports 80,443",
+                "router-flood test --target 192.168.1.1 --ports 22,80,443,8080"
+            ])
+            .with_severity(ErrorSeverity::Error)
+        }
+        "intensity" => {
+            EnhancedUserError::new(
+                "Invalid Test Intensity",
+                &format!("Intensity level '{}' is not recognized: {}", value, reason),
+                "Use 'low', 'medium', or 'high' for test intensity."
+            )
+            .with_examples(vec![
+                "router-flood test --target 192.168.1.1 --intensity low",
+                "router-flood test --target 192.168.1.1 --intensity medium",
+                "router-flood test --target 192.168.1.1 --intensity high"
+            ])
+            .with_severity(ErrorSeverity::Error)
+        }
+        "duration" | "test.duration" => {
+            EnhancedUserError::new(
+                "Invalid Test Duration",
+                &format!("Duration '{}' is invalid: {}", value, reason),
+                "Use a duration between 1-3600 seconds (1 hour maximum)."
+            )
+            .with_examples(vec![
+                "router-flood test --target 192.168.1.1 --duration 30",
+                "router-flood test --target 192.168.1.1 --duration 120",
+                "router-flood quick 192.168.1.1  # Uses 10 second default"
+            ])
+            .with_severity(ErrorSeverity::Error)
+        }
+        "export" | "export.format" => {
+            EnhancedUserError::new(
+                "Invalid Export Format",
+                &format!("Export format '{}' is not supported: {}", value, reason),
+                "Use 'json' for structured data or 'csv' for spreadsheets."
+            )
+            .with_examples(vec![
+                "router-flood advanced --target 192.168.1.1 --export json",
+                "router-flood advanced --target 192.168.1.1 --export csv"
+            ])
+            .with_severity(ErrorSeverity::Error)
+        }
+        _ => {
+            EnhancedUserError::new(
+                "Configuration Error",
+                &format!("Setting '{}' has invalid value '{}': {}", field, value, reason),
+                "Check the configuration documentation and fix the invalid setting."
+            )
+            .with_examples(vec![
+                "router-flood config examples",
+                "router-flood examples"
+            ])
+            .with_severity(ErrorSeverity::Error)
+        }
+    }
+}
+
+/// Convert network errors to user-friendly messages
+fn network_error_to_user_friendly(error: &NetworkError) -> EnhancedUserError {
+    match error {
+        NetworkError::InterfaceNotFound(name) => {
+            EnhancedUserError::new(
+                "Network Interface Not Found",
+                &format!("Cannot find network interface '{}' on this system.", name),
+                "Check available interfaces or let the system auto-detect."
+            )
+            .with_examples(vec![
+                "ip link show",
+                "router-flood test --target 192.168.1.1  # Auto-detect interface",
+                "ifconfig -a"
+            ])
+            .with_severity(ErrorSeverity::Error)
+        }
+        NetworkError::ChannelCreation(msg) => {
+            EnhancedUserError::new(
+                "Network Access Error",
+                &format!("Cannot access network: {}", msg),
+                "Try running with sudo or use dry-run mode for testing."
+            )
+            .with_examples(vec![
+                "sudo router-flood test --target 192.168.1.1",
+                "router-flood quick 192.168.1.1 --dry-run"
+            ])
+            .with_severity(ErrorSeverity::Critical)
+        }
+        NetworkError::PacketSend(msg) => {
+            EnhancedUserError::new(
+                "Packet Transmission Error",
+                &format!("Failed to send network packets: {}", msg),
+                "Check network connectivity and permissions."
+            )
+            .with_examples(vec![
+                "ping 192.168.1.1",
+                "router-flood quick 192.168.1.1 --dry-run",
+                "sudo router-flood test --target 192.168.1.1"
+            ])
+            .with_severity(ErrorSeverity::Error)
+        }
+        NetworkError::InvalidAddress(addr) => {
+            EnhancedUserError::new(
+                "Invalid Network Address",
+                &format!("Network address '{}' is not valid.", addr),
+                "Use a valid IP address from your local network."
+            )
+            .with_examples(vec![
+                "router-flood quick 192.168.1.1",
+                "router-flood test --target 10.0.0.1",
+                "nmap -sn 192.168.1.0/24  # Discover local IPs"
+            ])
+            .with_severity(ErrorSeverity::Error)
+        }
+    }
+}
+
+/// Convert validation errors to user-friendly messages
+fn validation_error_to_user_friendly(error: &ValidationError) -> EnhancedUserError {
+    match error {
+        ValidationError::InvalidIpRange { ip, reason } => {
+            EnhancedUserError::new(
+                "IP Address Not Allowed",
+                &format!("IP address '{}' cannot be used: {}", ip, reason),
+                "Use only private IP addresses for safety (192.168.x.x, 10.x.x.x, 172.16-31.x.x)."
+            )
+            .with_examples(vec![
+                "router-flood quick 192.168.1.1  # Home network",
+                "router-flood test --target 10.0.0.1  # Corporate network",
+                "router-flood test --target 172.16.0.1  # Enterprise network"
+            ])
+            .with_severity(ErrorSeverity::Critical)
+        }
+        ValidationError::ExceedsLimit { field, value, limit } => {
+            EnhancedUserError::new(
+                "Safety Limit Exceeded",
+                &format!("Value {} for '{}' exceeds safety limit of {}.", value, field, limit),
+                "Reduce the value to stay within safety limits."
+            )
+            .with_examples(vec![
+                "router-flood test --target 192.168.1.1 --intensity low",
+                "router-flood test --target 192.168.1.1 --duration 30"
+            ])
+            .with_severity(ErrorSeverity::Warning)
+        }
+        ValidationError::SystemRequirement(msg) => {
+            EnhancedUserError::new(
+                "System Requirement Not Met",
+                &format!("System requirement missing: {}", msg),
+                "Install required system components or use dry-run mode."
+            )
+            .with_examples(vec![
+                "router-flood quick 192.168.1.1 --dry-run",
+                "sudo apt-get install libpcap-dev  # On Ubuntu/Debian",
+                "sudo yum install libpcap-devel  # On CentOS/RHEL"
+            ])
+            .with_severity(ErrorSeverity::Critical)
+        }
+        ValidationError::PrivilegeRequired(msg) => {
+            EnhancedUserError::new(
+                "Insufficient Privileges",
+                &format!("Additional privileges required: {}", msg),
+                "Run with sudo for network access or use dry-run mode for testing."
+            )
+            .with_examples(vec![
+                "sudo router-flood test --target 192.168.1.1",
+                "router-flood quick 192.168.1.1 --dry-run  # No privileges needed"
+            ])
+            .with_severity(ErrorSeverity::Critical)
+        }
+        ValidationError::PermissionDenied(msg) => {
+            EnhancedUserError::new(
+                "Permission Denied",
+                &format!("Access denied: {}", msg),
+                "Check file permissions or run with appropriate privileges."
+            )
+            .with_examples(vec![
+                "sudo router-flood test --target 192.168.1.1",
+                "chmod 755 .",
+                "router-flood quick 192.168.1.1 --dry-run"
+            ])
+            .with_severity(ErrorSeverity::Error)
+        }
+    }
+}
+
+/// Display enhanced user-friendly error
+pub fn display_enhanced_user_error(error: &RouterFloodError) {
+    let user_error = to_enhanced_user_error(error);
+    user_error.display();
+    
+    // Add general help footer
+    println!("📚 Need more help?");
+    println!("   router-flood examples     # Show usage examples");
+    println!("   router-flood config examples  # Configuration examples");
+    println!("   router-flood --help       # Show all options");
+    println!();
+}
+
+/// Quick help for common scenarios
+pub fn show_quick_help() {
+    println!(r#"🚀 Quick Help - Router Flood
+
+🎯 GETTING STARTED:
+  router-flood quick 192.168.1.1 --dry-run    # Safest way to start
+  router-flood test --target 192.168.1.1      # Standard test
+  router-flood examples                        # Show more examples
+
+🛡️ SAFETY FIRST:
+  • Always start with --dry-run for new targets
+  • Only use private IP addresses (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+  • Use 'quick' mode when learning
+  • Start with low intensity and short duration
+
+❓ COMMON ISSUES:
+  • Permission denied → Try 'sudo' or use --dry-run
+  • Invalid IP → Use private IP addresses only
+  • Network error → Check connectivity with 'ping'
+  • Config error → Use 'router-flood config create'
+"#);
+}
