@@ -1,4 +1,4 @@
-//! Simple verification tests for Phase 2 improvements
+//! Simple verification tests for performance improvements
 
 #![allow(clippy::uninlined_format_args)]
 
@@ -8,7 +8,7 @@ use router_flood::performance::{LockFreeBufferPool, SharedBufferPool};
 use std::net::IpAddr;
 
 #[test]
-fn test_phase2_packet_building_performance() {
+fn test_optimized_packet_building_performance() {
     let protocol_mix = router_flood::config::ProtocolMix {
         udp_ratio: 0.6,
         tcp_syn_ratio: 0.25,
@@ -35,11 +35,11 @@ fn test_phase2_packet_building_performance() {
     assert!(size > 0);
     assert_eq!(protocol_name, "UDP");
     
-    println!("✅ Phase 2: Inline optimized packet building works");
+    println!("✅ Performance: Inline optimized packet building works");
 }
 
 #[test]
-fn test_phase2_config_builder_performance() {
+fn test_optimized_config_builder_performance() {
     // Test the enhanced configuration builder
     let config = ConfigBuilder::new()
         .target_ip("192.168.1.1")
@@ -54,11 +54,11 @@ fn test_phase2_config_builder_performance() {
     assert_eq!(config.target.ip, "192.168.1.1".to_string());
     assert_eq!(config.target.ports, vec![80, 443, 8080]);
     
-    println!("✅ Phase 2: Enhanced configuration builder works");
+    println!("✅ Performance: Enhanced configuration builder works");
 }
 
 #[test]
-fn test_phase2_lock_free_buffer_pool() {
+fn test_lock_free_buffer_pool_performance() {
     let pool = LockFreeBufferPool::new(1400, 10);
     
     // Test basic operations
@@ -77,11 +77,11 @@ fn test_phase2_lock_free_buffer_pool() {
     let buffer3 = pool.get_buffer();
     assert!(buffer3.is_some());
     
-    println!("✅ Phase 2: Lock-free buffer pool works");
+    println!("✅ Performance: Lock-free buffer pool works");
 }
 
 #[test]
-fn test_phase2_shared_buffer_pool() {
+fn test_shared_buffer_pool_performance() {
     let pool = SharedBufferPool::new(1024, 5);
     let pool_clone = pool.clone();
     
@@ -94,11 +94,11 @@ fn test_phase2_shared_buffer_pool() {
     let buffer2 = pool.get_buffer();
     assert!(buffer2.is_some());
     
-    println!("✅ Phase 2: Shared buffer pool works");
+    println!("✅ Performance: Shared buffer pool works");
 }
 
 #[test]
-fn test_phase2_protocol_selection_optimization() {
+fn test_protocol_selection_optimization() {
     let protocol_mix = router_flood::config::ProtocolMix {
         udp_ratio: 1.0, // 100% UDP for predictable testing
         tcp_syn_ratio: 0.0,
@@ -117,11 +117,11 @@ fn test_phase2_protocol_selection_optimization() {
         assert_eq!(packet_type, PacketType::Udp);
     }
     
-    println!("✅ Phase 2: Optimized protocol selection works");
+    println!("✅ Performance: Optimized protocol selection works");
 }
 
 #[test]
-fn test_phase2_const_optimizations() {
+fn test_const_optimizations() {
     // Test const function optimizations
     assert_eq!(PacketType::Udp.protocol_name(), "UDP");
     assert!(PacketType::Udp.is_ipv4());
@@ -131,18 +131,18 @@ fn test_phase2_const_optimizations() {
     assert!(!PacketType::Ipv6Udp.is_ipv4());
     assert!(PacketType::Ipv6Udp.is_ipv6());
     
-    println!("✅ Phase 2: Const function optimizations work");
+    println!("✅ Performance: Const function optimizations work");
 }
 
 // Adapters have been removed as part of cleanup
 // #[test]
-// fn test_phase2_adapter_compatibility() {
+// fn test_adapter_compatibility() {
 //     // Adapters no longer needed after removing duplicate modules
-//     println!("✅ Phase 2: Adapters removed - using unified types");
+//     println!("✅ Performance: Adapters removed - using unified types");
 // }
 
 #[test]
-fn test_phase2_performance_constants() {
+fn test_performance_constants() {
     use router_flood::performance::optimized_constants::lookup_tables::*;
     use router_flood::performance::optimized_constants::bit_ops::*;
     
@@ -157,12 +157,12 @@ fn test_phase2_performance_constants() {
     assert_eq!(fast_mod_pow2(15, 8), 7);
     assert_eq!(next_power_of_2(15), 16);
     
-    println!("✅ Phase 2: Performance constants and bit ops work");
+    println!("✅ Performance: Performance constants and bit ops work");
 }
 
 #[test]
-fn test_phase2_integration() {
-    // Test that all Phase 2 components work together
+fn test_performance_integration() {
+    // Test that all performance components work together
     let config = ConfigBuilder::new()
         .target_ip("192.168.1.1")
         .threads(2)
@@ -194,5 +194,5 @@ fn test_phase2_integration() {
         }
     }
     
-    println!("✅ Phase 2: Full integration test passed");
+    println!("✅ Performance: Full integration test passed");
 }

@@ -1,2 +1,2 @@
-//! Simplified configuration system for Phase 4 - User Experience Enhancement
+//! Simplified configuration system for enhanced user experience
 // Tests moved to tests/config_simplified_tests.rs
