@@ -68,13 +68,13 @@ async fn test_stats_guard_export_on_drop() {
     
     {
         let guard = StatsGuard::new(stats.clone(), "test_session");
-        assert_eq!(guard.stats().packets_sent.load(Ordering::Relaxed), 1);
+        assert_eq!(guard.stats().packets_sent(), 1);
         // Guard drops here and should attempt export
     }
     
     // Stats should still be accessible after guard drops
-    assert_eq!(stats.packets_sent.load(Ordering::Relaxed), 1);
-    assert_eq!(stats.packets_failed.load(Ordering::Relaxed), 1);
+    assert_eq!(stats.packets_sent(), 1);
+    assert_eq!(stats.packets_failed(), 1);
 }
 
 #[test]
@@ -185,7 +185,7 @@ async fn test_multiple_guards_concurrent_access() {
     }
     
     assert_eq!(counter.load(Ordering::Relaxed), 5);
-    assert_eq!(stats.packets_sent.load(Ordering::Relaxed), 5);
+    assert_eq!(stats.packets_sent(), 5);
 }
 
 #[tokio::test]

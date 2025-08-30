@@ -81,8 +81,8 @@ async fn test_worker_manager_lifecycle() {
     tokio::time::sleep(std::time::Duration::from_millis(50)).await;
     
     // Check that some packets were simulated
-    let initial_sent = stats.packets_sent.load(Ordering::Relaxed);
-    let initial_failed = stats.packets_failed.load(Ordering::Relaxed);
+    let initial_sent = stats.packets_sent();
+    let initial_failed = stats.packets_failed();
     
     // Stop workers and wait for completion
     worker_manager.stop();
@@ -91,8 +91,8 @@ async fn test_worker_manager_lifecycle() {
     assert!(result.is_ok());
     
     // Should have processed some packets
-    let final_sent = stats.packets_sent.load(Ordering::Relaxed);
-    let final_failed = stats.packets_failed.load(Ordering::Relaxed);
+    let final_sent = stats.packets_sent();
+    let final_failed = stats.packets_failed();
     
     assert!(final_sent >= initial_sent);
     assert!(final_failed >= initial_failed);
@@ -126,8 +126,8 @@ async fn test_worker_with_multiple_ports() {
     assert!(result.is_ok());
     
     // Should have sent some packets
-    let total_packets = stats.packets_sent.load(Ordering::Relaxed) + 
-                       stats.packets_failed.load(Ordering::Relaxed);
+    let total_packets = stats.packets_sent() + 
+                       stats.packets_failed();
     assert!(total_packets > 0);
 }
 
@@ -167,8 +167,8 @@ async fn test_worker_protocol_mix() {
     
     // Verify that different protocols were used
     // Note: In dry-run mode, we're testing the packet generation logic
-    let total_packets = stats.packets_sent.load(Ordering::Relaxed) + 
-                       stats.packets_failed.load(Ordering::Relaxed);
+    let total_packets = stats.packets_sent() + 
+                       stats.packets_failed();
     assert!(total_packets > 0, "Should have generated some packets");
 }
 
@@ -200,8 +200,8 @@ async fn test_worker_rate_limiting() {
     let _result = worker_manager.join_all().await;
     
     let elapsed = start_time.elapsed();
-    let total_packets = stats.packets_sent.load(Ordering::Relaxed) + 
-                       stats.packets_failed.load(Ordering::Relaxed);
+    let total_packets = stats.packets_sent() + 
+                       stats.packets_failed();
     
     // With a rate of 5 packets per second for 1 second, we should have roughly 5 packets
     // Allow some variance due to timing and initial setup

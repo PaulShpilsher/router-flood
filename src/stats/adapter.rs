@@ -1,29 +1,28 @@
-//! Adapter to bridge lock-free stats with existing FloodStats interface
+//! Adapter module for backward compatibility with lock-free stats
+//!
+//! This module provides compatibility adapters for transitioning to the new
+//! high-performance statistics implementation.
 
 use super::{FloodStats, lockfree::{LockFreeStats, ProtocolId}};
 use std::sync::Arc;
-use std::sync::atomic::AtomicU64;
-use std::collections::HashMap;
-use uuid::Uuid;
 use crate::config::ExportConfig;
-use crate::constants::protocols;
 
 /// Adapter that wraps lock-free stats to maintain backward compatibility
 pub struct LockFreeStatsAdapter {
-    /// Internal lock-free stats
+    /// The underlying FloodStats (FloodStatsTracker)
+    stats: Arc<FloodStats>,
+    /// Internal lock-free stats reference (if needed for specialized access)
     inner: Arc<LockFreeStats>,
-    /// Session ID for compatibility
-    pub session_id: String,
-    /// Export config for compatibility
-    pub export_config: Option<ExportConfig>,
 }
 
 impl LockFreeStatsAdapter {
     pub fn new(export_config: Option<ExportConfig>) -> Self {
+        let stats = Arc::new(FloodStats::new(export_config));
+        let inner = Arc::new(LockFreeStats::new());
+        
         Self {
-            inner: Arc::new(LockFreeStats::new()),
-            session_id: Uuid::new_v4().to_string(),
-            export_config,
+            stats,
+            inner,
         }
     }
     
@@ -32,31 +31,21 @@ impl LockFreeStatsAdapter {
         self.inner.clone()
     }
     
+    /// Get the FloodStats reference
+    pub fn stats(&self) -> Arc<FloodStats> {
+        self.stats.clone()
+    }
+    
     /// Convert to FloodStats for compatibility
-    pub fn to_flood_stats(&self) -> FloodStats {
-        let snapshot = self.inner.snapshot();
-        
-        let protocol_stats = HashMap::from([
-            (protocols::UDP.to_string(), AtomicU64::new(snapshot.protocol_counts[ProtocolId::Udp as usize])),
-            (protocols::TCP.to_string(), AtomicU64::new(snapshot.protocol_counts[ProtocolId::Tcp as usize])),
-            (protocols::ICMP.to_string(), AtomicU64::new(snapshot.protocol_counts[ProtocolId::Icmp as usize])),
-            (protocols::IPV6.to_string(), AtomicU64::new(snapshot.protocol_counts[ProtocolId::Ipv6 as usize])),
-            (protocols::ARP.to_string(), AtomicU64::new(snapshot.protocol_counts[ProtocolId::Arp as usize])),
-        ]);
-        
-        FloodStats {
-            packets_sent: Arc::new(AtomicU64::new(snapshot.packets_sent)),
-            packets_failed: Arc::new(AtomicU64::new(snapshot.packets_failed)),
-            bytes_sent: Arc::new(AtomicU64::new(snapshot.bytes_sent)),
-            start_time: self.inner.start_time,
-            session_id: self.session_id.clone(),
-            protocol_stats: Arc::new(protocol_stats),
-            export_config: self.export_config.clone(),
-        }
+    pub fn to_flood_stats(&self) -> Arc<FloodStats> {
+        self.stats.clone()
     }
     
     /// Increment sent packet using protocol string for compatibility
     pub fn increment_sent(&self, bytes: u64, protocol: &str) {
+        self.stats.increment_sent(bytes, protocol);
+        
+        // Also update internal lock-free stats if needed
         if let Some(protocol_id) = ProtocolId::from_str(protocol) {
             self.inner.increment_sent(bytes, protocol_id);
         }
@@ -64,6 +53,7 @@ impl LockFreeStatsAdapter {
     
     /// Increment failed packet
     pub fn increment_failed(&self) {
+        self.stats.increment_failed();
         self.inner.increment_failed();
     }
 }
@@ -74,14 +64,10 @@ pub trait LocalStatsExt {
 }
 
 impl LocalStatsExt for super::LocalStats {
-    fn with_lock_free(stats: Arc<LockFreeStats>, batch_size: usize) -> Self {
-        let adapter = LockFreeStatsAdapter {
-            inner: stats,
-            session_id: Uuid::new_v4().to_string(),
-            export_config: None,
-        };
+    fn with_lock_free(_stats: Arc<LockFreeStats>, batch_size: usize) -> Self {
+        // Create a FloodStats instance for the LocalStats to use
+        let flood_stats = Arc::new(FloodStats::default());
         
-        let flood_stats = adapter.to_flood_stats();
-        Self::new(Arc::new(flood_stats), batch_size)
+        Self::new(flood_stats, batch_size)
     }
 }

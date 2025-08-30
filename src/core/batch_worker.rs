@@ -9,7 +9,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::time;
 
-use crate::core::simple_interfaces::{TargetProvider, WorkerConfig};
+use crate::core::traits::{TargetProvider, WorkerConfig};
 use crate::error::Result;
 use crate::packet::PacketType;
 use crate::performance::{

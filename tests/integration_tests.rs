@@ -95,12 +95,12 @@ fn test_stats_and_protocols_integration() {
     }
     
     // Verify all increments worked
-    assert_eq!(stats.packets_sent.load(Ordering::Relaxed), test_protocols.len() as u64);
-    assert_eq!(stats.bytes_sent.load(Ordering::Relaxed), 100 * test_protocols.len() as u64);
+    assert_eq!(stats.packets_sent(), test_protocols.len() as u64);
+    assert_eq!(stats.bytes_sent(), 100 * test_protocols.len() as u64);
     
     // Test failed increments
     stats.increment_failed();
-    assert_eq!(stats.packets_failed.load(Ordering::Relaxed), 1);
+    assert_eq!(stats.packets_failed(), 1);
 }
 
 #[test]
@@ -216,7 +216,7 @@ async fn test_stats_export_dry_run() {
     // This test doesn't actually export (to avoid file system side effects in tests)
     // but ensures the stats are properly structured for export
     assert!(stats.export_config.is_some());
-    assert_eq!(stats.packets_sent.load(Ordering::Relaxed), 2);
-    assert_eq!(stats.bytes_sent.load(Ordering::Relaxed), 300);
-    assert_eq!(stats.packets_failed.load(Ordering::Relaxed), 1);
+    assert_eq!(stats.packets_sent(), 2);
+    assert_eq!(stats.bytes_sent(), 300);
+    assert_eq!(stats.packets_failed(), 1);
 }
