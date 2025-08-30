@@ -2,7 +2,7 @@
 
 use super::validation::ConfigValidator;
 use crate::config::{Config, ProtocolMix, BurstPattern};
-use crate::error::{ConfigError, ValidationError, Result};
+use crate::error::{ConfigError, ValidationError, Result, messages};
 use crate::validation::validate_target_ip;
 use std::net::IpAddr;
 
@@ -45,7 +45,7 @@ impl ConfigBuilder {
             Err(_) => {
                 self.errors.push(ValidationError::InvalidIpRange {
                     ip: ip.to_string(),
-                    reason: "Invalid IP address format".to_string(),
+                    reason: messages::INVALID_IP_FORMAT,
                 });
             }
         }
@@ -56,11 +56,11 @@ impl ConfigBuilder {
     pub fn target_ports(mut self, ports: Vec<u16>) -> Self {
         if ports.is_empty() {
             self.errors.push(ValidationError::SystemRequirement(
-                "At least one target port must be specified".to_string()
+                messages::NO_TARGET_PORTS
             ));
         } else if ports.len() > 100 {
             self.errors.push(ValidationError::ExceedsLimit {
-                field: "target_ports".to_string(),
+                field: messages::TARGET_PORTS_FIELD,
                 value: ports.len() as u64,
                 limit: 100,
             });
@@ -77,13 +77,13 @@ impl ConfigBuilder {
         
         if (total - 1.0).abs() > 0.001 {
             self.errors.push(ValidationError::SystemRequirement(
-                format!("Protocol ratios must sum to 1.0, got {:.3}", total)
+                messages::PROTOCOL_RATIOS_SUM
             ));
         } else if [mix.udp_ratio, mix.tcp_syn_ratio, mix.tcp_ack_ratio, 
                    mix.icmp_ratio, mix.ipv6_ratio, mix.arp_ratio]
                    .iter().any(|&ratio| ratio < 0.0 || ratio > 1.0) {
             self.errors.push(ValidationError::SystemRequirement(
-                "All protocol ratios must be between 0.0 and 1.0".to_string()
+                messages::PROTOCOL_RATIOS_RANGE
             ));
         } else {
             self.config.target.protocol_mix = mix;
@@ -95,11 +95,11 @@ impl ConfigBuilder {
     pub fn threads(mut self, threads: usize) -> Self {
         if threads == 0 {
             self.errors.push(ValidationError::SystemRequirement(
-                "Thread count must be greater than 0".to_string()
+                messages::THREAD_COUNT_ZERO
             ));
         } else if threads > crate::constants::MAX_THREADS {
             self.errors.push(ValidationError::ExceedsLimit {
-                field: "threads".to_string(),
+                field: messages::THREAD_COUNT_EXCEEDS_LIMIT,
                 value: threads as u64,
                 limit: crate::constants::MAX_THREADS as u64,
             });
@@ -113,11 +113,11 @@ impl ConfigBuilder {
     pub fn packet_rate(mut self, rate: u64) -> Self {
         if rate == 0 {
             self.errors.push(ValidationError::SystemRequirement(
-                "Packet rate must be greater than 0".to_string()
+                messages::PACKET_RATE_ZERO
             ));
         } else if rate > crate::constants::MAX_PACKET_RATE {
             self.errors.push(ValidationError::ExceedsLimit {
-                field: "packet_rate".to_string(),
+                field: messages::PACKET_RATE_EXCEEDS_LIMIT,
                 value: rate,
                 limit: crate::constants::MAX_PACKET_RATE,
             });
@@ -131,17 +131,17 @@ impl ConfigBuilder {
     pub fn packet_size_range(mut self, min_size: usize, max_size: usize) -> Self {
         if min_size > max_size {
             self.errors.push(ValidationError::SystemRequirement(
-                "Minimum packet size cannot be greater than maximum".to_string()
+                messages::MIN_PACKET_SIZE_TOO_LARGE
             ));
         } else if min_size < crate::constants::MIN_PAYLOAD_SIZE {
             self.errors.push(ValidationError::ExceedsLimit {
-                field: "min_packet_size".to_string(),
+                field: messages::MIN_PACKET_SIZE_FIELD,
                 value: min_size as u64,
                 limit: crate::constants::MIN_PAYLOAD_SIZE as u64,
             });
         } else if max_size > crate::constants::MAX_PAYLOAD_SIZE {
             self.errors.push(ValidationError::ExceedsLimit {
-                field: "max_packet_size".to_string(),
+                field: messages::MAX_PACKET_SIZE_FIELD,
                 value: max_size as u64,
                 limit: crate::constants::MAX_PAYLOAD_SIZE as u64,
             });
@@ -158,11 +158,11 @@ impl ConfigBuilder {
             BurstPattern::Sustained { rate } => {
                 if *rate == 0 {
                     self.errors.push(ValidationError::SystemRequirement(
-                        "Sustained rate must be greater than 0".to_string()
+                        messages::SUSTAINED_RATE_ZERO
                     ));
                 } else if *rate > crate::constants::MAX_PACKET_RATE {
                     self.errors.push(ValidationError::ExceedsLimit {
-                        field: "sustained_rate".to_string(),
+                        field: messages::SUSTAINED_RATE_FIELD,
                         value: *rate,
                         limit: crate::constants::MAX_PACKET_RATE,
                     });
@@ -171,24 +171,24 @@ impl ConfigBuilder {
             BurstPattern::Bursts { burst_size, burst_interval_ms } => {
                 if *burst_size == 0 {
                     self.errors.push(ValidationError::SystemRequirement(
-                        "Burst size must be greater than 0".to_string()
+                        messages::BURST_SIZE_ZERO
                     ));
                 }
                 if *burst_interval_ms == 0 {
                     self.errors.push(ValidationError::SystemRequirement(
-                        "Burst interval must be greater than 0".to_string()
+                        messages::BURST_INTERVAL_ZERO
                     ));
                 }
             }
             BurstPattern::Ramp { start_rate, end_rate, ramp_duration } => {
                 if *start_rate == 0 || *end_rate == 0 {
                     self.errors.push(ValidationError::SystemRequirement(
-                        "Ramp start and end rates must be greater than 0".to_string()
+                        messages::RAMP_RATES_ZERO
                     ));
                 }
                 if *ramp_duration == 0 {
                     self.errors.push(ValidationError::SystemRequirement(
-                        "Ramp duration must be greater than 0".to_string()
+                        messages::RAMP_DURATION_ZERO
                     ));
                 }
             }
@@ -211,7 +211,7 @@ impl ConfigBuilder {
         if let Some(duration) = duration_secs {
             if duration == 0 {
                 self.errors.push(ValidationError::SystemRequirement(
-                    "Duration must be greater than 0 seconds".to_string()
+                    messages::DURATION_ZERO
                 ));
             } else {
                 self.config.attack.duration = Some(duration);

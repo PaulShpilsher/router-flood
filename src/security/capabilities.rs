@@ -57,7 +57,7 @@ impl CapabilityManager {
         if !self.context.has_net_raw {
             return Err(ValidationError::PrivilegeRequired(
                 "CAP_NET_RAW capability required for raw socket operations. \
-                 Run with sudo or grant CAP_NET_RAW capability.".to_string()
+                 Run with sudo or grant CAP_NET_RAW capability."
             ).into());
         }
 

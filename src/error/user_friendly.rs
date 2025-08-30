@@ -37,7 +37,7 @@ impl<'a> fmt::Display for UserFriendlyError<'a> {
                 writeln!(f, "   Current value: {}, Maximum allowed: {}", value, limit)?;
                 writeln!(f)?;
                 writeln!(f, "💡 Suggestions:")?;
-                match field.as_str() {
+                match *field {
                     "threads" => {
                         writeln!(f, "   • Reduce thread count: --threads {}", limit)?;
                         writeln!(f, "   • For most scenarios, 4-8 threads are sufficient")?;
