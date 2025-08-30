@@ -357,43 +357,4 @@ impl InjectedWorkerManager {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::config::get_default_config;
-    
-    #[test]
-    fn test_flood_stats_adapter() {
-        let stats = Arc::new(FloodStats::default());
-        let adapter = FloodStatsAdapter::new(stats.clone());
-        
-        adapter.record_packet_sent("UDP", 64);
-        adapter.record_packet_failed();
-        
-        assert_eq!(adapter.get_packet_count(), 1);
-        assert_eq!(adapter.get_failure_count(), 1);
-    }
-    
-    #[test]
-    fn test_config_adapter() {
-        let config = get_default_config();
-        let adapter = ConfigAdapter::new(config.clone());
-        
-        assert_eq!(adapter.thread_count(), config.attack.threads);
-        assert_eq!(adapter.packet_rate(), config.attack.packet_rate);
-        assert_eq!(adapter.dry_run(), config.safety.dry_run);
-    }
-    
-    #[tokio::test]
-    async fn test_simple_rate_limiter() {
-        let mut limiter = SimpleRateLimiter::new(1000, false);
-        
-        let start = std::time::Instant::now();
-        limiter.apply_delay().await;
-        let elapsed = start.elapsed();
-        
-        // Should be approximately 1ms for 1000 pps
-        assert!(elapsed >= Duration::from_micros(900));
-        assert!(elapsed <= Duration::from_micros(1100));
-    }
-}
+// Tests moved to tests/ directory

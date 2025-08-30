@@ -3,8 +3,8 @@
 //! This module provides JSON schema validation for YAML configurations
 //! and pre-built configuration templates for common scenarios.
 
-use crate::config::*;
 use crate::error::{ConfigError, Result};
+use super::{Config, TargetConfig, AttackConfig, SafetyConfig, MonitoringConfig, ExportConfig, ProtocolMix, ExportFormat, get_default_config};
 
 /// Configuration schema validator
 pub struct ConfigSchema;

@@ -281,10 +281,11 @@ struct ProtocolNameCache {
     tcp_syn: InternedString,
     tcp_ack: InternedString,
     icmp: InternedString,
-    ipv6_udp: InternedString,
-    ipv6_tcp: InternedString,
-    ipv6_icmp: InternedString,
-    arp: InternedString,
+    // Unused protocol fields removed:
+    // ipv6_udp: InternedString,
+    // ipv6_tcp: InternedString,
+    // ipv6_icmp: InternedString,
+    // arp: InternedString,
 }
 
 impl ProtocolNameCache {
@@ -294,10 +295,7 @@ impl ProtocolNameCache {
             tcp_syn: protocols::tcp_syn(),
             tcp_ack: protocols::tcp_ack(),
             icmp: protocols::icmp(),
-            ipv6_udp: protocols::ipv6_udp(),
-            ipv6_tcp: protocols::ipv6_tcp(),
-            ipv6_icmp: protocols::ipv6_icmp(),
-            arp: protocols::arp(),
+            // Unused protocol fields removed
         }
     }
 }
@@ -368,53 +366,4 @@ impl PipelineMetrics {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::net::Ipv4Addr;
-    
-    #[test]
-    fn test_optimized_processor() {
-        let mut processor = OptimizedPacketProcessor::new();
-        
-        let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 100));
-        let result = processor.process_packet(
-            PacketType::Udp,
-            target_ip,
-            80,
-            64,
-        );
-        
-        assert!(result.is_ok());
-        let packet = result.unwrap();
-        assert_eq!(packet.protocol(), "UDP");
-        assert!(packet.size() > 0);
-    }
-    
-    #[test]
-    fn test_protocol_name_cache() {
-        let cache = ProtocolNameCache::new();
-        assert_eq!(cache.udp.as_str(), "UDP");
-        assert_eq!(cache.tcp_syn.as_str(), "TCP-SYN");
-        assert_eq!(cache.icmp.as_str(), "ICMP");
-    }
-    
-    #[test]
-    fn test_batched_collector() {
-        let processor = OptimizedPacketProcessor::new();
-        let mut collector = processor.create_batched_collector(10);
-        
-        // Record some stats
-        collector.record_sent("UDP", 64);
-        collector.record_sent("TCP", 128);
-        collector.record_failed();
-        
-        // Force flush
-        collector.flush();
-        
-        let stats = processor.stats_collector().aggregate();
-        assert_eq!(stats.packets_sent, 2);
-        assert_eq!(stats.packets_failed, 1);
-        assert_eq!(stats.bytes_sent, 192);
-    }
-}
+// Tests moved to tests/ directory

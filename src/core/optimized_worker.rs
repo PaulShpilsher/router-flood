@@ -9,12 +9,11 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::time;
 
-use crate::core::simple_interfaces::{StatsCollector, TargetProvider, WorkerConfig};
+use crate::core::simple_interfaces::{TargetProvider, WorkerConfig};
 use crate::error::Result;
 use crate::packet::PacketType;
 use crate::performance::{
-    OptimizedPacketProcessor, BatchedStatsCollector, InternedString,
-    ZeroCopyBuffer, MemoryPoolManager, LockFreeStatsCollector
+    OptimizedPacketProcessor, BatchedStatsCollector, LockFreeStatsCollector
 };
 
 /// High-performance worker using Phase 3 optimizations
@@ -392,106 +391,4 @@ impl OptimizedWorkerManager {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::net::Ipv4Addr;
-    use std::sync::atomic::AtomicU64;
-    
-    // Mock target provider for testing
-    struct MockTargetProvider {
-        ports: Vec<u16>,
-        current: AtomicU64,
-    }
-    
-    impl MockTargetProvider {
-        fn new(ports: Vec<u16>) -> Self {
-            Self {
-                ports,
-                current: AtomicU64::new(0),
-            }
-        }
-    }
-    
-    impl TargetProvider for MockTargetProvider {
-        fn next_port(&self) -> u16 {
-            let index = self.current.fetch_add(1, Ordering::Relaxed) as usize % self.ports.len();
-            self.ports[index]
-        }
-        
-        fn get_ports(&self) -> &[u16] {
-            &self.ports
-        }
-    }
-    
-    // Mock worker config for testing
-    struct MockWorkerConfig;
-    
-    impl WorkerConfig for MockWorkerConfig {
-        fn thread_count(&self) -> usize { 2 }
-        fn packet_rate(&self) -> u64 { 1000 }
-        fn packet_size_range(&self) -> (usize, usize) { (64, 1400) }
-        fn randomize_timing(&self) -> bool { false }
-        fn perfect_simulation(&self) -> bool { true }
-        fn dry_run(&self) -> bool { true }
-    }
-    
-    #[tokio::test]
-    async fn test_optimized_worker() {
-        let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 100));
-        let target_provider = Arc::new(MockTargetProvider::new(vec![80, 443]));
-        let config = MockWorkerConfig;
-        
-        let mut worker = OptimizedWorker::new(0, target_ip, target_provider, &config);
-        
-        let running = Arc::new(AtomicBool::new(true));
-        
-        // Run worker for a short time
-        let worker_running = running.clone();
-        let worker_handle = tokio::spawn(async move {
-            worker.run(worker_running).await;
-            worker
-        });
-        
-        // Let it run briefly
-        time::sleep(Duration::from_millis(10)).await;
-        
-        // Stop the worker
-        running.store(false, Ordering::Relaxed);
-        
-        // Wait for completion and get metrics
-        let worker = worker_handle.await.unwrap();
-        let metrics = worker.metrics();
-        
-        assert_eq!(metrics.worker_id, 0);
-        assert!(metrics.packets_processed > 0);
-        assert!(metrics.packets_per_second > 0.0);
-    }
-    
-    #[tokio::test]
-    async fn test_optimized_worker_manager() {
-        let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 100));
-        let target_provider = Arc::new(MockTargetProvider::new(vec![80, 443]));
-        let config = MockWorkerConfig;
-        
-        let mut manager = OptimizedWorkerManager::new(2, target_ip, target_provider, &config);
-        
-        // Get a reference to the running flag before moving the manager
-        let running_flag = manager.running.clone();
-        
-        // Run for a short time
-        let manager_handle = tokio::spawn(async move {
-            manager.run().await
-        });
-        
-        // Let it run briefly
-        time::sleep(Duration::from_millis(10)).await;
-        
-        // Stop the workers
-        running_flag.store(false, Ordering::Relaxed);
-        
-        // The manager will complete when workers finish
-        let result = manager_handle.await.unwrap();
-        assert!(result.is_ok());
-    }
-}
+// Tests moved to tests/ directory

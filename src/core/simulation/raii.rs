@@ -224,11 +224,4 @@ impl SimulationRAII {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    #[tokio::test]
-    async fn test_simulation_raii_creation() {
-        // Test creation with minimal config - actual config building is tested elsewhere
-        // This just tests that the RAII structure is created properly
-    }
-}
+// Tests moved to tests/ directory

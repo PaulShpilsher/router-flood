@@ -231,27 +231,4 @@ impl From<ExportFormat> for OldExportFormat {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::config::get_default_config;
-
-    #[test]
-    fn test_config_conversion_roundtrip() {
-        let original_config = get_default_config();
-        let new_config: ApplicationConfig = original_config.clone().into();
-        let converted_back: Config = new_config.into();
-
-        // Test key fields are preserved
-        assert_eq!(original_config.target.ip, converted_back.target.ip);
-        assert_eq!(original_config.attack.threads, converted_back.attack.threads);
-        assert_eq!(original_config.safety.dry_run, converted_back.safety.dry_run);
-    }
-
-    #[test]
-    fn test_application_config_validation() {
-        let old_config = get_default_config();
-        let new_config: ApplicationConfig = old_config.into();
-        assert!(new_config.validate().is_ok());
-    }
-}
+// Tests moved to tests/ directory

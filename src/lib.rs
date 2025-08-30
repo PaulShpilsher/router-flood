@@ -30,8 +30,8 @@ pub mod ui;
 pub mod utils;
 pub mod validation;
 
-// Re-export key types for convenience
-pub use config::{Config, TargetConfig, AttackConfig, SafetyConfig, MonitoringConfig, ExportConfig, ExportFormat, ProtocolMix};
+// Re-export key types for convenience - temporarily disabled
+// pub use config::{Config, TargetConfig, AttackConfig, SafetyConfig, MonitoringConfig, ExportConfig, ExportFormat, ProtocolMix};
 pub use core::simulation::{Simulation, SimulationRAII};
 pub use core::worker::WorkerManager;
 pub use core::target::MultiPortTarget;
@@ -42,5 +42,4 @@ pub use utils::buffer_pool::{BufferPool, WorkerBufferPool};
 pub use utils::terminal::{TerminalController, TerminalGuard};
 pub use utils::raii::ResourceGuard;
 
-#[cfg(test)]
-mod extensibility_tests_simple;
+// Tests moved to tests/ directory

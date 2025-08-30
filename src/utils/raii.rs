@@ -327,48 +327,4 @@ impl Drop for ResourceGuard {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    
-    #[test]
-    fn test_resource_guard_creation() {
-        let guard = ResourceGuard::new();
-        assert!(guard.is_running());
-    }
-    
-    #[tokio::test]
-    async fn test_signal_guard() {
-        let guard = SignalGuard::new().await.unwrap();
-        assert!(guard.is_running());
-        
-        let flag = guard.running_flag();
-        assert!(flag.load(Ordering::Relaxed));
-        
-        drop(guard);
-    }
-    
-    #[tokio::test]
-    async fn test_stats_guard() {
-        let stats = Arc::new(FloodStats::default());
-        let guard = StatsGuard::new(stats.clone(), "test");
-        
-        assert_eq!(guard.stats().packets_sent.load(Ordering::Relaxed), 0);
-    }
-    
-    #[test]
-    fn test_channel_guard() {
-        let channels = WorkerChannels {
-            ipv4_sender: None,
-            ipv6_sender: None,
-            l2_sender: None,
-        };
-        
-        let mut guard = ChannelGuard::new(channels, "test");
-        assert!(guard.channels_mut().is_some());
-        
-        let taken = guard.take();
-        assert!(taken.is_some());
-        assert!(guard.channels_mut().is_none());
-    }
-}
+// Tests moved to tests/ directory

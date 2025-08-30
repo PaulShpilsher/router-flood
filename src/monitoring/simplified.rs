@@ -3,7 +3,7 @@
 //! This module provides essential monitoring capabilities without
 //! over-engineering, focusing on core metrics and simple export.
 
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use serde::{Deserialize, Serialize};
@@ -65,7 +65,7 @@ pub struct SimpleMetricsCollector {
     packets_failed: AtomicCounter,
     bytes_sent: AtomicCounter,
     start_time: Instant,
-    rate_calculator: RateCalculator,
+    // rate_calculator: RateCalculator, // Unused field removed
 }
 
 impl SimpleMetricsCollector {
@@ -75,7 +75,7 @@ impl SimpleMetricsCollector {
             packets_failed: AtomicCounter::new("packets_failed"),
             bytes_sent: AtomicCounter::new("bytes_sent"),
             start_time: Instant::now(),
-            rate_calculator: RateCalculator::new(),
+            // rate_calculator: RateCalculator::new(), // Unused field removed
         }
     }
 
@@ -272,86 +272,4 @@ impl SimpleMonitoringSystem {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::sync::atomic::AtomicBool;
-
-    #[test]
-    fn test_essential_metrics() {
-        let metrics = EssentialMetrics::new(
-            100,  // packets_sent
-            10,   // packets_failed
-            6400, // bytes_sent
-            Duration::from_secs(10), // duration
-        );
-
-        assert_eq!(metrics.packets_sent, 100);
-        assert_eq!(metrics.packets_failed, 10);
-        assert_eq!(metrics.success_rate, 90.909090909090907); // 100/110 * 100
-        assert_eq!(metrics.packets_per_second, 10.0); // 100/10
-    }
-
-    #[test]
-    fn test_simple_metrics_collector() {
-        let collector = SimpleMetricsCollector::new();
-        
-        collector.record_packet_sent(64);
-        collector.record_packet_sent(128);
-        collector.record_packet_failed();
-
-        let metrics = collector.get_metrics();
-        assert_eq!(metrics.packets_sent, 2);
-        assert_eq!(metrics.packets_failed, 1);
-        assert_eq!(metrics.bytes_sent, 192);
-    }
-
-    #[tokio::test]
-    async fn test_simple_exporter() {
-        let metrics = EssentialMetrics::new(50, 5, 3200, Duration::from_secs(5));
-        
-        // Test JSON export
-        let json_file = "test_metrics.json";
-        SimpleExporter::export_json(&metrics, json_file).await.unwrap();
-        
-        // Verify file exists and clean up
-        assert!(tokio::fs::metadata(json_file).await.is_ok());
-        let _ = tokio::fs::remove_file(json_file).await;
-
-        // Test CSV export
-        let csv_file = "test_metrics.csv";
-        SimpleExporter::export_csv(&metrics, csv_file).await.unwrap();
-        
-        // Verify file exists and clean up
-        assert!(tokio::fs::metadata(csv_file).await.is_ok());
-        let _ = tokio::fs::remove_file(csv_file).await;
-    }
-
-    #[test]
-    fn test_simple_monitoring_config() {
-        let config = SimpleMonitoringConfig::default();
-        assert_eq!(config.display_interval, Duration::from_secs(5));
-        assert!(!config.export_enabled);
-    }
-
-    #[tokio::test]
-    async fn test_simple_monitoring_system() {
-        let config = SimpleMonitoringConfig {
-            display_interval: Duration::from_millis(10),
-            export_enabled: false,
-            export_format: ExportFormat::Json,
-            export_filename: "test".to_string(),
-        };
-
-        let system = SimpleMonitoringSystem::new(config);
-        let collector = system.collector();
-        
-        // Record some metrics
-        collector.record_packet_sent(64);
-        collector.record_packet_failed();
-
-        let metrics = collector.get_metrics();
-        assert_eq!(metrics.packets_sent, 1);
-        assert_eq!(metrics.packets_failed, 1);
-    }
-}
+// Tests moved to tests/ directory

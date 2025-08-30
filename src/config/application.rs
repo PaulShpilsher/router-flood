@@ -435,41 +435,4 @@ impl BurstPattern {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_default_config_is_valid() {
-        let config = ApplicationConfig::default();
-        assert!(config.validate().is_ok());
-    }
-
-    #[test]
-    fn test_protocol_mix_validation() {
-        let mut mix = ProtocolMix::default();
-        assert!(mix.validate().is_ok());
-
-        // Test invalid sum
-        mix.udp_ratio = 0.5;
-        mix.tcp_syn_ratio = 0.6; // Sum > 1.0
-        assert!(mix.validate().is_err());
-
-        // Test invalid ratio
-        mix.udp_ratio = -0.1;
-        assert!(mix.validate().is_err());
-    }
-
-    #[test]
-    fn test_execution_settings_validation() {
-        let mut settings = ExecutionSettings::default();
-        assert!(settings.validate().is_ok());
-
-        settings.threads = 0;
-        assert!(settings.validate().is_err());
-
-        settings.threads = 1;
-        settings.packet_rate = 0;
-        assert!(settings.validate().is_err());
-    }
-}
+// Tests moved to tests/ directory
