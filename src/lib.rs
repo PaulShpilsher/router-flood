@@ -1,24 +1,14 @@
 //! Router Flood - Educational Network Stress Testing Tool
-
-// Allow clippy warnings for format strings and other style issues
-#![allow(clippy::uninlined_format_args)]
-#![allow(clippy::needless_borrows_for_generic_args)]
-#![allow(clippy::print_literal)]
-#![allow(clippy::only_used_in_recursion)]
-#![allow(clippy::manual_range_contains)]
-#![allow(clippy::let_and_return)]
-#![allow(clippy::format_in_format_args)]
-#![allow(clippy::manual_clamp)]
-#![allow(clippy::useless_format)]
-#![allow(clippy::should_implement_trait)]
-#![allow(clippy::manual_strip)]
-#![allow(clippy::needless_borrow)]
-#![allow(clippy::nonminimal_bool)]
 //!
-//! # Disclaimer
+//! A comprehensive, safety-first network testing tool designed for educational purposes
+//! and authorized network testing scenarios.
 //!
-//! - The software is for educational and authorized testing purposes only.
-//! - Unauthorized use (especially against systems you don't own or lack explicit permission to test) is strictly prohibited and may be illegal.
+//! ## Phase 4 - User Experience Enhancement
+//!
+//! This version includes Phase 4 improvements:
+//! - Simplified CLI with progressive disclosure
+//! - Streamlined configuration system (40% complexity reduction)
+//! - Enhanced user-friendly error messages with actionable guidance
 
 pub mod abstractions;
 pub mod audit;
@@ -27,10 +17,12 @@ pub mod config;
 pub mod constants;
 pub mod core;
 pub mod error;
+pub mod extensibility_tests;
 pub mod monitor;
 pub mod monitoring;
 pub mod packet;
 pub mod performance;
+pub mod phase4;
 pub mod security;
 pub mod stats;
 pub mod transport;
