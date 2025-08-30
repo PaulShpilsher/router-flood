@@ -1,5 +1,60 @@
 # Repository Tour
 
+## 🦀 Rust Development Standards & Guidelines
+
+### Rust Formatting Requirements
+
+- Generate Rust source code with proper line breaks and indentation (not escaped \\n, \\t characters)
+- Output should be ready-to-save as .rs files and compile with `rustc` or `cargo`
+- Use real newlines, spaces (4-space indentation), and proper Rust formatting conventions
+- Follow `rustfmt` standards for code layout
+- Code should be immediately runnable with `cargo run` or compilable without any character unescaping
+
+### Naming Conventions
+
+- Use simple, descriptive names that clearly express actual purpose and usage
+- Avoid AI-influenced prefixes/suffixes like "Advanced", "Enhanced", "Optimized", "Unified", "Smart", etc.
+- Follow Rust naming conventions: snake_case for functions/variables, PascalCase for types
+- Examples of good naming: `user_repository`, `parse_config`, `HttpClient`, `DatabaseConnection`
+- Examples to avoid: `AdvancedUserRepository`, `EnhancedConfigParser`, `OptimizedHttpClient`
+
+### Rust-Specific Practices
+
+- Prefer `&str` over `String` for function parameters when performance matters
+- Leverage Rust's ownership system - avoid unnecessary `.clone()` calls
+- Use Rust idioms: `?` operator, pattern matching, iterators over loops where appropriate
+- Apply modern Rust features and standard library functionality
+
+### Software Engineering Principles
+
+- **DRY** (Don't Repeat Yourself) - Extract common functionality
+- **SOLID** principles - Single responsibility, dependency inversion, etc.
+- **CUPID** - Composable, Unix philosophy, Predictable, Idiomatic, Domain-focused
+- **YAGNI** (You Aren't Gonna Need It) - Don't add unnecessary features
+- **POLA** (Principle of Least Astonishment) - Code should behave as expected
+- **KISS** (Keep It Simple, Stupid) - Favor simplicity over cleverness
+
+### Performance & Maintainability
+
+- Optimize for clarity and maintainability first, then performance
+- Profile before optimizing - avoid premature optimization
+- Minimize allocations and memory copies where reasonable
+
+### Code Organization
+
+- **No dead code** - Remove unused, deprecated, or refactored-out code
+- **Separate concerns** - Keep business logic separate from tests
+- **All unit tests** go in `tests/` subdirectory, not inline
+- **No over-engineering** - Choose the simplest solution that works
+
+### Refactoring Requirements
+
+- When refactoring, **preserve all existing functionality and logic**
+- Refactoring should only improve structure/performance, never change behavior
+- Test thoroughly after refactoring to ensure no regressions
+
+---
+
 ## 🎯 What This Repository Does
 
 Router Flood is an advanced network stress testing tool designed for educational purposes and authorized network testing scenarios. It combines cutting-edge performance optimizations with enterprise-grade security features while maintaining a safety-first approach.
