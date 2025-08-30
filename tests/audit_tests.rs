@@ -26,7 +26,7 @@ fn test_audit_entry_creation() {
         packet_rate,
         duration,
         interface,
-        &session_id,
+        &session_id.to_string(),
     );
     
     // Should succeed in creating audit entry
@@ -50,7 +50,7 @@ fn test_audit_entry_with_minimal_info() {
         packet_rate,
         duration,
         interface,
-        &session_id,
+        &session_id.to_string(),
     );
     
     assert!(result.is_ok(), "Audit entry with minimal info should succeed");
@@ -75,7 +75,7 @@ fn test_audit_entry_with_ipv6() {
         packet_rate,
         duration,
         interface,
-        &session_id,
+        &session_id.to_string(),
     );
     
     assert!(result.is_ok(), "IPv6 audit entry should succeed");
@@ -98,7 +98,7 @@ fn test_audit_entry_with_many_ports() {
         packet_rate,
         duration,
         interface,
-        &session_id,
+        &session_id.to_string(),
     );
     
     assert!(result.is_ok(), "Audit entry with many ports should succeed");
@@ -117,7 +117,7 @@ fn test_audit_entry_parameter_validation() {
         100,
         None,
         None,
-        &session_id,
+        &session_id.to_string(),
     );
     
     // Should handle empty ports gracefully
@@ -131,7 +131,7 @@ fn test_audit_entry_parameter_validation() {
         100,
         None,
         None,
-        &session_id,
+        &session_id.to_string(),
     );
     
     // Should handle edge case parameters
@@ -155,7 +155,7 @@ fn test_audit_entry_with_high_values() {
         packet_rate,
         duration,
         interface,
-        &session_id,
+        &session_id.to_string(),
     );
     
     assert!(result.is_ok(), "High values should be handled in audit");
@@ -175,7 +175,7 @@ fn test_multiple_audit_entries() {
             100 * i as u64,
             Some(i as u64 * 10),
             Some("eth0"),
-            &session_id,
+            &session_id.to_string(),
         );
         
         assert!(result.is_ok(), "Multiple audit entries should all succeed: entry {}", i);
@@ -204,7 +204,7 @@ fn test_concurrent_audit_entry_creation() {
                 100 + i as u64 * 50,
                 Some(60),
                 Some("eth0"),
-                &session_id,
+                &session_id.to_string(),
             )
         })
     }).collect();
@@ -234,7 +234,7 @@ fn test_audit_entry_unique_session_ids() {
             100,
             None,
             None,
-            &session_id,
+            &session_id.to_string(),
         );
         
         assert!(result.is_ok(), "Each unique session should create audit entry");
@@ -256,7 +256,7 @@ fn test_audit_timestamp_consistency() {
         100,
         Some(60),
         Some("eth0"),
-        &session_id,
+        &session_id.to_string(),
     );
     
     let end_time = std::time::SystemTime::now();
@@ -291,7 +291,7 @@ fn test_audit_with_special_interface_names() {
             100,
             None,
             Some(interface),
-            &session_id,
+            &session_id.to_string(),
         );
         
         assert!(result.is_ok(), "Special interface name '{}' should be handled", interface);
@@ -314,7 +314,7 @@ fn test_audit_entry_error_handling() {
         100,
         None,
         Some(&long_interface),
-        &session_id,
+        &session_id.to_string(),
     );
     
     // Should handle gracefully (either succeed or fail cleanly)

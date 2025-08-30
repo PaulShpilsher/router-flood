@@ -21,14 +21,14 @@ fn test_lock_free_adapter_with_export_config() {
     let export_config = ExportConfig {
         enabled: true,
         format: ExportFormat::Json,
-        filename_pattern: "test_stats",
+        filename_pattern: "test_stats".to_string(),
         include_system_stats: false,
     };
     
     let adapter = LockFreeStatsAdapter::new(Some(export_config.clone()));
     
     assert!(adapter.export_config.is_some());
-    assert_eq!(adapter.export_config.as_ref().unwrap().filename_pattern, "test_stats");
+    assert_eq!(adapter.export_config.as_ref().unwrap().filename_pattern, "test_stats".to_string());
 }
 
 #[test]

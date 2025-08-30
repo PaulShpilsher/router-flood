@@ -128,7 +128,7 @@ fn test_error_type_conversions() {
     // Test that various error types can be converted properly
     use router_flood::error::{ConfigError, NetworkError, ValidationError};
     
-    let config_error = ConfigError::FileNotFound("test.yaml");
+    let config_error = ConfigError::FileNotFound("test.yaml".to_string());
     let router_error: RouterFloodError = config_error.into();
     
     match router_error {
@@ -136,7 +136,7 @@ fn test_error_type_conversions() {
         _ => panic!("Expected Config error variant"),
     }
     
-    let network_error = NetworkError::InterfaceNotFound("eth0");
+    let network_error = NetworkError::InterfaceNotFound("eth0".to_string());
     let router_error: RouterFloodError = network_error.into();
     
     match router_error {
@@ -145,7 +145,7 @@ fn test_error_type_conversions() {
     }
     
     let validation_error = ValidationError::InvalidIpRange {
-        ip: "8.8.8.8",
+        ip: "8.8.8.8".to_string(),
         reason: "Not private",
     };
     let router_error: RouterFloodError = validation_error.into();
@@ -202,7 +202,7 @@ async fn test_stats_export_dry_run() {
     let export_config = ExportConfig {
         enabled: true,
         format: ExportFormat::Json,
-        filename_pattern: "test",
+        filename_pattern: "test".to_string(),
         include_system_stats: false,
     };
     

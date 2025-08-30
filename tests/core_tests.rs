@@ -146,7 +146,7 @@ fn test_setup_network_interface_with_specific() {
     let mut config = create_test_config();
     
     // Try to set up with a specific interface that doesn't exist
-    config.target.interface = Some("nonexistent_interface");
+    config.target.interface = Some("nonexistent_interface".to_string());
     
     let result = setup_network_interface(&config);
     assert!(result.is_err());

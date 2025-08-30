@@ -56,9 +56,9 @@ fn test_display_with_protocol_stats() {
     let mut protocol_stats = HashMap::new();
     
     // Add protocol counters
-    protocol_stats.insert("UDP", AtomicU64::new(100));
-    protocol_stats.insert("TCP", AtomicU64::new(50));
-    protocol_stats.insert("ICMP", AtomicU64::new(25));
+    protocol_stats.insert("UDP".to_string(), AtomicU64::new(100));
+    protocol_stats.insert("TCP".to_string(), AtomicU64::new(50));
+    protocol_stats.insert("ICMP".to_string(), AtomicU64::new(25));
     
     // Should format protocol stats correctly
     display.display_stats(
@@ -280,7 +280,7 @@ fn test_concurrent_display_updates() {
         let display_clone = Arc::clone(&display);
         let handle = thread::spawn(move || {
             let mut protocol_stats = HashMap::new();
-            protocol_stats.insert("UDP", AtomicU64::new(i * 100));
+            protocol_stats.insert("UDP".to_string(), AtomicU64::new(i * 100));
             
             display_clone.display_stats(
                 i * 1000,
@@ -338,11 +338,11 @@ fn test_display_with_all_protocols() {
     let mut protocol_stats = HashMap::new();
     
     // Add all supported protocols
-    protocol_stats.insert("UDP", AtomicU64::new(500));
-    protocol_stats.insert("TCP", AtomicU64::new(300));
-    protocol_stats.insert("ICMP", AtomicU64::new(100));
-    protocol_stats.insert("IPv6", AtomicU64::new(50));
-    protocol_stats.insert("ARP", AtomicU64::new(25));
+    protocol_stats.insert("UDP".to_string(), AtomicU64::new(500));
+    protocol_stats.insert("TCP".to_string(), AtomicU64::new(300));
+    protocol_stats.insert("ICMP".to_string(), AtomicU64::new(100));
+    protocol_stats.insert("IPv6".to_string(), AtomicU64::new(50));
+    protocol_stats.insert("ARP".to_string(), AtomicU64::new(25));
     
     let system_stats = SystemStats {
         cpu_usage: 42.0,

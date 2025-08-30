@@ -58,7 +58,7 @@ fn test_target_ip_validation_multicast_failure() {
 
 #[test]
 fn test_comprehensive_security_validation_success() {
-    let ip: IpAddr = "192.168.1.1".parse().unwrap();
+    let ip: IpAddr = "192.168.1.1".to_string().parse().unwrap();
     let ports = vec![8080, 3000];
     let threads = 4;
     let rate = 100;

@@ -81,7 +81,7 @@ fn test_protocol_mix_validation() {
 fn test_yaml_config_loading() {
     let yaml_content = r#"
 target:
-  ip: "10.0.0.1"
+  ip: "10.0.0.1".to_string()
   ports: [80, 443, 22]
   interface: "eth0"
   protocol_mix:
@@ -113,7 +113,7 @@ safety:
 export:
   enabled: true
   format: Json
-  filename_pattern: "test_export"
+  filename_pattern: "test_export".to_string()
   include_system_stats: true
 
 monitoring:
@@ -131,7 +131,7 @@ monitoring:
     // Verify loaded values
     assert_eq!(config.target.ip, "10.0.0.1");
     assert_eq!(config.target.ports, vec![80, 443, 22]);
-    assert_eq!(config.target.interface, Some("eth0"));
+    assert_eq!(config.target.interface, Some("eth0".to_string()));
     assert_eq!(config.attack.threads, 8);
     assert_eq!(config.attack.packet_rate, 500);
     assert_eq!(config.attack.duration, Some(60));
@@ -145,7 +145,7 @@ monitoring:
 fn test_invalid_yaml_config() {
     let invalid_yaml = r#"
 target:
-  ip: "invalid_ip"
+  ip: "invalid_ip".to_string()
   ports: "not_a_list"
 attack:
   threads: -1
@@ -174,7 +174,7 @@ fn test_config_builder_pattern() {
     let mut config = get_default_config();
     
     // Test modifying config through builder-like pattern
-    config.target.ip = "172.16.0.1";
+    config.target.ip = "172.16.0.1".to_string();
     config.target.ports = vec![8080, 9090];
     config.attack.threads = 16;
     config.attack.packet_rate = 1000;

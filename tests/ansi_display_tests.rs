@@ -150,8 +150,8 @@ fn test_formatted_stats_string() {
     );
     
     // Verify all components are present
-    assert!(formatted.contains(&sent));
-    assert!(formatted.contains(&failed));
+    assert!(formatted.contains(&sent.to_string()));
+    assert!(formatted.contains(&failed.to_string()));
     assert!(formatted.contains("100.5"));
     assert!(formatted.contains(ansi_codes::GREEN));
     assert!(formatted.contains(ansi_codes::RED));
@@ -163,7 +163,7 @@ fn test_escape_sequence_stripping() {
     // Test removing ANSI codes for plain text
     fn strip_ansi(text: &str) -> String {
         // Simple ANSI stripping for testing
-        let mut result = text;
+        let mut result = text.to_string();
         let codes = [
             ansi_codes::CLEAR_LINE,
             ansi_codes::CURSOR_UP,

@@ -16,7 +16,7 @@ fn test_config_builder_valid() {
     
     assert!(config.is_ok());
     let config = config.unwrap();
-    assert_eq!(config.target.ip, "192.168.1.1");
+    assert_eq!(config.target.ip, "192.168.1.1".to_string());
     assert_eq!(config.target.ports, vec![80, 443]);
     assert_eq!(config.attack.threads, 4);
     assert_eq!(config.attack.packet_rate, 100);
@@ -53,7 +53,7 @@ fn test_packet_builder_strategy_pattern() {
     };
     
     let mut packet_builder = PacketBuilder::new((64, 1400), protocol_mix);
-    let target_ip: IpAddr = "192.168.1.1".parse().unwrap();
+    let target_ip: IpAddr = "192.168.1.1".to_string().parse().unwrap();
     
     // Test UDP packet building
     let mut buffer = vec![0u8; 1500];
@@ -82,7 +82,7 @@ fn test_packet_builder_protocol_selection() {
     };
     
     let mut packet_builder = PacketBuilder::new((64, 1400), protocol_mix);
-    let ipv4_target: IpAddr = "192.168.1.1".parse().unwrap();
+    let ipv4_target: IpAddr = "192.168.1.1".to_string().parse().unwrap();
     
     // With 100% UDP ratio, should always select UDP for IPv4
     for _ in 0..10 {
@@ -124,7 +124,7 @@ fn test_mock_transport() {
     
     // Test packet sending
     let data = vec![0u8; 100];
-    let target: IpAddr = "192.168.1.1".parse().unwrap();
+    let target: IpAddr = "192.168.1.1".to_string().parse().unwrap();
     let result = transport.send_packet(&data, target, router_flood::transport::ChannelType::IPv4);
     
     assert!(result.is_ok());
@@ -136,7 +136,7 @@ fn test_mock_transport_with_failures() {
     let transport = MockTransport::with_failures();
     
     let data = vec![0u8; 100];
-    let target: IpAddr = "192.168.1.1".parse().unwrap();
+    let target: IpAddr = "192.168.1.1".to_string().parse().unwrap();
     
     // Send 100 packets, should get some failures
     let mut success_count = 0;

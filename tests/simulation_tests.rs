@@ -73,7 +73,7 @@ fn test_network_interface_setup() {
     assert!(result.is_ok());
     
     // Test with non-existent interface
-    config.target.interface = Some("definitely_nonexistent_interface");
+    config.target.interface = Some("definitely_nonexistent_interface".to_string());
     let result = setup_network_interface(&config);
     assert!(result.is_err()); // Should fail to find the interface
 }

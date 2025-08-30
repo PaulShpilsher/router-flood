@@ -204,7 +204,7 @@ proptest! {
         target_ip in valid_ipv4_private()
     ) {
         let result = ConfigBuilder::new()
-            .target_ip(&target_ip)
+            .target_ip(&target_ip.to_string())
             .threads(threads)
             .packet_rate(packet_rate)
             .packet_size_range(min_size, max_size)
@@ -280,7 +280,7 @@ proptest! {
         selections in 1000usize..=2000
     ) {
         let mut packet_builder = PacketBuilder::new((64, 1400), protocol_mix.clone());
-        let target_ip: IpAddr = "192.168.1.1".parse().unwrap();
+        let target_ip: IpAddr = "192.168.1.1".to_string().parse().unwrap();
         
         let mut counts = std::collections::HashMap::new();
         

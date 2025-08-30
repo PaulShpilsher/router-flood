@@ -9,14 +9,14 @@ use router_flood::packet::*;
 #[test]
 fn test_packet_type_display() {
     // Test that PacketType enum variants can be created and displayed
-    assert_eq!(PacketType::Udp, "UDP");
-    assert_eq!(PacketType::TcpSyn, "TCP-SYN");
-    assert_eq!(PacketType::TcpAck, "TCP-ACK");
-    assert_eq!(PacketType::Icmp, "ICMP");
-    assert_eq!(PacketType::Ipv6Udp, "IPv6-UDP");
-    assert_eq!(PacketType::Ipv6Tcp, "IPv6-TCP");
-    assert_eq!(PacketType::Ipv6Icmp, "IPv6-ICMP");
-    assert_eq!(PacketType::Arp, "ARP");
+    assert_eq!(format!("{}", PacketType::Udp), "UDP");
+    assert_eq!(format!("{}", PacketType::TcpSyn), "TCP-SYN");
+    assert_eq!(format!("{}", PacketType::TcpAck), "TCP-ACK");
+    assert_eq!(format!("{}", PacketType::Icmp), "ICMP");
+    assert_eq!(format!("{}", PacketType::Ipv6Udp), "IPv6-UDP");
+    assert_eq!(format!("{}", PacketType::Ipv6Tcp), "IPv6-TCP");
+    assert_eq!(format!("{}", PacketType::Ipv6Icmp), "IPv6-ICMP");
+    assert_eq!(format!("{}", PacketType::Arp), "ARP");
 }
 
 #[test]
@@ -55,7 +55,7 @@ fn test_packet_builder_packet_generation() {
     
     // Test that we can generate packet types
     for _ in 0..10 {
-        let target_ip: std::net::IpAddr = "192.168.1.1".parse().unwrap();
+        let target_ip: std::net::IpAddr = "192.168.1.1".to_string().parse().unwrap();
         let packet_type = builder.next_packet_type_for_ip(target_ip);
         // With 100% UDP ratio, should always return UDP
         assert_eq!(packet_type, PacketType::Udp);
