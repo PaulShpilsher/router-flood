@@ -3,74 +3,20 @@
 //! This module provides trait implementations for existing buffer pool types,
 //! maintaining backward compatibility while providing a consistent interface.
 
-use super::pool_trait::{BufferPool, BufferPool as BufferPoolTrait, ObservablePool, PoolStatistics, BasicPoolStats};
-use crate::performance::buffer_pool::{LockFreeBufferPool, SharedBufferPool};
+use super::pool_trait::{BufferPool as BufferPoolTrait, ObservablePool, PoolStatistics, BasicPoolStats};
 use crate::performance::numa_buffer_pool::{NumaBufferPool, AlignedBuffer, PoolStatistics as NumaStats};
-use crate::utils::buffer_pool::BufferPool as BasicBufferPool;
+use crate::utils::buffer_pool::BufferPool;
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::sync::Arc;
 
-// ===== LockFreeBufferPool Implementation =====
+// ===== Main BufferPool Implementation =====
 
-impl BufferPool for LockFreeBufferPool {
+impl BufferPoolTrait for BufferPool {
     type Buffer = Vec<u8>;
     
     #[inline]
     fn get(&self) -> Option<Self::Buffer> {
-        self.get_buffer()
-    }
-    
-    #[inline]
-    fn put(&self, buffer: Self::Buffer) {
-        self.return_buffer(buffer)
-    }
-    
-    fn capacity(&self) -> usize {
-        // LockFreeBufferPool doesn't expose pool_size, use utilization to estimate
-        100 // Default capacity
-    }
-    
-    fn available(&self) -> usize {
-        // Use utilization method to calculate available buffers
-        let utilization = self.utilization();
-        (100.0 * utilization) as usize
-    }
-}
-
-// ===== SharedBufferPool Implementation =====
-
-impl BufferPool for SharedBufferPool {
-    type Buffer = Vec<u8>;
-    
-    #[inline]
-    fn get(&self) -> Option<Self::Buffer> {
-        self.get_buffer()
-    }
-    
-    #[inline]
-    fn put(&self, buffer: Self::Buffer) {
-        self.return_buffer(buffer)
-    }
-    
-    fn capacity(&self) -> usize {
-        // SharedBufferPool wraps LockFreeBufferPool
-        100 // Default capacity
-    }
-    
-    fn available(&self) -> usize {
-        // SharedBufferPool doesn't expose utilization directly
-        0 // Conservative estimate
-    }
-}
-
-// ===== BasicBufferPool Implementation =====
-
-impl BufferPool for BasicBufferPool {
-    type Buffer = Vec<u8>;
-    
-    #[inline]
-    fn get(&self) -> Option<Self::Buffer> {
-        // BasicBufferPool always returns a buffer (allocates if needed)
+        // BufferPool always returns a buffer (allocates if needed)
         Some(self.get_buffer())
     }
     
@@ -80,57 +26,19 @@ impl BufferPool for BasicBufferPool {
     }
     
     fn capacity(&self) -> usize {
-        // Basic pool doesn't have a fixed capacity
-        usize::MAX
+        self.pool_size()
     }
     
     fn available(&self) -> usize {
-        // Would need to lock mutex to count, so return 0 for now
-        0
-    }
-}
-
-// ===== WorkerBufferPool Implementation =====
-// Note: WorkerBufferPool requires &mut self for get/put, so it doesn't fit the trait perfectly
-// We provide a wrapper for compatibility
-
-pub struct WorkerBufferPoolWrapper {
-    buffer_size: usize,
-    max_size: usize,
-}
-
-impl WorkerBufferPoolWrapper {
-    pub fn new(buffer_size: usize, max_size: usize) -> Self {
-        Self { buffer_size, max_size }
-    }
-}
-
-impl BufferPool for WorkerBufferPoolWrapper {
-    type Buffer = Vec<u8>;
-    
-    #[inline]
-    fn get(&self) -> Option<Self::Buffer> {
-        // Always allocate new for thread-local pools
-        Some(vec![0u8; self.buffer_size])
-    }
-    
-    #[inline]
-    fn put(&self, _buffer: Self::Buffer) {
-        // Thread-local pools handle their own cleanup
-    }
-    
-    fn capacity(&self) -> usize {
-        self.max_size
-    }
-    
-    fn available(&self) -> usize {
-        0 // Cannot query without mutable access
+        // Use utilization method to calculate available buffers
+        let utilization = self.utilization();
+        (self.pool_size() as f64 * utilization) as usize
     }
 }
 
 // ===== NumaBufferPool Implementation =====
 
-impl BufferPool for NumaBufferPool {
+impl BufferPoolTrait for NumaBufferPool {
     type Buffer = AlignedBuffer;
     
     #[inline]
@@ -208,7 +116,7 @@ impl Clone for NumaPoolStatsAdapter {
 // ===== Observable Pool with Statistics Tracking =====
 
 /// Wrapper to add statistics tracking to any buffer pool
-pub struct ObservablePoolWrapper<P: BufferPool> {
+pub struct ObservablePoolWrapper<P: BufferPoolTrait> {
     pool: P,
     stats: Arc<InternalStats>,
 }
@@ -220,7 +128,7 @@ struct InternalStats {
     current_size: AtomicUsize,
 }
 
-impl<P: BufferPool> ObservablePoolWrapper<P> {
+impl<P: BufferPoolTrait> ObservablePoolWrapper<P> {
     /// Create a new observable wrapper around a pool
     pub fn new(pool: P) -> Self {
         Self {
@@ -235,7 +143,7 @@ impl<P: BufferPool> ObservablePoolWrapper<P> {
     }
 }
 
-impl<P: BufferPool> BufferPool for ObservablePoolWrapper<P> {
+impl<P: BufferPoolTrait> BufferPoolTrait for ObservablePoolWrapper<P> {
     type Buffer = P::Buffer;
     
     fn get(&self) -> Option<Self::Buffer> {
@@ -267,7 +175,7 @@ impl<P: BufferPool> BufferPool for ObservablePoolWrapper<P> {
     }
 }
 
-impl<P: BufferPool> ObservablePool for ObservablePoolWrapper<P> {
+impl<P: BufferPoolTrait> ObservablePool for ObservablePoolWrapper<P> {
     type Stats = BasicPoolStats;
     
     fn statistics(&self) -> Self::Stats {
@@ -283,15 +191,12 @@ impl<P: BufferPool> ObservablePool for ObservablePoolWrapper<P> {
 // ===== Helper Functions =====
 
 /// Create a buffer pool based on configuration
-pub fn create_pool(pool_type: &str, buffer_size: usize, capacity: usize) -> Box<dyn BufferPoolTrait<Buffer = Vec<u8>>> {
-    match pool_type {
-        "lockfree" => Box::new(LockFreeBufferPool::new(buffer_size, capacity)),
-        "shared" => Box::new(SharedBufferPool::new(buffer_size, capacity)),
-        _ => Box::new(BasicBufferPool::new(buffer_size, capacity / 2, capacity)),
-    }
+pub fn create_pool(_pool_type: &str, buffer_size: usize, capacity: usize) -> Box<dyn BufferPoolTrait<Buffer = Vec<u8>>> {
+    // Always use the high-performance BufferPool
+    Box::new(BufferPool::new(buffer_size, capacity))
 }
 
 /// Create an observable pool with statistics
-pub fn create_observable_pool<P: BufferPool + 'static>(pool: P) -> ObservablePoolWrapper<P> {
+pub fn create_observable_pool<P: BufferPoolTrait + 'static>(pool: P) -> ObservablePoolWrapper<P> {
     ObservablePoolWrapper::new(pool)
 }

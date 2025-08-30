@@ -8,7 +8,7 @@
 use router_flood::packet::{PacketBuilder, PacketType};
 use router_flood::config::ConfigBuilder;
 use router_flood::transport::{MockTransport, TransportLayer};
-use router_flood::performance::LockFreeBufferPool;
+use router_flood::utils::buffer_pool::BufferPool;
 use std::net::IpAddr;
 use std::sync::Arc;
 use std::thread;
@@ -82,7 +82,7 @@ fn test_mock_transport_integration() {
 
 #[test]
 fn test_buffer_pool_performance() {
-    let pool = Arc::new(LockFreeBufferPool::new(1400, 50));
+    let pool = Arc::new(BufferPool::new(1400, 50));
     let mut handles = vec![];
     
     // Test concurrent access from multiple threads
@@ -94,10 +94,9 @@ fn test_buffer_pool_performance() {
             
             // Get buffers
             for _ in 0..10 {
-                if let Some(buffer) = pool_clone.get_buffer() {
-                    assert_eq!(buffer.len(), 1400, "Buffer size should be correct");
-                    local_buffers.push(buffer);
-                }
+                let buffer = pool_clone.get_buffer();
+                assert_eq!(buffer.len(), 1400, "Buffer size should be correct");
+                local_buffers.push(buffer);
             }
             
             // Return buffers
@@ -118,7 +117,7 @@ fn test_buffer_pool_performance() {
     }
     
     // Pool should still be functional
-    let buffer = pool.get_buffer().unwrap();
+    let buffer = pool.get_buffer();
     assert_eq!(buffer.len(), 1400);
     pool.return_buffer(buffer);
 }

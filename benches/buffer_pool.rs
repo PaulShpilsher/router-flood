@@ -4,57 +4,16 @@
 //! contention scenarios and usage patterns.
 
 use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion, BenchmarkId};
-use router_flood::utils::buffer_pool::{BufferPool, WorkerBufferPool};
+use router_flood::utils::buffer_pool::BufferPool;
 use std::sync::Arc;
 use std::thread;
+use std::time::Duration;
 
 /// Benchmark single-threaded buffer pool operations
 fn benchmark_single_thread_pool(c: &mut Criterion) {
     let mut group = c.benchmark_group("buffer_pool/single_thread");
     
-    let pool = BufferPool::new(1500, 100, 1000);
-    
-    group.bench_function("get_buffer", |b| {
-        b.iter(|| {
-            black_box(pool.get_buffer())
-        })
-    });
-    
-    group.bench_function("get_return_cycle", |b| {
-        b.iter(|| {
-            let buffer = pool.get_buffer();
-            pool.return_buffer(black_box(buffer));
-        })
-    });
-    
-    // Benchmark when pool is empty
-    group.bench_function("get_buffer_empty_pool", |b| {
-        // Drain the pool
-        let temp_pool = BufferPool::new(1500, 0, 1000);
-        
-        b.iter(|| {
-            black_box(temp_pool.get_buffer())
-        })
-    });
-    
-    // Benchmark when pool is full
-    group.bench_function("return_buffer_full_pool", |b| {
-        let full_pool = BufferPool::new(1500, 1000, 1000);
-        
-        b.iter(|| {
-            let buffer = vec![0u8; 1500];
-            full_pool.return_buffer(black_box(buffer));
-        })
-    });
-    
-    group.finish();
-}
-
-/// Benchmark per-worker buffer pool (no contention)
-fn benchmark_worker_pool(c: &mut Criterion) {
-    let mut group = c.benchmark_group("buffer_pool/worker_pool");
-    
-    let mut pool = WorkerBufferPool::new(1500, 100, 1000);
+    let pool = BufferPool::new(1500, 100);
     
     group.bench_function("get_buffer", |b| {
         b.iter(|| {
@@ -87,9 +46,16 @@ fn benchmark_worker_pool(c: &mut Criterion) {
     group.finish();
 }
 
+
+
 /// Benchmark buffer pool under contention
 fn benchmark_contended_pool(c: &mut Criterion) {
     let mut group = c.benchmark_group("buffer_pool/contention");
+    
+    // Set reasonable timeouts for high-contention benchmarks
+    group.measurement_time(Duration::from_secs(8));
+    group.warm_up_time(Duration::from_secs(2));
+    group.sample_size(30); // Reduce sample size for faster completion
     
     for num_threads in [2, 4, 8, 16] {
         group.bench_with_input(
@@ -97,7 +63,7 @@ fn benchmark_contended_pool(c: &mut Criterion) {
             &num_threads,
             |b, &num_threads| {
                 b.iter_batched(
-                    || Arc::new(BufferPool::new(1500, 100, 1000)),
+                    || Arc::new(BufferPool::new(1500, 100)),
                     |pool| {
                         let handles: Vec<_> = (0..num_threads)
                             .map(|_| {
@@ -105,7 +71,6 @@ fn benchmark_contended_pool(c: &mut Criterion) {
                                 thread::spawn(move || {
                                     for _ in 0..100 {
                                         let buffer = pool.get_buffer();
-                                        // Simulate some work
                                         std::hint::black_box(&buffer);
                                         pool.return_buffer(buffer);
                                     }
@@ -130,12 +95,12 @@ fn benchmark_contended_pool(c: &mut Criterion) {
 fn benchmark_pool_size_impact(c: &mut Criterion) {
     let mut group = c.benchmark_group("buffer_pool/pool_size");
     
-    for initial_size in [0, 10, 100, 1000] {
+    for pool_size in [10, 50, 100, 500] {
         group.bench_with_input(
-            BenchmarkId::new("initial", initial_size),
-            &initial_size,
-            |b, &initial_size| {
-                let pool = BufferPool::new(1500, initial_size, 10000);
+            BenchmarkId::new("size", pool_size),
+            &pool_size,
+            |b, &pool_size| {
+                let pool = BufferPool::new(1500, pool_size);
                 
                 b.iter(|| {
                     let buffer = pool.get_buffer();
@@ -152,12 +117,12 @@ fn benchmark_pool_size_impact(c: &mut Criterion) {
 fn benchmark_buffer_sizes(c: &mut Criterion) {
     let mut group = c.benchmark_group("buffer_pool/buffer_size");
     
-    for buffer_size in [64, 256, 512, 1500, 4096, 9000] {
+    for buffer_size in [64, 256, 512, 1500, 4096] {
         group.bench_with_input(
             BenchmarkId::new("bytes", buffer_size),
             &buffer_size,
             |b, &buffer_size| {
-                let pool = BufferPool::new(buffer_size, 100, 1000);
+                let pool = BufferPool::new(buffer_size, 100);
                 
                 b.iter(|| {
                     let buffer = pool.get_buffer();
@@ -175,7 +140,7 @@ fn benchmark_producer_consumer(c: &mut Criterion) {
     let mut group = c.benchmark_group("buffer_pool/producer_consumer");
     
     group.bench_function("balanced_2x2", |b| {
-        let pool = Arc::new(BufferPool::new(1500, 100, 1000));
+        let pool = Arc::new(BufferPool::new(1500, 100));
         
         b.iter(|| {
             let pool_prod = Arc::clone(&pool);
@@ -186,7 +151,7 @@ fn benchmark_producer_consumer(c: &mut Criterion) {
                 .map(|_| {
                     let pool = Arc::clone(&pool_prod);
                     thread::spawn(move || {
-                        for _ in 0..50 {
+                        for _ in 0..25 {
                             let buffer = pool.get_buffer();
                             std::hint::black_box(buffer);
                         }
@@ -199,7 +164,7 @@ fn benchmark_producer_consumer(c: &mut Criterion) {
                 .map(|_| {
                     let pool = Arc::clone(&pool_cons);
                     thread::spawn(move || {
-                        for _ in 0..50 {
+                        for _ in 0..25 {
                             let buffer = vec![0u8; 1500];
                             pool.return_buffer(buffer);
                         }
@@ -223,13 +188,12 @@ fn benchmark_producer_consumer(c: &mut Criterion) {
 fn benchmark_memory_pressure(c: &mut Criterion) {
     let mut group = c.benchmark_group("buffer_pool/memory_pressure");
     
-    // Simulate high memory usage scenario
     group.bench_function("high_churn", |b| {
-        let pool = BufferPool::new(9000, 10, 100);
+        let pool = BufferPool::new(4096, 20);
         
         b.iter(|| {
             // Rapid allocation and deallocation
-            for _ in 0..10 {
+            for _ in 0..5 {
                 let mut buffers = Vec::new();
                 for _ in 0..10 {
                     buffers.push(pool.get_buffer());
@@ -242,15 +206,15 @@ fn benchmark_memory_pressure(c: &mut Criterion) {
     });
     
     group.bench_function("pool_thrashing", |b| {
-        let pool = BufferPool::new(1500, 1, 10);
+        let pool = Arc::new(BufferPool::new(1500, 10));
         
         b.iter(|| {
             // Force constant allocation/deallocation
-            let handles: Vec<_> = (0..4)
+            let handles: Vec<_> = (0..3)
                 .map(|_| {
-                    let pool = pool.clone();
+                    let pool = Arc::clone(&pool);
                     thread::spawn(move || {
-                        for _ in 0..25 {
+                        for _ in 0..20 {
                             let buffer = pool.get_buffer();
                             std::hint::black_box(&buffer);
                             pool.return_buffer(buffer);
@@ -271,7 +235,6 @@ fn benchmark_memory_pressure(c: &mut Criterion) {
 criterion_group!(
     benches,
     benchmark_single_thread_pool,
-    benchmark_worker_pool,
     benchmark_contended_pool,
     benchmark_pool_size_impact,
     benchmark_buffer_sizes,

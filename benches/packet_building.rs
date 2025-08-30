@@ -74,13 +74,12 @@ fn benchmark_buffer_pools(c: &mut Criterion) {
     let mut group = c.benchmark_group("buffer_pools");
     
     // Benchmark buffer pool
-    let buffer_pool = BufferPool::new(1400, 10, 100);
+    let buffer_pool = BufferPool::new(1400, 100);
     
     group.bench_function("buffer_pool_get_return", |b| {
         b.iter(|| {
             let buffer = black_box(buffer_pool.get_buffer());
-            // Buffer is automatically returned when dropped
-            black_box(buffer);
+            buffer_pool.return_buffer(buffer);
         });
     });
     

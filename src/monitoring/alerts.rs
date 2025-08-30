@@ -145,11 +145,11 @@ impl AlertManager {
     
     /// Get alert history
     pub fn get_alert_history(&self, duration: Duration) -> Vec<Alert> {
-        let cutoff = Utc::now() - chrono::Duration::from_std(duration).unwrap_or_default();
+        let _cutoff = Utc::now() - chrono::Duration::from_std(duration).unwrap_or_default();
         
         if let Ok(history) = self.alert_history.read() {
             history.iter()
-                .filter(|alert| {
+                .filter(|_alert| {
                     // Parse timestamp string back to DateTime for comparison
                     // For now, we'll include all alerts since string comparison is complex
                     true

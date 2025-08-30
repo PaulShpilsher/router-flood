@@ -4,7 +4,7 @@
 
 use router_flood::packet::{PacketBuilder, PacketType};
 use router_flood::config::ConfigBuilder;
-use router_flood::performance::{LockFreeBufferPool, SharedBufferPool};
+use router_flood::utils::buffer_pool::BufferPool;
 use std::net::IpAddr;
 
 #[test]
@@ -59,40 +59,40 @@ fn test_batch_config_builder_performance() {
 
 #[test]
 fn test_lock_free_buffer_pool_performance() {
-    let pool = LockFreeBufferPool::new(1400, 10);
+    let pool = BufferPool::new(1400, 10);
     
     // Test basic operations
     let buffer1 = pool.get_buffer();
-    assert!(buffer1.is_some());
-    assert_eq!(buffer1.as_ref().unwrap().len(), 1400);
+    assert_eq!(buffer1.len(), 1400);
     
     let buffer2 = pool.get_buffer();
-    assert!(buffer2.is_some());
+    assert_eq!(buffer2.len(), 1400);
     
     // Return buffers
-    pool.return_buffer(buffer1.unwrap());
-    pool.return_buffer(buffer2.unwrap());
+    pool.return_buffer(buffer1);
+    pool.return_buffer(buffer2);
     
     // Should be able to get buffers again
     let buffer3 = pool.get_buffer();
-    assert!(buffer3.is_some());
+    assert_eq!(buffer3.len(), 1400);
     
     println!("✅ Performance: Lock-free buffer pool works");
 }
 
 #[test]
 fn test_shared_buffer_pool_performance() {
-    let pool = SharedBufferPool::new(1024, 5);
+    let pool = BufferPool::new(1024, 5);
+    // Note: BufferPool doesn't have clone, so we'll use Arc
+    let pool = std::sync::Arc::new(pool);
     let pool_clone = pool.clone();
     
     let buffer = pool.get_buffer();
-    assert!(buffer.is_some());
-    assert_eq!(buffer.as_ref().unwrap().len(), 1024);
+    assert_eq!(buffer.len(), 1024);
     
-    pool_clone.return_buffer(buffer.unwrap());
+    pool_clone.return_buffer(buffer);
     
     let buffer2 = pool.get_buffer();
-    assert!(buffer2.is_some());
+    assert_eq!(buffer2.len(), 1024);
     
     println!("✅ Performance: Shared buffer pool works");
 }
@@ -175,23 +175,27 @@ fn test_performance_integration() {
         config.target.protocol_mix.clone(),
     );
     
-    let pool = SharedBufferPool::new(1500, 10);
+    let pool = BufferPool::new(1500, 10);
     let target_ip: IpAddr = config.target.ip.parse().unwrap();
     
     // Generate packets using the buffer pool
     for _ in 0..5 {
-        if let Some(mut buffer) = pool.get_buffer() {
-            let packet_type = packet_builder.next_packet_type_for_ip(target_ip);
-            let result = packet_builder.build_packet_into_buffer(
-                &mut buffer,
-                packet_type,
-                target_ip,
-                80,
-            );
-            
-            assert!(result.is_ok());
-            pool.return_buffer(buffer);
-        }
+        let mut buffer = pool.get_buffer();
+        let packet_type = packet_builder.next_packet_type_for_ip(target_ip);
+        let result = packet_builder.build_packet_into_buffer(
+            &mut buffer,
+            packet_type,
+            target_ip,
+            80,
+        );
+        
+        assert!(result.is_ok(), "Packet building should succeed");
+        
+        let (size, protocol_name) = result.unwrap();
+        assert!(size > 0, "Packet size should be positive");
+        assert!(!protocol_name.is_empty(), "Protocol name should not be empty");
+        
+        pool.return_buffer(buffer);
     }
     
     println!("✅ Performance: Full integration test passed");

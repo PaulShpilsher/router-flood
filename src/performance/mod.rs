@@ -4,7 +4,6 @@
 //! SIMD operations, CPU affinity management, and advanced memory management.
 
 pub mod numa_buffer_pool;
-pub mod buffer_pool;
 pub mod constants;
 pub mod cpu_affinity;
 pub mod inline_hints;
@@ -19,7 +18,6 @@ pub mod zero_copy;
 
 // Re-export commonly used types
 pub use numa_buffer_pool::{NumaBufferPool, AlignedBuffer};
-pub use buffer_pool::{LockFreeBufferPool, SharedBufferPool};
 pub use cpu_affinity::{CpuAffinityManager, CpuTopology};
 pub use lockfree_stats::{
     LockFreeStatsCollector, BatchedStatsCollector, StatsSnapshot, PerCpuStats
@@ -37,6 +35,9 @@ pub use string_interning::{
 pub use shared_buffer_pool::{
     SharedBufferPool as SharedBufferPoolEnum, BufferPoolFactory, ContentionLevel, PoolStats
 };
+
+// Re-export the main buffer pool from utils
+pub use crate::utils::buffer_pool::BufferPool;
 pub use zero_copy::{
     ZeroCopyBuffer, ZeroCopyStr, ZeroCopyBufferPool, ZeroCopyPacketBuilder
 };

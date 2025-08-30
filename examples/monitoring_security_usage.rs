@@ -7,7 +7,8 @@
 
 use router_flood::{
     config::ConfigBuilder,
-    performance::{SimdPacketBuilder, NumaBufferPool, CpuAffinityManager},
+    performance::{SimdPacketBuilder, CpuAffinityManager},
+    utils::buffer_pool::BufferPool,
     monitoring::PrometheusExporter,
     security::{CapabilityManager, TamperProofAuditLog},
     error::Result,
@@ -100,30 +101,24 @@ async fn buffer_pool_example() -> Result<()> {
     println!("\n🗄️  Example 2: Advanced Buffer Management");
     println!("----------------------------------------");
 
-    // Create buffer pool with custom size classes
-    let size_classes = vec![64, 128, 256, 512, 1024, 1500];
-    let pool = NumaBufferPool::with_size_classes(size_classes, 100);
+    // Create buffer pool
+    let pool = BufferPool::new(1500, 100);
 
-    // Warm up the pool
-    println!("Warming up buffer pool...");
-    pool.warm_up(10)?;
+    println!("Buffer pool created with 1500 byte buffers, pool size 100");
 
-    let initial_stats = pool.get_stats();
     println!("Initial pool statistics:");
-    println!("  Total allocated: {}", initial_stats.total_allocated);
-    println!("  Memory usage: {:.2} KB", initial_stats.memory_usage as f64 / 1024.0);
+    println!("  Buffer size: {} bytes", pool.buffer_size());
+    println!("  Pool size: {}", pool.pool_size());
+    println!("  Utilization: {:.1}%", pool.utilization() * 100.0);
 
     // Simulate buffer usage patterns
     let mut buffers = Vec::new();
     let start = Instant::now();
 
-    // Allocate buffers of various sizes
+    // Allocate buffers
     for _ in 0..1000 {
-        for &size in &[64, 256, 512, 1024] {
-            if let Some(buffer) = pool.get_buffer(size) {
-                buffers.push(buffer);
-            }
-        }
+        let buffer = pool.get_buffer();
+        buffers.push(buffer);
     }
 
     let allocation_time = start.elapsed();
@@ -135,24 +130,11 @@ async fn buffer_pool_example() -> Result<()> {
     }
     let return_time = start.elapsed();
 
-    let final_stats = pool.get_stats();
     println!("\nBuffer pool performance:");
     println!("  Allocation time: {:.2}ms", allocation_time.as_millis());
     println!("  Return time: {:.2}ms", return_time.as_millis());
-    println!("  Hit rate: {:.1}%", final_stats.hit_rate);
-    println!("  Total hits: {}", final_stats.total_hits);
-    println!("  Total misses: {}", final_stats.total_misses);
-
-    // Show size class statistics
-    println!("\nSize class statistics:");
-    for size_stat in &final_stats.size_class_stats {
-        println!("  {} bytes: {} allocated, {} available, {} hits",
-            size_stat.size,
-            size_stat.allocated,
-            size_stat.available,
-            size_stat.hits
-        );
-    }
+    println!("  Final utilization: {:.1}%", pool.utilization() * 100.0);
+    println!("  Operations per second: {:.0}", 2000.0 / (allocation_time + return_time).as_secs_f64());
 
     Ok(())
 }
@@ -387,17 +369,15 @@ async fn performance_benchmark_example() -> Result<()> {
     // Benchmark buffer pool performance
     println!("\nBenchmarking buffer pool...");
     
-    let pool = NumaBufferPool::new();
-    pool.warm_up(100)?;
+    let pool = BufferPool::new(1024, 100);
     
     let start = Instant::now();
     let mut buffers = Vec::new();
     
     // Allocate buffers
     for _ in 0..10000 {
-        if let Some(buffer) = pool.get_buffer(1024) {
-            buffers.push(buffer);
-        }
+        let buffer = pool.get_buffer();
+        buffers.push(buffer);
     }
     
     let allocation_time = start.elapsed();
@@ -409,8 +389,6 @@ async fn performance_benchmark_example() -> Result<()> {
     }
     let return_time = start.elapsed();
     
-    let stats = pool.get_stats();
-    
     println!("  Allocation: {:.2}ms ({:.0} ops/sec)",
         allocation_time.as_millis(),
         10000.0 / allocation_time.as_secs_f64()
@@ -419,7 +397,7 @@ async fn performance_benchmark_example() -> Result<()> {
         return_time.as_millis(),
         10000.0 / return_time.as_secs_f64()
     );
-    println!("  Hit rate: {:.1}%", stats.hit_rate);
+    println!("  Final utilization: {:.1}%", pool.utilization() * 100.0);
 
     // System performance summary
     println!("\nSystem performance summary:");

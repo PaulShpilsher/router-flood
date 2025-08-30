@@ -8,7 +8,7 @@
 use proptest::prelude::*;
 use router_flood::packet::{PacketBuilder, PacketType};
 use router_flood::config::ConfigBuilder;
-use router_flood::performance::LockFreeBufferPool;
+use router_flood::utils::buffer_pool::BufferPool;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 // Property test strategies
@@ -249,15 +249,14 @@ proptest! {
         pool_size in 1usize..=50,
         operations in 1usize..=100
     ) {
-        let pool = LockFreeBufferPool::new(buffer_size, pool_size);
+        let pool = BufferPool::new(buffer_size, pool_size);
         let mut buffers = Vec::new();
         
         // Get some buffers
         for _ in 0..operations.min(pool_size) {
-            if let Some(buffer) = pool.get_buffer() {
-                prop_assert_eq!(buffer.len(), buffer_size);
-                buffers.push(buffer);
-            }
+            let buffer = pool.get_buffer();
+            prop_assert_eq!(buffer.len(), buffer_size);
+            buffers.push(buffer);
         }
         
         // Return all buffers
@@ -267,10 +266,9 @@ proptest! {
         
         // Should be able to get buffers again
         for _ in 0..operations.min(pool_size) {
-            if let Some(buffer) = pool.get_buffer() {
-                prop_assert_eq!(buffer.len(), buffer_size);
-                pool.return_buffer(buffer);
-            }
+            let buffer = pool.get_buffer();
+            prop_assert_eq!(buffer.len(), buffer_size);
+            pool.return_buffer(buffer);
         }
     }
     

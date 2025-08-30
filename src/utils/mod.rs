@@ -13,7 +13,7 @@ pub mod shared;
 pub mod terminal;
 
 // Re-export commonly used types
-pub use buffer_pool::{BufferPool, WorkerBufferPool};
+pub use buffer_pool::BufferPool;
 pub use pool_trait::{BufferPool as BufferPoolTrait, ObservablePool, PoolStatistics, SizedBufferPool};
 pub use protocol_utils::PacketTypeExt;
 pub use raii::{ResourceGuard, SignalGuard, StatsGuard};

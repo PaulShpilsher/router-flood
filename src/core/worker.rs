@@ -11,7 +11,7 @@ use tokio::task::JoinHandle;
 use tokio::time;
 use tracing::{debug, trace};
 
-use crate::utils::buffer_pool::WorkerBufferPool;
+
 use crate::config::{Config, ProtocolMix};
 use crate::constants::{stats, timing, NANOSECONDS_PER_SECOND};
 use crate::error::{NetworkError, Result};
@@ -124,7 +124,7 @@ struct Worker {
     target_ip: IpAddr,
     channels: WorkerChannels,
     packet_builder: PacketBuilder,
-    buffer_pool: WorkerBufferPool,
+    // Buffer pool removed - using direct allocation for simplicity
     base_delay: StdDuration,
     randomize_timing: bool,
     dry_run: bool,
@@ -155,7 +155,7 @@ impl Worker {
         let local_stats = LocalStats::new(stats.clone(), stats_batch_size);
         
         // Create buffer pool for this worker (1400 bytes max packet size)
-        let buffer_pool = WorkerBufferPool::new(1400, 5, 10); // 5 initial, max 10 buffers
+        // Using direct allocation instead of buffer pool for per-worker scenarios
 
         Self {
             task_id,
@@ -165,7 +165,6 @@ impl Worker {
             target_ip,
             channels,
             packet_builder,
-            buffer_pool,
             base_delay,
             randomize_timing,
             dry_run,
@@ -196,7 +195,7 @@ impl Worker {
         let packet_type = self.packet_builder.next_packet_type_for_ip(self.target_ip);
 
         // Use zero-copy packet building with buffer pool
-        let mut buffer = self.buffer_pool.get_buffer();
+        let mut buffer = vec![0u8; 1400]; // Direct allocation
         let buffer_slice = buffer.as_mut_slice();
         
         match self.packet_builder.build_packet_into_buffer(buffer_slice, packet_type, self.target_ip, current_port) {
@@ -211,11 +210,11 @@ impl Worker {
                 }
                 
                 // Return buffer to pool for reuse
-                self.buffer_pool.return_buffer(buffer);
+                // Buffer will be dropped automatically
             },
             Err(_e) => {
                 // Return buffer and fall back to normal allocation
-                self.buffer_pool.return_buffer(buffer);
+                // Buffer will be dropped automatically
                 self.fallback_packet_build_and_send(current_port, packet_type).await?;
             }
         }

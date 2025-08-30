@@ -38,7 +38,7 @@ pub use core::target::MultiPortTarget;
 pub use error::{Result, RouterFloodError};
 pub use packet::{PacketBuilder, PacketStrategy, PacketType, Target};
 pub use stats::FloodStats;
-pub use utils::buffer_pool::{BufferPool, WorkerBufferPool};
+pub use utils::buffer_pool::BufferPool;
 pub use utils::terminal::{TerminalController, TerminalGuard};
 pub use utils::raii::ResourceGuard;
 
