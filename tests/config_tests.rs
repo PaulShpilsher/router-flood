@@ -81,7 +81,7 @@ fn test_protocol_mix_validation() {
 fn test_yaml_config_loading() {
     let yaml_content = r#"
 target:
-  ip: "10.0.0.1".to_string()
+  ip: "10.0.0.1"
   ports: [80, 443, 22]
   interface: "eth0"
   protocol_mix:
@@ -113,7 +113,7 @@ safety:
 export:
   enabled: true
   format: Json
-  filename_pattern: "test_export".to_string()
+  filename_pattern: "test_export"
   include_system_stats: true
 
 monitoring:
@@ -145,7 +145,7 @@ monitoring:
 fn test_invalid_yaml_config() {
     let invalid_yaml = r#"
 target:
-  ip: "invalid_ip".to_string()
+  ip: "invalid_ip"
   ports: "not_a_list"
 attack:
   threads: -1
