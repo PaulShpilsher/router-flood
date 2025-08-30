@@ -3,7 +3,6 @@
 //! This module contains various performance optimizations including
 //! SIMD operations, CPU affinity management, and advanced memory management.
 
-pub mod numa_buffer_pool;
 pub mod constants;
 pub mod cpu_affinity;
 pub mod inline_hints;
@@ -13,11 +12,9 @@ pub mod lookup_tables;
 pub mod batch_pipeline;
 pub mod simd_packet;
 pub mod string_interning;
-pub mod shared_buffer_pool;
 pub mod zero_copy;
 
 // Re-export commonly used types
-pub use numa_buffer_pool::{NumaBufferPool, AlignedBuffer};
 pub use cpu_affinity::{CpuAffinityManager, CpuTopology};
 pub use lockfree_stats::{
     LockFreeStatsCollector, BatchedStatsCollector, StatsSnapshot, PerCpuStats
@@ -31,9 +28,6 @@ pub use batch_pipeline::{
 pub use simd_packet::SimdPacketBuilder;
 pub use string_interning::{
     InternedString, StringInterner, GlobalStringInterner, intern, protocols, errors, fields
-};
-pub use shared_buffer_pool::{
-    SharedBufferPool as SharedBufferPoolEnum, BufferPoolFactory, ContentionLevel, PoolStats
 };
 
 // Re-export the main buffer pool from utils

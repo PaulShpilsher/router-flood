@@ -233,4 +233,4 @@ PROMETHEUS_PORT=          # Port for Prometheus metrics export
 - **Documentation:** Comprehensive guides and examples for learning network concepts
 - **Safety First:** Multiple validation layers ensure responsible usage
 
-*Updated at: 2025-01-27 UTC*
+*Updated at: 2025-08-27 UTC*
