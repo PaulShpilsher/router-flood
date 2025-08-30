@@ -12,7 +12,7 @@
 
 pub mod basic;
 pub mod enhanced;
-pub mod simplified;
+pub mod guided;
 
 // Re-export basic CLI functions for backward compatibility
 pub use basic::{
@@ -26,4 +26,4 @@ pub use basic::{
 
 pub use enhanced::EnhancedCli;
 // Phase 4 simplified CLI exports (temporarily commented for compilation)
-// pub use simplified::{SimplifiedCli, CliMode, validate_target_ip};
+// pub use guided::{GuidedCli, CliMode, validate_target_ip};

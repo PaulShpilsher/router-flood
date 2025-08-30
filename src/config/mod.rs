@@ -15,14 +15,14 @@ use crate::error::{ConfigError, Result};
 
 // Re-export submodules that exist
 pub mod builder;
-pub mod simplified;
+pub mod preset;
 pub mod traits;
 pub mod validation;
 
 // Re-export from submodules
 pub use builder::ConfigBuilder;
 // Re-export from submodules (commented out until modules are properly implemented)
-// pub use simplified::{SimpleConfig, IntensityLevel};
+// pub use preset::{PresetConfig, LoadLevel};
 // pub use traits::{TargetView, SafetyView, is_private_ip, validate_safety};
 
 /// Main configuration structure for YAML config file support

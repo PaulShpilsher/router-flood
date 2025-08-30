@@ -11,15 +11,15 @@
 use clap::ArgMatches;
 use tracing::{info, warn};
 
-use crate::cli::simplified::{SimplifiedCli, CliMode};
-use crate::config::simplified::SimpleConfig;
+use crate::cli::guided::{GuidedCli, CliMode};
+use crate::config::preset::PresetConfig;
 use crate::config::Config;
 use crate::error::{Result, RouterFloodError};
 use crate::error::user_friendly_enhanced::{display_enhanced_user_error, show_quick_help};
 
 /// Enhanced user experience application runner
 pub struct UserExperienceRunner {
-    config: SimpleConfig,
+    config: PresetConfig,
     mode: CliMode,
     legacy_config: Config,
 }
@@ -31,7 +31,7 @@ impl UserExperienceRunner {
         if let Some((subcommand, sub_matches)) = matches.subcommand() {
             match subcommand {
                 "examples" => {
-                    SimplifiedCli::show_examples();
+                    GuidedCli::show_examples();
                     std::process::exit(0);
                 }
                 "config" => {
@@ -46,7 +46,7 @@ impl UserExperienceRunner {
         }
 
         // Process arguments with simplified CLI
-        let (legacy_config, mode) = SimplifiedCli::process_arguments(matches)
+        let (legacy_config, mode) = GuidedCli::process_arguments(matches)
             .map_err(|e| {
                 display_enhanced_user_error(&e);
                 e
@@ -74,7 +74,7 @@ impl UserExperienceRunner {
     }
 
     /// Get the simplified configuration
-    pub fn simple_config(&self) -> &SimpleConfig {
+    pub fn simple_config(&self) -> &PresetConfig {
         &self.config
     }
 
@@ -124,7 +124,7 @@ impl UserExperienceRunner {
 
     /// Create a configuration file with examples
     fn create_config_file(output: &str) -> Result<()> {
-        let config = SimpleConfig::default();
+        let config = PresetConfig::default();
         config.save_to_file(output)?;
         
         println!("✅ Configuration file created: {}", output);
@@ -147,7 +147,7 @@ impl UserExperienceRunner {
     fn validate_config_file(file: &str) -> Result<()> {
         info!("Validating configuration file: {}", file);
         
-        let config = SimpleConfig::load_from_file(file)
+        let config = PresetConfig::load_from_file(file)
             .map_err(|e| {
                 display_enhanced_user_error(&e);
                 e
@@ -179,42 +179,42 @@ impl UserExperienceRunner {
         println!("📚 Configuration Examples\\n");
         
         println!("🎯 QUICK TEST CONFIG:");
-        let quick_config = SimpleConfig::quick_test("192.168.1.1");
+        let quick_config = PresetConfig::quick_test("192.168.1.1");
         if let Ok(yaml) = serde_yaml::to_string(&quick_config) {
             println!("{}", yaml);
         }
         
         println!("\\n🔧 STANDARD TEST CONFIG:");
-        let standard_config = SimpleConfig::standard_test("192.168.1.1", vec![80, 443]);
+        let standard_config = PresetConfig::standard_test("192.168.1.1", vec![80, 443]);
         if let Ok(yaml) = serde_yaml::to_string(&standard_config) {
             println!("{}", yaml);
         }
         
         println!("\\n📖 FULL EXAMPLE WITH COMMENTS:");
-        println!("{}", SimpleConfig::generate_example());
+        println!("{}", PresetConfig::generate_example());
     }
 
     /// Convert legacy config to simple config (best effort)
-    fn legacy_to_simple_config(legacy: &Config) -> SimpleConfig {
+    fn legacy_to_simple_config(legacy: &Config) -> PresetConfig {
         let intensity = Self::determine_intensity_from_legacy(legacy);
         
-        SimpleConfig {
-            target: crate::config::simplified::TargetConfig {
+        PresetConfig {
+            target: crate::config::preset::TargetConfig {
                 ip: legacy.target.ip.clone(),
                 ports: legacy.target.ports.clone(),
                 interface: legacy.target.interface.clone(),
             },
-            test: crate::config::simplified::TestConfig {
+            test: crate::config::preset::TestConfig {
                 intensity,
                 duration: legacy.attack.duration.unwrap_or(30),
                 protocols: Self::legacy_to_protocol_config(&legacy.target.protocol_mix),
-                export: crate::config::simplified::ExportConfig {
+                export: crate::config::preset::ExportConfig {
                     enabled: legacy.export.enabled,
                     format: Self::legacy_to_export_format(&legacy.export.format),
                     filename: None,
                 },
             },
-            safety: crate::config::simplified::SafetyConfig {
+            safety: crate::config::preset::SafetyConfig {
                 dry_run: legacy.safety.dry_run,
                 private_only: legacy.safety.require_private_ranges,
                 audit_log: legacy.safety.audit_logging,
@@ -223,7 +223,7 @@ impl UserExperienceRunner {
     }
 
     /// Determine intensity level from legacy thread/rate settings
-    fn determine_intensity_from_legacy(legacy: &Config) -> crate::config::simplified::IntensityLevel {
+    fn determine_intensity_from_legacy(legacy: &Config) -> crate::config::preset::LoadLevel {
         let threads = legacy.attack.threads;
         let rate = legacy.attack.packet_rate;
         
@@ -231,17 +231,17 @@ impl UserExperienceRunner {
         let score = threads * 50 + rate as usize;
         
         if score <= 200 {
-            crate::config::simplified::IntensityLevel::Low
+            crate::config::preset::LoadLevel::Low
         } else if score <= 600 {
-            crate::config::simplified::IntensityLevel::Medium
+            crate::config::preset::LoadLevel::Medium
         } else {
-            crate::config::simplified::IntensityLevel::High
+            crate::config::preset::LoadLevel::High
         }
     }
 
     /// Convert legacy protocol mix to simplified protocol config
-    fn legacy_to_protocol_config(mix: &crate::config::ProtocolMix) -> crate::config::simplified::ProtocolConfig {
-        crate::config::simplified::ProtocolConfig {
+    fn legacy_to_protocol_config(mix: &crate::config::ProtocolMix) -> crate::config::preset::ProtocolConfig {
+        crate::config::preset::ProtocolConfig {
             udp: mix.udp_ratio > 0.0,
             tcp: mix.tcp_syn_ratio > 0.0 || mix.tcp_ack_ratio > 0.0,
             icmp: mix.icmp_ratio > 0.0,
@@ -249,11 +249,11 @@ impl UserExperienceRunner {
     }
 
     /// Convert legacy export format to simplified format
-    fn legacy_to_export_format(format: &crate::config::ExportFormat) -> crate::config::simplified::ExportFormat {
+    fn legacy_to_export_format(format: &crate::config::ExportFormat) -> crate::config::preset::ExportFormat {
         match format {
-            crate::config::ExportFormat::Json => crate::config::simplified::ExportFormat::Json,
-            crate::config::ExportFormat::Csv => crate::config::simplified::ExportFormat::Csv,
-            crate::config::ExportFormat::Both => crate::config::simplified::ExportFormat::Json, // Default to JSON
+            crate::config::ExportFormat::Json => crate::config::preset::ExportFormat::Json,
+            crate::config::ExportFormat::Csv => crate::config::preset::ExportFormat::Csv,
+            crate::config::ExportFormat::Both => crate::config::preset::ExportFormat::Json, // Default to JSON
         }
     }
 
@@ -292,7 +292,7 @@ impl UserExperienceRunner {
         
         if self.config.test.export.enabled {
             println!("Export: {} format", 
-                     if self.config.test.export.format == crate::config::simplified::ExportFormat::Json { "JSON" } else { "CSV" });
+                     if self.config.test.export.format == crate::config::preset::ExportFormat::Json { "JSON" } else { "CSV" });
         }
         
         println!("Safety: {} mode", if self.config.safety.dry_run { "Dry-run" } else { "Live" });
