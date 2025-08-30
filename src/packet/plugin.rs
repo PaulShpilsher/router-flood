@@ -58,7 +58,8 @@ impl PluginRegistry {
         }
         
         // Store the plugin
-        let mut plugins = self.plugins.write().unwrap();
+        let mut plugins = self.plugins.write()
+            .map_err(|_| crate::error::PacketError::PluginError("Failed to acquire write lock for plugins".to_string()))?;
         plugins.insert(name, plugin);
         
         Ok(())
@@ -66,7 +67,8 @@ impl PluginRegistry {
     
     /// Register a single strategy
     fn register_strategy(&self, packet_type: PacketType, strategy: Arc<dyn PacketStrategy>) -> Result<()> {
-        let mut strategies = self.strategies.write().unwrap();
+        let mut strategies = self.strategies.write()
+            .map_err(|_| crate::error::PacketError::PluginError("Failed to acquire write lock for strategies".to_string()))?;
         strategies.entry(packet_type)
             .or_default()
             .push(strategy);
@@ -75,21 +77,34 @@ impl PluginRegistry {
     
     /// Get all strategies for a packet type
     pub fn get_strategies(&self, packet_type: PacketType) -> Vec<Arc<dyn PacketStrategy>> {
-        let strategies = self.strategies.read().unwrap();
-        strategies.get(&packet_type)
-            .cloned()
-            .unwrap_or_default()
+        match self.strategies.read() {
+            Ok(strategies) => {
+                strategies.get(&packet_type)
+                    .cloned()
+                    .unwrap_or_default()
+            }
+            Err(_) => {
+                tracing::warn!("Failed to acquire read lock for strategies, returning empty vector");
+                Vec::new()
+            }
+        }
     }
     
     /// Get all registered plugins
     pub fn plugins(&self) -> Vec<String> {
-        let plugins = self.plugins.read().unwrap();
-        plugins.keys().cloned().collect()
+        match self.plugins.read() {
+            Ok(plugins) => plugins.keys().cloned().collect(),
+            Err(_) => {
+                tracing::warn!("Failed to acquire read lock for plugins, returning empty vector");
+                Vec::new()
+            }
+        }
     }
     
     /// Unregister a plugin
     pub fn unregister_plugin(&self, name: &str) -> Result<()> {
-        let mut plugins = self.plugins.write().unwrap();
+        let mut plugins = self.plugins.write()
+            .map_err(|_| crate::error::PacketError::PluginError("Failed to acquire write lock for plugins".to_string()))?;
         if let Some(plugin) = plugins.remove(name) {
             plugin.shutdown()?;
         }

@@ -63,8 +63,18 @@ impl CommandExecutor {
 
     /// Generate configuration template
     async fn handle_config_generate(&self, matches: &ArgMatches) -> Result<()> {
-        let template_name = matches.get_one::<String>("template").unwrap();
-        let output_path = matches.get_one::<String>("output").unwrap();
+        let template_name = matches.get_one::<String>("template")
+            .ok_or_else(|| ConfigError::InvalidValue {
+                field: "template".to_string(),
+                value: "missing".to_string(),
+                reason: "Template name is required".to_string(),
+            })?;
+        let output_path = matches.get_one::<String>("output")
+            .ok_or_else(|| ConfigError::InvalidValue {
+                field: "output".to_string(),
+                value: "missing".to_string(),
+                reason: "Output path is required".to_string(),
+            })?;
 
         println!("📝 Generating {} configuration template...", template_name);
 
@@ -88,7 +98,12 @@ impl CommandExecutor {
 
     /// Validate configuration file
     async fn handle_config_validate(&self, matches: &ArgMatches) -> Result<()> {
-        let config_path = matches.get_one::<String>("config").unwrap();
+        let config_path = matches.get_one::<String>("config")
+            .ok_or_else(|| ConfigError::InvalidValue {
+                field: "config".to_string(),
+                value: "missing".to_string(),
+                reason: "Config path is required".to_string(),
+            })?;
 
         println!("🔍 Validating configuration: {}", config_path);
 
@@ -181,7 +196,12 @@ impl CommandExecutor {
 
     /// Display performance recommendations
     async fn display_performance_info(&self, matches: &ArgMatches) -> Result<()> {
-        let workers = *matches.get_one::<usize>("workers").unwrap();
+        let workers = *matches.get_one::<usize>("workers")
+            .ok_or_else(|| ConfigError::InvalidValue {
+                field: "workers".to_string(),
+                value: "missing".to_string(),
+                reason: "Worker count is required".to_string(),
+            })?;
         
         println!("⚡ Performance Analysis for {} workers", workers);
         println!("=====================================");

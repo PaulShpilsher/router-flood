@@ -153,7 +153,7 @@ pub fn parse_arguments() -> ArgMatches {
 pub fn process_cli_config(matches: &ArgMatches, mut config: Config) -> Result<Config> {
     // Override config with CLI arguments
     if let Some(target) = matches.get_one::<String>("target") {
-        config.target.ip = target.clone();
+        config.target.ip = target.to_string();
     }
 
     if let Some(ports_str) = matches.get_one::<String>("ports") {
@@ -173,7 +173,7 @@ pub fn process_cli_config(matches: &ArgMatches, mut config: Config) -> Result<Co
     }
 
     if let Some(interface) = matches.get_one::<String>("interface") {
-        config.target.interface = Some(interface.clone());
+        config.target.interface = Some(interface.to_string());
     }
 
     if let Some(export_format) = matches.get_one::<String>("export") {

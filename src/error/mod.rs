@@ -115,6 +115,7 @@ pub enum PacketError {
     BuildFailed { packet_type: String, reason: String },
     BufferTooSmall { required: usize, available: usize },
     InvalidParameters(String),
+    PluginError(String),
 }
 
 #[derive(Debug)]
@@ -203,6 +204,7 @@ impl fmt::Display for PacketError {
                 write!(f, "Buffer too small: required {}, available {}", required, available)
             }
             PacketError::InvalidParameters(msg) => write!(f, "Invalid packet parameters: {}", msg),
+            PacketError::PluginError(msg) => write!(f, "Plugin error: {}", msg),
         }
     }
 }

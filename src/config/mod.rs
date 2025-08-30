@@ -3,7 +3,9 @@
 //! This module provides enhanced configuration management with centralized
 //! validation and a fluent builder API.
 
+pub mod application;
 pub mod builder;
+pub mod compatibility;
 pub mod schema;
 pub mod validation;
 pub mod traits;
@@ -12,7 +14,9 @@ pub mod trait_impls;
 #[cfg(test)]
 pub mod usage_examples;
 
+pub use application::ApplicationConfig;
 pub use builder::ConfigBuilder;
+pub use compatibility::*;
 pub use schema::{ConfigSchema, ConfigTemplates};
 pub use validation::ConfigValidator;
 pub use traits::{

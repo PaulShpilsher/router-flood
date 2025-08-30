@@ -39,10 +39,9 @@ use router_flood::ui::display_startup_banner;
 use router_flood::validation::{validate_comprehensive_security, validate_system_requirements};
 
 fn setup_logging() {
+    let log_level = std::env::var("RUST_LOG").unwrap_or_else(|_| "info".to_string());
     tracing_subscriber::registry()
-        .with(tracing_subscriber::EnvFilter::new(
-            std::env::var("RUST_LOG").unwrap_or_else(|_| "info".into()),
-        ))
+        .with(tracing_subscriber::EnvFilter::new(log_level))
         .with(tracing_subscriber::fmt::layer())
         .init();
 }
@@ -60,7 +59,7 @@ fn initialize_configuration(matches: &clap::ArgMatches) -> Result<router_flood::
 fn parse_target_ip(config: &router_flood::config::Config) -> Result<IpAddr> {
     config.target.ip.parse()
         .map_err(|_| router_flood::error::ValidationError::InvalidIpRange {
-            ip: config.target.ip.clone(),
+            ip: config.target.ip.to_string(),
             reason: error_messages::INVALID_IP_FORMAT,
         }.into())
 }
