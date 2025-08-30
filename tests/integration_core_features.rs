@@ -1,9 +1,9 @@
-//! Integration tests for new architecture
+//! Integration tests for core system features
 
 #![allow(clippy::uninlined_format_args)]
 //!
 //! These tests verify that all components work together correctly
-//! and that the new architecture maintains compatibility.
+//! and that the system maintains compatibility.
 
 use router_flood::packet::{PacketBuilder, PacketType};
 use router_flood::config::ConfigBuilder;

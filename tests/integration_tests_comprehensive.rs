@@ -1,4 +1,4 @@
-//! Tests for the new architecture improvements
+//! Comprehensive integration tests for system features
 
 use router_flood::packet::{PacketBuilder, PacketType};
 use router_flood::config::ConfigBuilder;

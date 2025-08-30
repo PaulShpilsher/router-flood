@@ -1,6 +1,6 @@
-//! Optimized worker implementation using Phase 3 performance improvements
+//! Batch worker implementation with performance optimizations
 //!
-//! This module provides a high-performance worker that leverages zero-copy operations,
+//! This module provides a high-performance batch worker that leverages zero-copy operations,
 //! memory pooling, lock-free statistics, and string interning.
 
 use std::net::IpAddr;
@@ -13,13 +13,13 @@ use crate::core::simple_interfaces::{TargetProvider, WorkerConfig};
 use crate::error::Result;
 use crate::packet::PacketType;
 use crate::performance::{
-    OptimizedPacketProcessor, BatchedStatsCollector, LockFreeStatsCollector
+    BatchPacketProcessor, BatchedStatsCollector, LockFreeStatsCollector
 };
 
-/// High-performance worker using Phase 3 optimizations
-pub struct OptimizedWorker {
+/// High-performance batch worker
+pub struct BatchWorker {
     id: usize,
-    processor: OptimizedPacketProcessor,
+    processor: BatchPacketProcessor,
     stats_collector: BatchedStatsCollector,
     target_provider: Arc<dyn TargetProvider>,
     target_ip: IpAddr,
@@ -35,15 +35,15 @@ pub struct OptimizedWorker {
     start_time: Instant,
 }
 
-impl OptimizedWorker {
-    /// Create a new optimized worker
+impl BatchWorker {
+    /// Create a new batch worker
     pub fn new(
         id: usize,
         target_ip: IpAddr,
         target_provider: Arc<dyn TargetProvider>,
         config: &dyn WorkerConfig,
     ) -> Self {
-        let processor = OptimizedPacketProcessor::new();
+        let processor = BatchPacketProcessor::new();
         let stats_collector = processor.create_batched_collector(50); // Batch every 50 packets
         
         // Pre-calculate packet types based on protocol mix
@@ -91,7 +91,7 @@ impl OptimizedWorker {
         self.stats_collector.flush();
     }
     
-    /// Process a single packet using optimized pipeline
+    /// Process a single packet using batch pipeline
     async fn process_single_packet(&mut self) -> Result<()> {
         let target_port = self.target_provider.next_port();
         let packet_type = self.next_packet_type();
@@ -108,7 +108,7 @@ impl OptimizedWorker {
         // Extract values we need before borrowing
         let perfect_simulation = self.perfect_simulation;
         
-        // Use optimized processor to build packet (but don't send)
+        // Use batch processor to build packet (but don't send)
         let processed_packet = self.processor.process_packet(
             packet_type,
             self.target_ip,
@@ -241,7 +241,7 @@ impl OptimizedWorker {
     }
 }
 
-/// Performance metrics for an optimized worker
+/// Performance metrics for a batch worker
 #[derive(Debug, Clone)]
 pub struct WorkerMetrics {
     pub worker_id: usize,
@@ -252,15 +252,15 @@ pub struct WorkerMetrics {
     pub average_processing_time: Duration,
 }
 
-/// Manager for optimized workers
-pub struct OptimizedWorkerManager {
-    workers: Vec<OptimizedWorker>,
+/// Manager for batch workers
+pub struct BatchWorkerManager {
+    workers: Vec<BatchWorker>,
     pub running: Arc<AtomicBool>,
     global_stats: Arc<LockFreeStatsCollector>,
 }
 
-impl OptimizedWorkerManager {
-    /// Create a new optimized worker manager
+impl BatchWorkerManager {
+    /// Create a new batch worker manager
     pub fn new(
         worker_count: usize,
         target_ip: IpAddr,
@@ -271,13 +271,13 @@ impl OptimizedWorkerManager {
         let mut workers = Vec::with_capacity(worker_count);
         
         // Create the first worker to get the global stats collector
-        let first_worker = OptimizedWorker::new(0, target_ip, target_provider.clone(), config);
+        let first_worker = BatchWorker::new(0, target_ip, target_provider.clone(), config);
         let global_stats = first_worker.stats_collector();
         workers.push(first_worker);
         
         // Create remaining workers
         for id in 1..worker_count {
-            workers.push(OptimizedWorker::new(id, target_ip, target_provider.clone(), config));
+            workers.push(BatchWorker::new(id, target_ip, target_provider.clone(), config));
         }
         
         Self {
@@ -336,7 +336,7 @@ impl OptimizedWorkerManager {
     
     /// Print final performance metrics
     fn print_final_metrics(&self, metrics: &[WorkerMetrics]) {
-        println!("\n🚀 Optimized Worker Performance Summary");
+        println!("\n🚀 Batch Worker Performance Summary");
         println!("═══════════════════════════════════════");
         
         let total_packets: u64 = metrics.iter().map(|m| m.packets_processed).sum();

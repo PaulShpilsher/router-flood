@@ -1,6 +1,6 @@
-//! Unified buffer pool implementation consolidating all buffer pool variants
+//! Shared buffer pool implementation consolidating all buffer pool variants
 //!
-//! This module provides a single, optimized buffer pool implementation that
+//! This module provides a single, shared buffer pool implementation that
 //! replaces multiple scattered implementations, following YAGNI and KISS principles.
 
 use std::collections::VecDeque;
@@ -28,8 +28,8 @@ impl PoolStats {
     }
 }
 
-/// Unified buffer pool supporting both shared and per-worker usage patterns
-pub enum UnifiedBufferPool {
+/// Shared buffer pool supporting both shared and per-worker usage patterns
+pub enum SharedBufferPool {
     /// Lock-free implementation for high-contention scenarios
     LockFree(LockFreePool),
     /// Per-worker implementation for zero-contention scenarios
@@ -38,7 +38,7 @@ pub enum UnifiedBufferPool {
     Shared(SharedPool),
 }
 
-impl UnifiedBufferPool {
+impl SharedBufferPool {
     /// Create a lock-free buffer pool for high-contention scenarios
     pub fn lock_free(buffer_size: usize, pool_size: usize) -> Self {
         Self::LockFree(LockFreePool::new(buffer_size, pool_size))
@@ -292,19 +292,19 @@ impl BufferPoolFactory {
         buffer_size: usize,
         worker_count: usize,
         expected_contention: ContentionLevel,
-    ) -> UnifiedBufferPool {
+    ) -> SharedBufferPool {
         match expected_contention {
             ContentionLevel::None => {
                 // Per-worker pools for zero contention
-                UnifiedBufferPool::per_worker(buffer_size, 5, 20)
+                SharedBufferPool::per_worker(buffer_size, 5, 20)
             }
             ContentionLevel::Low => {
                 // Shared pool with mutex for low contention
-                UnifiedBufferPool::shared(buffer_size, worker_count * 2, worker_count * 10)
+                SharedBufferPool::shared(buffer_size, worker_count * 2, worker_count * 10)
             }
             ContentionLevel::High => {
                 // Lock-free pool for high contention
-                UnifiedBufferPool::lock_free(buffer_size, worker_count * 5)
+                SharedBufferPool::lock_free(buffer_size, worker_count * 5)
             }
         }
     }

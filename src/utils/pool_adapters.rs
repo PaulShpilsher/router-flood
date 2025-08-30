@@ -5,7 +5,7 @@
 
 use super::pool_trait::{BufferPool, BufferPool as BufferPoolTrait, ObservablePool, PoolStatistics, BasicPoolStats};
 use crate::performance::buffer_pool::{LockFreeBufferPool, SharedBufferPool};
-use crate::performance::advanced_buffer_pool::{AdvancedBufferPool, AlignedBuffer, PoolStatistics as AdvancedStats};
+use crate::performance::numa_buffer_pool::{NumaBufferPool, AlignedBuffer, PoolStatistics as AdvancedStats};
 use crate::utils::buffer_pool::BufferPool as BasicBufferPool;
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::sync::Arc;
@@ -128,9 +128,9 @@ impl BufferPool for WorkerBufferPoolWrapper {
     }
 }
 
-// ===== AdvancedBufferPool Implementation =====
+// ===== NumaBufferPool Implementation =====
 
-impl BufferPool for AdvancedBufferPool {
+impl BufferPool for NumaBufferPool {
     type Buffer = AlignedBuffer;
     
     #[inline]
@@ -155,7 +155,7 @@ impl BufferPool for AdvancedBufferPool {
     }
 }
 
-impl ObservablePool for AdvancedBufferPool {
+impl ObservablePool for NumaBufferPool {
     type Stats = AdvancedPoolStatsAdapter;
     
     fn statistics(&self) -> Self::Stats {
@@ -165,7 +165,7 @@ impl ObservablePool for AdvancedBufferPool {
 
 // ===== Statistics Adapter =====
 
-/// Adapter to convert AdvancedBufferPool statistics to our trait
+/// Adapter to convert NumaBufferPool statistics to our trait
 pub struct AdvancedPoolStatsAdapter(pub AdvancedStats);
 
 impl PoolStatistics for AdvancedPoolStatsAdapter {

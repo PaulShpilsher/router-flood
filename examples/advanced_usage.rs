@@ -7,7 +7,7 @@
 
 use router_flood::{
     config::ConfigBuilder,
-    performance::{SimdPacketBuilder, AdvancedBufferPool, CpuAffinityManager},
+    performance::{SimdPacketBuilder, NumaBufferPool, CpuAffinityManager},
     monitoring::PrometheusExporter,
     security::{CapabilityManager, TamperProofAuditLog},
     error::Result,
@@ -102,7 +102,7 @@ async fn buffer_pool_example() -> Result<()> {
 
     // Create buffer pool with custom size classes
     let size_classes = vec![64, 128, 256, 512, 1024, 1500];
-    let pool = AdvancedBufferPool::with_size_classes(size_classes, 100);
+    let pool = NumaBufferPool::with_size_classes(size_classes, 100);
 
     // Warm up the pool
     println!("Warming up buffer pool...");
@@ -387,7 +387,7 @@ async fn performance_benchmark_example() -> Result<()> {
     // Benchmark buffer pool performance
     println!("\nBenchmarking buffer pool...");
     
-    let pool = AdvancedBufferPool::new();
+    let pool = NumaBufferPool::new();
     pool.warm_up(100)?;
     
     let start = Instant::now();

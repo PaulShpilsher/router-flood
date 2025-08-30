@@ -114,8 +114,8 @@ impl PacketStrategy for UdpStrategy {
             }.into());
         }
 
-        // Zero out the buffer area we'll use
-        buffer[..total_len].fill(0);
+        // Zero out only the header areas (IP + UDP headers)
+        buffer[..IPV4_HEADER_SIZE + UDP_HEADER_SIZE].fill(0);
 
         // Build IP header
         let mut ip_packet = MutableIpv4Packet::new(&mut buffer[..total_len])
@@ -137,8 +137,14 @@ impl PacketStrategy for UdpStrategy {
         udp_packet.set_destination(target.port);
         udp_packet.set_length((UDP_HEADER_SIZE + payload_size) as u16);
 
-        let payload = self.rng.payload(payload_size);
-        udp_packet.set_payload(&payload);
+        // Write payload directly to buffer for true zero-copy
+        let payload_slice = udp_packet.payload_mut();
+        if payload_slice.len() >= payload_size {
+            // Fill payload directly in the buffer
+            for i in 0..payload_size {
+                payload_slice[i] = self.rng.byte();
+            }
+        }
         udp_packet.set_checksum(pnet::packet::udp::ipv4_checksum(
             &udp_packet.to_immutable(),
             &self.source_ip,

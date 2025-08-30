@@ -1,7 +1,7 @@
-//! Advanced buffer pool with memory alignment and NUMA awareness
+//! NUMA-aware buffer pool with memory alignment
 //!
-//! This module provides an enhanced buffer pool implementation with
-//! memory alignment, NUMA awareness, and advanced allocation strategies.
+//! This module provides a NUMA-aware buffer pool implementation with
+//! memory alignment and NUMA-optimized allocation strategies.
 
 use crate::error::{SystemError, Result};
 use std::alloc::{alloc_zeroed, dealloc, Layout};
@@ -71,8 +71,8 @@ impl Drop for AlignedBuffer {
 unsafe impl Send for AlignedBuffer {}
 unsafe impl Sync for AlignedBuffer {}
 
-/// Advanced buffer pool with multiple size classes and NUMA awareness
-pub struct AdvancedBufferPool {
+/// NUMA-aware buffer pool with multiple size classes
+pub struct NumaBufferPool {
     pools: Vec<SizeClassPool>,
     stats: PoolStats,
     numa_node: Option<usize>,
@@ -97,8 +97,8 @@ pub struct PoolStats {
     pub memory_usage: AtomicUsize,
 }
 
-impl AdvancedBufferPool {
-    /// Create a new advanced buffer pool
+impl NumaBufferPool {
+    /// Create a new NUMA-aware buffer pool
     pub fn new() -> Self {
         let size_classes = vec![64, 128, 256, 512, 1024, 1500, 2048, 4096];
         let pools = size_classes
@@ -301,7 +301,7 @@ impl PoolStats {
     }
 }
 
-impl Default for AdvancedBufferPool {
+impl Default for NumaBufferPool {
     fn default() -> Self {
         Self::new()
     }
@@ -330,7 +330,7 @@ pub struct SizeClassStats {
     pub max_buffers: usize,
 }
 
-/// Thread-safe shared buffer pool
-pub type SharedAdvancedBufferPool = Arc<AdvancedBufferPool>;
+/// Thread-safe shared NUMA buffer pool
+pub type SharedNumaBufferPool = Arc<NumaBufferPool>;
 
 // Tests moved to tests/ directory

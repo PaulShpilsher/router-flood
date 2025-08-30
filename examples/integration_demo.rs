@@ -1,4 +1,4 @@
-//! Demonstration of the new architecture improvements
+//! Demonstration of the integrated system features
 
 #![allow(clippy::uninlined_format_args)]
 //! 
@@ -7,7 +7,7 @@
 //! - Configuration builder with validation
 //! - Trait-based abstractions
 //! 
-//! Run with: cargo run --example new_architecture_demo
+//! Run with: cargo run --example integration_demo
 
 use router_flood::packet::{PacketBuilder, PacketType};
 use router_flood::config::ConfigBuilder;
@@ -15,10 +15,10 @@ use router_flood::transport::{MockTransport, TransportLayer};
 use std::net::IpAddr;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("🚀 Router Flood - New Architecture Demonstration");
+    println!("🚀 Router Flood - Integration Demonstration");
     println!("================================================");
     
-    // 1. Demonstrate the new configuration builder with validation
+    // 1. Demonstrate the configuration builder with validation
     println!("\n1. Configuration Builder with Validation:");
     
     let config_result = ConfigBuilder::new()
@@ -57,7 +57,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Err(e) => println!("✅ Correctly rejected invalid config: {}", e),
     }
     
-    // 3. Demonstrate the new packet builder with strategy pattern
+    // 3. Demonstrate the packet builder with strategy pattern
     println!("\n3. Strategy Pattern Packet Building:");
     
     let protocol_mix = router_flood::config::ProtocolMix {
@@ -113,8 +113,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("   Name: {}", mock_transport.name());
     println!("   Packets sent: {}", mock_transport.packets_sent());
     
-    println!("\n🎉 Architecture demonstration completed!");
-    println!("\nKey Improvements Demonstrated:");
+    println!("\n🎉 Integration demonstration completed!");
+    println!("\nKey Features Demonstrated:");
     println!("• Strategy pattern for extensible packet building");
     println!("• Builder pattern with comprehensive validation");
     println!("• Trait-based abstractions for testing");

@@ -1,7 +1,7 @@
-//! Compile-time optimized constants and functions
+//! Compile-time lookup tables and constants
 //!
-//! This module provides const functions and pre-computed values
-//! for better performance in hot paths.
+//! This module provides const functions and pre-computed lookup tables
+//! for fast operations in performance-critical paths.
 
 use crate::packet::PacketType;
 

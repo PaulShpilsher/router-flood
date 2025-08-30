@@ -1,6 +1,6 @@
-//! Optimized packet processing pipeline (fixed version)
+//! Batch packet processing pipeline
 //!
-//! This module provides a high-performance packet processing pipeline
+//! This module provides a high-performance batch packet processing pipeline
 //! that combines zero-copy operations, memory pooling, and lock-free statistics.
 
 use std::net::IpAddr;
@@ -14,16 +14,16 @@ use crate::performance::{
     LockFreeStatsCollector, BatchedStatsCollector, InternedString, protocols
 };
 
-/// High-performance packet processor
-pub struct OptimizedPacketProcessor {
+/// High-performance batch packet processor
+pub struct BatchPacketProcessor {
     memory_manager: Arc<MemoryPoolManager>,
     stats_collector: Arc<LockFreeStatsCollector>,
     packet_builder: ZeroCopyPacketBuilder,
     protocol_names: ProtocolNameCache,
 }
 
-impl OptimizedPacketProcessor {
-    /// Create a new optimized packet processor
+impl BatchPacketProcessor {
+    /// Create a new batch packet processor
     pub fn new() -> Self {
         Self {
             memory_manager: Arc::new(MemoryPoolManager::new()),
@@ -269,7 +269,7 @@ impl OptimizedPacketProcessor {
     }
 }
 
-impl Default for OptimizedPacketProcessor {
+impl Default for BatchPacketProcessor {
     fn default() -> Self {
         Self::new()
     }
@@ -335,7 +335,7 @@ impl<'a> ProcessedPacket<'a> {
     }
 }
 
-/// Performance metrics for the optimized pipeline
+/// Performance metrics for the batch pipeline
 #[derive(Debug, Clone)]
 pub struct PipelineMetrics {
     pub packets_processed: u64,
