@@ -22,6 +22,7 @@ pub mod monitoring;
 pub mod packet;
 pub mod performance;
 pub mod phase4;
+// pub mod phase5; // Temporarily commented for compilation
 pub mod security;
 pub mod stats;
 pub mod transport;
