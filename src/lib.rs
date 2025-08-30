@@ -17,7 +17,6 @@ pub mod config;
 pub mod constants;
 pub mod core;
 pub mod error;
-pub mod extensibility_tests;
 pub mod monitor;
 pub mod monitoring;
 pub mod packet;
@@ -43,4 +42,4 @@ pub use utils::terminal::{TerminalController, TerminalGuard};
 pub use utils::raii::ResourceGuard;
 
 #[cfg(test)]
-mod extensibility_tests;
+mod extensibility_tests_simple;
