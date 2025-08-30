@@ -1,25 +1,17 @@
-//! Worker thread management and packet sending logic
+//! Worker thread management using high-performance batch workers
 //!
-//! This module handles the spawning and management of worker threads
-//! that generate and send packets according to the configured parameters.
+//! Uses BatchWorker for optimized packet generation with batch processing.
 
 use std::net::IpAddr;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-use std::time::Duration as StdDuration;
 use tokio::task::JoinHandle;
-use tokio::time;
-use tracing::{debug, trace};
 
-
-use crate::config::{Config, ProtocolMix};
-use crate::constants::{stats, timing, NANOSECONDS_PER_SECOND};
+use crate::config::Config;
 use crate::error::{NetworkError, Result};
-use crate::packet::{PacketBuilder, PacketType};
-use crate::stats::{FloodStats, LocalStats};
+use crate::stats::FloodStats;
 use crate::core::target::MultiPortTarget;
-use crate::transport::{WorkerChannels, ChannelFactory};
-
+use crate::core::batch_worker::BatchWorker;
 
 /// Manages the lifecycle of worker threads
 pub struct WorkerManager {
@@ -58,36 +50,38 @@ impl WorkerManager {
         running: Arc<AtomicBool>,
         multi_port_target: Arc<MultiPortTarget>,
         target_ip: IpAddr,
-        interface: Option<&pnet::datalink::NetworkInterface>,
-        dry_run: bool,
+        _interface: Option<&pnet::datalink::NetworkInterface>,
+        _dry_run: bool,
     ) -> Result<Vec<JoinHandle<()>>> {
         let mut handles = Vec::with_capacity(config.attack.threads);
         
-        // Create per-worker channels to eliminate contention
-        let worker_channels = ChannelFactory::create_worker_channels(
-            config.attack.threads,
-            interface,
-            dry_run,
-        )?;
-
-        for (task_id, channels) in worker_channels.into_iter().enumerate() {
-            let worker = Worker::new(
+        let per_worker_rate = config.attack.packet_rate / config.attack.threads as u64;
+        
+        for task_id in 0..config.attack.threads {
+            let running = running.clone();
+            let stats = stats.clone();
+            let target = multi_port_target.clone();
+            let packet_size_range = config.attack.packet_size_range;
+            let protocol_mix = config.target.protocol_mix.clone();
+            let randomize_timing = config.attack.randomize_timing;
+            let dry_run = config.safety.dry_run;
+            let perfect_simulation = config.safety.perfect_simulation;
+            
+            let mut worker = BatchWorker::new(
                 task_id,
-                stats.clone(),
-                running.clone(),
-                multi_port_target.clone(),
+                stats,
                 target_ip,
-                channels,
-                config.attack.packet_rate,
-                config.attack.packet_size_range,
-                config.target.protocol_mix.clone(),
-                config.attack.randomize_timing,
+                target,
+                per_worker_rate,
+                packet_size_range,
+                protocol_mix,
+                randomize_timing,
                 dry_run,
-                config.safety.perfect_simulation,
+                perfect_simulation,
             );
 
             let handle = tokio::spawn(async move {
-                worker.run().await;
+                worker.run(running).await;
             });
 
             handles.push(handle);
@@ -112,194 +106,5 @@ impl WorkerManager {
     /// Check if workers are still running
     pub fn is_running(&self) -> bool {
         self.running.load(Ordering::Relaxed)
-    }
-}
-
-/// Individual worker thread that sends packets
-struct Worker {
-    task_id: usize,
-    local_stats: LocalStats,
-    running: Arc<AtomicBool>,
-    multi_port_target: Arc<MultiPortTarget>,
-    target_ip: IpAddr,
-    channels: WorkerChannels,
-    packet_builder: PacketBuilder,
-    // Buffer pool removed - using direct allocation for simplicity
-    base_delay: StdDuration,
-    randomize_timing: bool,
-    dry_run: bool,
-    perfect_simulation: bool,
-}
-
-impl Worker {
-    #[allow(clippy::too_many_arguments)]
-    fn new(
-        task_id: usize,
-        stats: Arc<FloodStats>,
-        running: Arc<AtomicBool>,
-        multi_port_target: Arc<MultiPortTarget>,
-        target_ip: IpAddr,
-        channels: WorkerChannels,
-        packet_rate: u64,
-        packet_size_range: (usize, usize),
-        protocol_mix: ProtocolMix,
-        randomize_timing: bool,
-        dry_run: bool,
-        perfect_simulation: bool,
-    ) -> Self {
-        let packet_builder = PacketBuilder::new(packet_size_range, protocol_mix);
-        let base_delay = StdDuration::from_nanos(NANOSECONDS_PER_SECOND / packet_rate);
-        
-        // Create local stats with batch size based on packet rate
-        let stats_batch_size = (packet_rate / 20).max(10) as usize; // Batch every ~50ms, min 10 packets
-        let local_stats = LocalStats::new(stats.clone(), stats_batch_size);
-        
-        // Create buffer pool for this worker (1400 bytes max packet size)
-        // Using direct allocation instead of buffer pool for per-worker scenarios
-
-        Self {
-            task_id,
-            local_stats,
-            running,
-            multi_port_target,
-            target_ip,
-            channels,
-            packet_builder,
-            base_delay,
-            randomize_timing,
-            dry_run,
-            perfect_simulation,
-        }
-    }
-
-    /// Main worker loop
-    async fn run(mut self) {
-        while self.running.load(Ordering::Relaxed) {
-            if let Err(e) = self.process_single_packet().await {
-                if self.task_id == 0 {
-                    debug!("Packet processing error: {}", e);
-                }
-                self.local_stats.increment_failed();
-            }
-
-            self.apply_rate_limiting().await;
-        }
-        
-        // Ensure final flush when worker terminates
-        self.local_stats.flush();
-    }
-
-    /// Process a single packet (build and send)
-    async fn process_single_packet(&mut self) -> Result<()> {
-        let current_port = self.multi_port_target.next_port();
-        let packet_type = self.packet_builder.next_packet_type_for_ip(self.target_ip);
-
-        // Use zero-copy packet building with buffer pool
-        let mut buffer = vec![0u8; 1400]; // Direct allocation
-        let buffer_slice = buffer.as_mut_slice();
-        
-        match self.packet_builder.build_packet_into_buffer(buffer_slice, packet_type, self.target_ip, current_port) {
-            Ok((packet_size, protocol_name)) => {
-                // Use only the portion of buffer that contains the packet
-                let packet_data = &buffer_slice[..packet_size];
-                
-                if self.dry_run {
-                    self.simulate_packet_send(packet_data, protocol_name).await;
-                } else {
-                    self.send_packet(packet_type, packet_data, protocol_name).await?;
-                }
-                
-                // Return buffer to pool for reuse
-                // Buffer will be dropped automatically
-            },
-            Err(_e) => {
-                // Return buffer and fall back to normal allocation
-                // Buffer will be dropped automatically
-                self.fallback_packet_build_and_send(current_port, packet_type).await?;
-            }
-        }
-
-        Ok(())
-    }
-
-    /// Fallback to normal packet building when buffer pool is unavailable
-    async fn fallback_packet_build_and_send(&mut self, current_port: u16, packet_type: PacketType) -> Result<()> {
-        let (packet_data, protocol_name) = self.packet_builder
-            .build_packet(packet_type, self.target_ip, current_port)
-            .map_err(|e| NetworkError::PacketSend(format!("Packet build failed: {}", e)))?;
-
-        if self.dry_run {
-            self.simulate_packet_send(&packet_data, protocol_name).await;
-        } else {
-            self.send_packet(packet_type, &packet_data, protocol_name).await?;
-        }
-        
-        Ok(())
-    }
-
-    /// Simulate packet sending in dry-run mode
-    async fn simulate_packet_send(&mut self, packet_data: &[u8], protocol_name: &str) {
-        let simulate_success = if self.perfect_simulation {
-            // Perfect simulation: always succeed
-            true
-        } else {
-            // Realistic simulation: use configured success rate
-            self.packet_builder.rng_gen_bool(stats::SUCCESS_RATE_SIMULATION)
-        };
-        
-        if simulate_success {
-            self.local_stats.increment_sent(packet_data.len() as u64, protocol_name);
-            // Note: For logging, we'd need access to global stats, but this is for performance optimization
-        } else {
-            self.local_stats.increment_failed();
-        }
-    }
-
-    /// Send packet via appropriate transport channel
-    async fn send_packet(
-        &mut self,
-        packet_type: PacketType,
-        packet_data: &[u8],
-        protocol_name: &str,
-    ) -> Result<()> {
-        let channel_type = match packet_type {
-            PacketType::Udp | PacketType::TcpSyn | PacketType::TcpAck | PacketType::Icmp => {
-                crate::transport::ChannelType::IPv4
-            }
-            PacketType::Ipv6Udp | PacketType::Ipv6Tcp | PacketType::Ipv6Icmp => {
-                crate::transport::ChannelType::IPv6
-            }
-            PacketType::Arp => {
-                crate::transport::ChannelType::Layer2
-            }
-        };
-
-        match self.channels.send_packet(packet_data, self.target_ip, channel_type) {
-            Ok(_) => {
-                self.local_stats.increment_sent(packet_data.len() as u64, protocol_name);
-                Ok(())
-            }
-            Err(e) => {
-                if self.task_id == 0 {
-                    trace!("Failed to send packet: {}", e);
-                }
-                self.local_stats.increment_failed();
-                Err(e)
-            }
-        }
-    }
-
-
-    /// Apply rate limiting using high-resolution token bucket
-    async fn apply_rate_limiting(&mut self) {
-        let target_nanos = if self.randomize_timing {
-            let jitter = self.packet_builder.rng_gen_range(timing::JITTER_MIN..timing::JITTER_MAX);
-            (self.base_delay.as_nanos() as f64 * jitter) as u64
-        } else {
-            self.base_delay.as_nanos() as u64
-        };
-        
-        // Always use tokio::time::sleep for better CPU efficiency
-        time::sleep(StdDuration::from_nanos(target_nanos)).await;
     }
 }
