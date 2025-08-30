@@ -5,7 +5,7 @@
 
 use super::pool_trait::{BufferPool, BufferPool as BufferPoolTrait, ObservablePool, PoolStatistics, BasicPoolStats};
 use crate::performance::buffer_pool::{LockFreeBufferPool, SharedBufferPool};
-use crate::performance::numa_buffer_pool::{NumaBufferPool, AlignedBuffer, PoolStatistics as AdvancedStats};
+use crate::performance::numa_buffer_pool::{NumaBufferPool, AlignedBuffer, PoolStatistics as NumaStats};
 use crate::utils::buffer_pool::BufferPool as BasicBufferPool;
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::sync::Arc;
@@ -156,19 +156,19 @@ impl BufferPool for NumaBufferPool {
 }
 
 impl ObservablePool for NumaBufferPool {
-    type Stats = AdvancedPoolStatsAdapter;
+    type Stats = NumaPoolStatsAdapter;
     
     fn statistics(&self) -> Self::Stats {
-        AdvancedPoolStatsAdapter(self.get_stats())
+        NumaPoolStatsAdapter(self.get_stats())
     }
 }
 
 // ===== Statistics Adapter =====
 
 /// Adapter to convert NumaBufferPool statistics to our trait
-pub struct AdvancedPoolStatsAdapter(pub AdvancedStats);
+pub struct NumaPoolStatsAdapter(pub NumaStats);
 
-impl PoolStatistics for AdvancedPoolStatsAdapter {
+impl PoolStatistics for NumaPoolStatsAdapter {
     fn total_allocations(&self) -> u64 {
         self.0.total_allocated as u64
     }
@@ -178,7 +178,7 @@ impl PoolStatistics for AdvancedPoolStatsAdapter {
     }
     
     fn total_returns(&self) -> u64 {
-        // AdvancedStats doesn't track returns separately
+        // NumaStats doesn't track returns separately
         self.0.total_hits as u64
     }
     
@@ -187,7 +187,7 @@ impl PoolStatistics for AdvancedPoolStatsAdapter {
     }
 }
 
-impl std::fmt::Debug for AdvancedPoolStatsAdapter {
+impl std::fmt::Debug for NumaPoolStatsAdapter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("PoolStats")
             .field("allocations", &self.total_allocations())
@@ -199,7 +199,7 @@ impl std::fmt::Debug for AdvancedPoolStatsAdapter {
     }
 }
 
-impl Clone for AdvancedPoolStatsAdapter {
+impl Clone for NumaPoolStatsAdapter {
     fn clone(&self) -> Self {
         Self(self.0.clone())
     }

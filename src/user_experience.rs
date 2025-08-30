@@ -6,7 +6,7 @@
 //! 3. Interactive user-friendly error messages
 //!
 //! This system reduces complexity by 40% while maintaining full functionality
-//! through intelligent defaults and better user guidance.
+//! through preset defaults and improved user guidance.
 
 use clap::ArgMatches;
 use tracing::info;
@@ -15,9 +15,9 @@ use crate::cli::guided::{GuidedCli, GuidanceLevel};
 use crate::config::preset::PresetConfig;
 use crate::config::Config;
 use crate::error::{Result, RouterFloodError};
-use crate::error::user_friendly_enhanced::{display_enhanced_user_error, show_quick_help};
+use crate::error::actionable::{display_actionable_user_error, show_quick_help};
 
-/// Enhanced user experience application runner
+/// Interactive user experience application runner
 pub struct UserExperienceRunner {
     config: PresetConfig,
     mode: GuidanceLevel,
@@ -48,16 +48,16 @@ impl UserExperienceRunner {
         // Process arguments with guided CLI
         let (legacy_config, mode) = GuidedCli::process_arguments(matches)
             .map_err(|e| {
-                display_enhanced_user_error(&e);
+                display_actionable_user_error(&e);
                 e
             })?;
 
         // Convert legacy config to simple config for internal use
         let config = Self::legacy_to_simple_config(&legacy_config);
 
-        // Validate configuration with enhanced error messages
+        // Validate configuration with actionable error messages
         config.validate().map_err(|e| {
-            display_enhanced_user_error(&e);
+            display_actionable_user_error(&e);
             e
         })?;
 
@@ -131,7 +131,7 @@ impl UserExperienceRunner {
         println!("✅ Configuration file created: {}", output);
         println!();
         println!("📝 The file contains:");
-        println!("   • Intelligent defaults for safe testing");
+        println!("   • Preset defaults for safe testing");
         println!("   • Comments explaining each setting");
         println!("   • Examples for common scenarios");
         println!();
@@ -150,13 +150,13 @@ impl UserExperienceRunner {
         
         let config = PresetConfig::load_from_file(file)
             .map_err(|e| {
-                display_enhanced_user_error(&e);
+                display_actionable_user_error(&e);
                 e
             })?;
         
         config.validate()
             .map_err(|e| {
-                display_enhanced_user_error(&e);
+                display_actionable_user_error(&e);
                 e
             })?;
         
@@ -352,7 +352,7 @@ all essential functionality.
   • Intensity levels replace complex thread/rate settings
   • Preset protocol configuration (UDP/TCP/ICMP)
   • Streamlined export options
-  • Better default values
+  • Improved default values
 
 🔧 MIGRATION STEPS:
   1. Create new config: router-flood config create --output new-config.yaml
@@ -373,9 +373,9 @@ all essential functionality.
     }
 }
 
-/// Enhanced user experience error handler
+/// Interactive user experience error handler
 pub fn handle_user_experience_error(error: RouterFloodError) {
-    display_enhanced_user_error(&error);
+    display_actionable_user_error(&error);
     
     // Provide contextual help based on error type
     match &error {
@@ -403,10 +403,10 @@ pub fn handle_user_experience_error(error: RouterFloodError) {
     println!();
 }
 
-/// Initialize enhanced user experience with logging
+/// Initialize interactive user experience with logging
 pub fn init_user_experience() {
-    info!("🚀 Router Flood - Enhanced User Experience");
+    info!("🚀 Router Flood - Interactive User Experience");
     info!("   • Guided CLI with progressive disclosure");
     info!("   • Streamlined configuration (40% complexity reduction)");
-    info!("   • Enhanced error messages with actionable guidance");
+    info!("   • Actionable error messages with specific guidance");
 }

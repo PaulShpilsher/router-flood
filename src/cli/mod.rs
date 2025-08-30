@@ -1,14 +1,14 @@
 //! Command-line interface handling
 //!
 //! This module handles all CLI argument parsing, validation, help text
-//! generation, and enhanced CLI features.
+//! generation, and interactive CLI features.
 //!
 //! ## Guided CLI with Progressive Disclosure
 //!
 //! The guided CLI provides progressive disclosure:
 //! - Quick mode: Minimal options for beginners
 //! - Standard mode: Common options for typical use
-//! - Advanced mode: Full control for power users
+//! - Detailed mode: Full control for power users
 
 pub mod basic;
 pub mod enhanced;

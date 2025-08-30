@@ -1,12 +1,12 @@
-//! Interactive user-friendly error messages for User Experience Enhancement
+//! Actionable error messages with specific guidance
 //!
 //! This module provides actionable, beginner-friendly error messages with
 //! specific guidance on how to fix common issues.
 
 use crate::error::{RouterFloodError, ConfigError, NetworkError, ValidationError};
 
-/// Enhanced user-friendly error display with actionable guidance
-pub struct EnhancedUserError {
+/// User-friendly error display with actionable guidance
+pub struct UserError {
     pub title: String,
     pub description: String,
     pub solution: String,
@@ -27,8 +27,11 @@ pub enum ErrorSeverity {
     Critical,
 }
 
-impl EnhancedUserError {
-    /// Create a new enhanced user error
+// Compatibility alias for backward compatibility
+pub type EnhancedUserError = UserError;
+
+impl UserError {
+    /// Create a new actionable user error
     pub fn new(title: &str, description: &str, solution: &str) -> Self {
         Self {
             title: title.to_string(),
@@ -89,14 +92,14 @@ impl EnhancedUserError {
     }
 }
 
-/// Convert RouterFloodError to enhanced user-friendly error
-pub fn to_enhanced_user_error(error: &RouterFloodError) -> EnhancedUserError {
+/// Convert RouterFloodError to actionable user-friendly error
+pub fn to_user_error(error: &RouterFloodError) -> UserError {
     match error {
         RouterFloodError::Config(config_error) => config_error_to_user_friendly(config_error),
         RouterFloodError::Network(network_error) => network_error_to_user_friendly(network_error),
         RouterFloodError::Validation(validation_error) => validation_error_to_user_friendly(validation_error),
         RouterFloodError::Packet(packet_error) => {
-            EnhancedUserError::new(
+            UserError::new(
                 "Packet Generation Error",
                 &format!("Failed to create network packets: {}", packet_error),
                 "Check your network configuration and try again with different settings."
@@ -108,7 +111,7 @@ pub fn to_enhanced_user_error(error: &RouterFloodError) -> EnhancedUserError {
             .with_severity(ErrorSeverity::Error)
         }
         RouterFloodError::Stats(stats_error) => {
-            EnhancedUserError::new(
+            UserError::new(
                 "Statistics Export Error",
                 &format!("Failed to export test results: {}", stats_error),
                 "Check that you have write permissions in the current directory."
@@ -120,7 +123,7 @@ pub fn to_enhanced_user_error(error: &RouterFloodError) -> EnhancedUserError {
             .with_severity(ErrorSeverity::Warning)
         }
         RouterFloodError::System(system_error) => {
-            EnhancedUserError::new(
+            UserError::new(
                 "System Permission Error",
                 &format!("System access denied: {}", system_error),
                 "Try running with appropriate permissions or use dry-run mode."
@@ -132,7 +135,7 @@ pub fn to_enhanced_user_error(error: &RouterFloodError) -> EnhancedUserError {
             .with_severity(ErrorSeverity::Critical)
         }
         RouterFloodError::Audit(audit_error) => {
-            EnhancedUserError::new(
+            UserError::new(
                 "Audit Logging Error",
                 &format!("Failed to create audit log: {}", audit_error),
                 "Check write permissions or disable audit logging in config."
@@ -144,7 +147,7 @@ pub fn to_enhanced_user_error(error: &RouterFloodError) -> EnhancedUserError {
             .with_severity(ErrorSeverity::Warning)
         }
         RouterFloodError::Io(io_error) => {
-            EnhancedUserError::new(
+            UserError::new(
                 "File System Error",
                 &format!("File operation failed: {}", io_error),
                 "Check file permissions and available disk space."
@@ -159,10 +162,10 @@ pub fn to_enhanced_user_error(error: &RouterFloodError) -> EnhancedUserError {
 }
 
 /// Convert configuration errors to user-friendly messages
-fn config_error_to_user_friendly(error: &ConfigError) -> EnhancedUserError {
+fn config_error_to_user_friendly(error: &ConfigError) -> UserError {
     match error {
         ConfigError::FileNotFound(path) => {
-            EnhancedUserError::new(
+            UserError::new(
                 "Configuration File Not Found",
                 &format!("Cannot find configuration file: {}", path),
                 "Create a configuration file or use command-line options instead."
@@ -175,7 +178,7 @@ fn config_error_to_user_friendly(error: &ConfigError) -> EnhancedUserError {
             .with_severity(ErrorSeverity::Warning)
         }
         ConfigError::ParseError(msg) => {
-            EnhancedUserError::new(
+            UserError::new(
                 "Configuration Format Error",
                 &format!("Invalid configuration format: {}", msg),
                 "Check your YAML syntax or create a new configuration file."
@@ -191,7 +194,7 @@ fn config_error_to_user_friendly(error: &ConfigError) -> EnhancedUserError {
             create_invalid_value_error(field, value, reason)
         }
         ConfigError::MissingRequired(field) => {
-            EnhancedUserError::new(
+            UserError::new(
                 "Missing Required Setting",
                 &format!("Required setting '{}' is missing from configuration.", field),
                 "Add the missing setting to your configuration or command line."
@@ -206,10 +209,10 @@ fn config_error_to_user_friendly(error: &ConfigError) -> EnhancedUserError {
 }
 
 /// Create specific error messages for invalid values
-fn create_invalid_value_error(field: &str, value: &str, reason: &str) -> EnhancedUserError {
+fn create_invalid_value_error(field: &str, value: &str, reason: &str) -> UserError {
     match field {
         "target" | "target.ip" => {
-            EnhancedUserError::new(
+            UserError::new(
                 "Invalid Target IP Address",
                 &format!("The IP address '{}' is not valid: {}", value, reason),
                 "Use a valid private IP address from your local network."
@@ -222,7 +225,7 @@ fn create_invalid_value_error(field: &str, value: &str, reason: &str) -> Enhance
             .with_severity(ErrorSeverity::Error)
         }
         "ports" | "target.ports" => {
-            EnhancedUserError::new(
+            UserError::new(
                 "Invalid Port Configuration",
                 &format!("Port setting '{}' is invalid: {}", value, reason),
                 "Use valid port numbers between 1-65535, separated by commas."
@@ -235,7 +238,7 @@ fn create_invalid_value_error(field: &str, value: &str, reason: &str) -> Enhance
             .with_severity(ErrorSeverity::Error)
         }
         "intensity" => {
-            EnhancedUserError::new(
+            UserError::new(
                 "Invalid Test Intensity",
                 &format!("Intensity level '{}' is not recognized: {}", value, reason),
                 "Use 'low', 'medium', or 'high' for test intensity."
@@ -248,7 +251,7 @@ fn create_invalid_value_error(field: &str, value: &str, reason: &str) -> Enhance
             .with_severity(ErrorSeverity::Error)
         }
         "duration" | "test.duration" => {
-            EnhancedUserError::new(
+            UserError::new(
                 "Invalid Test Duration",
                 &format!("Duration '{}' is invalid: {}", value, reason),
                 "Use a duration between 1-3600 seconds (1 hour maximum)."
@@ -261,7 +264,7 @@ fn create_invalid_value_error(field: &str, value: &str, reason: &str) -> Enhance
             .with_severity(ErrorSeverity::Error)
         }
         "export" | "export.format" => {
-            EnhancedUserError::new(
+            UserError::new(
                 "Invalid Export Format",
                 &format!("Export format '{}' is not supported: {}", value, reason),
                 "Use 'json' for structured data or 'csv' for spreadsheets."
@@ -273,7 +276,7 @@ fn create_invalid_value_error(field: &str, value: &str, reason: &str) -> Enhance
             .with_severity(ErrorSeverity::Error)
         }
         _ => {
-            EnhancedUserError::new(
+            UserError::new(
                 "Configuration Error",
                 &format!("Setting '{}' has invalid value '{}': {}", field, value, reason),
                 "Check the configuration documentation and fix the invalid setting."
@@ -288,10 +291,10 @@ fn create_invalid_value_error(field: &str, value: &str, reason: &str) -> Enhance
 }
 
 /// Convert network errors to user-friendly messages
-fn network_error_to_user_friendly(error: &NetworkError) -> EnhancedUserError {
+fn network_error_to_user_friendly(error: &NetworkError) -> UserError {
     match error {
         NetworkError::InterfaceNotFound(name) => {
-            EnhancedUserError::new(
+            UserError::new(
                 "Network Interface Not Found",
                 &format!("Cannot find network interface '{}' on this system.", name),
                 "Check available interfaces or let the system auto-detect."
@@ -304,7 +307,7 @@ fn network_error_to_user_friendly(error: &NetworkError) -> EnhancedUserError {
             .with_severity(ErrorSeverity::Error)
         }
         NetworkError::ChannelCreation(msg) => {
-            EnhancedUserError::new(
+            UserError::new(
                 "Network Access Error",
                 &format!("Cannot access network: {}", msg),
                 "Try running with sudo or use dry-run mode for testing."
@@ -316,7 +319,7 @@ fn network_error_to_user_friendly(error: &NetworkError) -> EnhancedUserError {
             .with_severity(ErrorSeverity::Critical)
         }
         NetworkError::PacketSend(msg) => {
-            EnhancedUserError::new(
+            UserError::new(
                 "Packet Transmission Error",
                 &format!("Failed to send network packets: {}", msg),
                 "Check network connectivity and permissions."
@@ -329,7 +332,7 @@ fn network_error_to_user_friendly(error: &NetworkError) -> EnhancedUserError {
             .with_severity(ErrorSeverity::Error)
         }
         NetworkError::InvalidAddress(addr) => {
-            EnhancedUserError::new(
+            UserError::new(
                 "Invalid Network Address",
                 &format!("Network address '{}' is not valid.", addr),
                 "Use a valid IP address from your local network."
@@ -345,10 +348,10 @@ fn network_error_to_user_friendly(error: &NetworkError) -> EnhancedUserError {
 }
 
 /// Convert validation errors to user-friendly messages
-fn validation_error_to_user_friendly(error: &ValidationError) -> EnhancedUserError {
+fn validation_error_to_user_friendly(error: &ValidationError) -> UserError {
     match error {
         ValidationError::InvalidIpRange { ip, reason } => {
-            EnhancedUserError::new(
+            UserError::new(
                 "IP Address Not Allowed",
                 &format!("IP address '{}' cannot be used: {}", ip, reason),
                 "Use only private IP addresses for safety (192.168.x.x, 10.x.x.x, 172.16-31.x.x)."
@@ -361,7 +364,7 @@ fn validation_error_to_user_friendly(error: &ValidationError) -> EnhancedUserErr
             .with_severity(ErrorSeverity::Critical)
         }
         ValidationError::ExceedsLimit { field, value, limit } => {
-            EnhancedUserError::new(
+            UserError::new(
                 "Safety Limit Exceeded",
                 &format!("Value {} for '{}' exceeds safety limit of {}.", value, field, limit),
                 "Reduce the value to stay within safety limits."
@@ -373,7 +376,7 @@ fn validation_error_to_user_friendly(error: &ValidationError) -> EnhancedUserErr
             .with_severity(ErrorSeverity::Warning)
         }
         ValidationError::SystemRequirement(msg) => {
-            EnhancedUserError::new(
+            UserError::new(
                 "System Requirement Not Met",
                 &format!("System requirement missing: {}", msg),
                 "Install required system components or use dry-run mode."
@@ -386,7 +389,7 @@ fn validation_error_to_user_friendly(error: &ValidationError) -> EnhancedUserErr
             .with_severity(ErrorSeverity::Critical)
         }
         ValidationError::PrivilegeRequired(msg) => {
-            EnhancedUserError::new(
+            UserError::new(
                 "Insufficient Privileges",
                 &format!("Additional privileges required: {}", msg),
                 "Run with sudo for network access or use dry-run mode for testing."
@@ -398,7 +401,7 @@ fn validation_error_to_user_friendly(error: &ValidationError) -> EnhancedUserErr
             .with_severity(ErrorSeverity::Critical)
         }
         ValidationError::PermissionDenied(msg) => {
-            EnhancedUserError::new(
+            UserError::new(
                 "Permission Denied",
                 &format!("Access denied: {}", msg),
                 "Check file permissions or run with appropriate privileges."
@@ -413,9 +416,9 @@ fn validation_error_to_user_friendly(error: &ValidationError) -> EnhancedUserErr
     }
 }
 
-/// Display enhanced user-friendly error
-pub fn display_enhanced_user_error(error: &RouterFloodError) {
-    let user_error = to_enhanced_user_error(error);
+/// Display actionable user-friendly error
+pub fn display_actionable_user_error(error: &RouterFloodError) {
+    let user_error = to_user_error(error);
     user_error.display();
     
     // Add general help footer
@@ -425,6 +428,9 @@ pub fn display_enhanced_user_error(error: &RouterFloodError) {
     println!("   router-flood --help       # Show all options");
     println!();
 }
+
+// Compatibility alias for backward compatibility
+pub use display_actionable_user_error as display_enhanced_user_error;
 
 /// Quick help for common scenarios
 pub fn show_quick_help() {
