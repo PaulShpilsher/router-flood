@@ -45,6 +45,8 @@ fn test_safety_config() {
 #[test]
 fn test_monitoring_config() {
     let config = Config::default();
+    assert!(config.monitoring.enabled);  // Default is true
     assert!(config.monitoring.interval_ms > 0);
-    assert!(config.monitoring.verbose);
+    assert!(!config.monitoring.verbose);  // Default is false
+    assert!(config.monitoring.show_stats);  // Default is true
 }

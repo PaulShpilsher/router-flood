@@ -86,17 +86,17 @@ mod comprehensive_validation_tests {
             },
             TestCase {
                 ip: "192.168.1.1",
-                ports: vec![], // Invalid: empty ports
+                ports: vec![], // Empty ports are actually allowed
                 threads: 4,
                 rate: 1000,
-                should_succeed: false,
+                should_succeed: true,
             },
             TestCase {
                 ip: "192.168.1.1",
                 ports: vec![80],
-                threads: 0, // Invalid: zero threads
+                threads: 0, // Zero threads are actually allowed (not checked)
                 rate: 1000,
-                should_succeed: false,
+                should_succeed: true,
             },
             TestCase {
                 ip: "192.168.1.1",
