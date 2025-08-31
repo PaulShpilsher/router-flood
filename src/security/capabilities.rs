@@ -248,7 +248,7 @@ impl AuditLog {
         let log_entry = format!(
             "{}\n  Hash: {}\n  PrevHash: {}\n",
             entry_data,
-            format!("{:x?}", current_hash) // hex::encode(current_hash),
+            format!("{:x?}", current_hash), // hex::encode(current_hash)
             format!("{:x?}", self.previous_hash) // hex::encode(self.previous_hash)
         );
         
@@ -324,7 +324,7 @@ impl AuditLog {
             "0|{}|GENESIS|Session started|{}|{}\n  Hash: {}\n  PrevHash: 0000000000000000000000000000000000000000000000000000000000000000\n",
             chrono::Utc::now().to_rfc3339(),
             self.session_id,
-            format!("{:x?}", self.previous_hash) // hex::encode(self.previous_hash),
+            format!("{:x?}", self.previous_hash), // hex::encode(self.previous_hash)
             format!("{:x?}", self.previous_hash) // hex::encode(self.previous_hash)
         );
         

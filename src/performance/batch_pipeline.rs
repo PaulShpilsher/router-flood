@@ -294,7 +294,7 @@ impl<'a> ProcessedPacket<'a> {
     
     /// Get the protocol name
     pub fn protocol(&self) -> &str {
-        self.protocol_name.as_str()
+        self.protocol_name
     }
     
     /// Get processing time
