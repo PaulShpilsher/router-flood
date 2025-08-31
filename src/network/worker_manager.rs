@@ -10,8 +10,8 @@ use tokio::task::JoinHandle;
 use crate::config::Config;
 use crate::error::{RouterFloodError, Result};
 use crate::stats::Stats;
-use crate::core::target::MultiPortTarget;
-use crate::core::worker::{Worker, WorkerConfig};
+use crate::network::target::MultiPortTarget;
+use crate::network::worker::{Worker, WorkerConfig};
 
 /// Manages the lifecycle of worker threads
 pub struct Workers {
@@ -55,17 +55,16 @@ impl Workers {
     ) -> Result<Vec<JoinHandle<()>>> {
         let mut handles = Vec::with_capacity(config.attack.threads);
         
-        let per_worker_rate = config.attack.packet_rate / config.attack.threads as u64;
+        let per_worker_rate = (config.attack.packet_rate / config.attack.threads as f64) as u64;
         
         for _task_id in 0..config.attack.threads {
             let running = running.clone();
             let stats = stats.clone();
             let target = multi_port_target.clone();
-            let packet_size_range = config.attack.packet_size_range;
+            let packet_size_range = (config.attack.payload_size, config.attack.payload_size);
             let protocol_mix = config.target.protocol_mix.clone();
-            let randomize_timing = config.attack.randomize_timing;
+            let randomize_timing = false;  // Simplified for now
             let dry_run = config.safety.dry_run;
-            let perfect_simulation = config.safety.perfect_simulation;
             
             let worker_config = WorkerConfig {
                 packet_rate: per_worker_rate,
@@ -73,7 +72,6 @@ impl Workers {
                 protocol_mix,
                 randomize_timing,
                 dry_run,
-                perfect_simulation,
             };
             
             let mut worker = Worker::new(

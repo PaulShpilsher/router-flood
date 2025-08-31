@@ -42,19 +42,14 @@ impl PacketStrategy for ArpStrategy {
         let target_ip = match target.ip {
             IpAddr::V4(ip) => ip,
             IpAddr::V6(_) => {
-                return Err(PacketError::InvalidParameters(
-                    "ARP strategy requires IPv4 target".to_string()
-                ).into());
+                return Err(PacketError::build_failed("Packet", "ARP strategy requires IPv4 target").into());
             }
         };
 
         let total_len = ETHERNET_HEADER_SIZE + ARP_PACKET_SIZE;
         
         if buffer.len() < total_len {
-            return Err(PacketError::BufferTooSmall {
-                required: total_len,
-                available: buffer.len(),
-            }.into());
+            return Err(PacketError::build_failed("Packet", "Buffer too small").into());
         }
 
         // Zero out the buffer area we'll use
@@ -62,10 +57,7 @@ impl PacketStrategy for ArpStrategy {
 
         // Build Ethernet header
         let mut ethernet_packet = MutableEthernetPacket::new(&mut buffer[..total_len])
-            .ok_or_else(|| PacketError::BuildFailed {
-                packet_type: "ARP".to_string(),
-                reason: "Failed to create Ethernet packet".to_string(),
-            })?;
+            .ok_or_else(|| PacketError::build_failed("ARP", "Failed to create Ethernet packet"))?;
         
         ethernet_packet.set_destination(MacAddr::broadcast());
         ethernet_packet.set_source(self.source_mac);
@@ -73,10 +65,7 @@ impl PacketStrategy for ArpStrategy {
 
         // Build ARP packet
         let mut arp_packet = MutableArpPacket::new(ethernet_packet.payload_mut())
-            .ok_or_else(|| PacketError::BuildFailed {
-                packet_type: "ARP".to_string(),
-                reason: "Failed to create ARP packet".to_string(),
-            })?;
+            .ok_or_else(|| PacketError::build_failed("ARP", "Failed to create ARP packet"))?;
         
         arp_packet.set_hardware_type(ArpHardwareTypes::Ethernet);
         arp_packet.set_protocol_type(EtherTypes::Ipv4);

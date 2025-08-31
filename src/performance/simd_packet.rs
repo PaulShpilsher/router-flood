@@ -78,7 +78,7 @@ impl SimdPacketBuilder {
         // Use batched RNG for better performance
         let payload = self.rng.payload(buffer.len());
         if payload.len() != buffer.len() {
-            return Err(PacketError::InvalidParameters(
+            return Err(PacketError::build_failed("Packet", 
                 "Payload size mismatch".to_string()
             ).into());
         }

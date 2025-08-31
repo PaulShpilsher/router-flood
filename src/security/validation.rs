@@ -113,7 +113,8 @@ pub fn validate_comprehensive_security(
 pub fn validate_system_requirements(dry_run: bool) -> Result<()> {
     // Check if running as root (required for raw sockets, but not for dry-run)
     if !dry_run && unsafe { libc::geteuid() } != ROOT_UID {
-        return Err(ValidationError::PrivilegeRequired(
+        return Err(ValidationError::new(
+            "privileges",
             error_messages::ROOT_REQUIRED
         ).into());
     }

@@ -10,7 +10,7 @@ use std::time::Duration;
 use tokio::time;
 
 use crate::stats::{Stats, BatchStats};
-use crate::core::target::MultiPortTarget;
+use crate::network::target::MultiPortTarget;
 use crate::packet::{PacketBuilder, PacketType};
 use crate::config::ProtocolMix;
 use crate::error::Result;

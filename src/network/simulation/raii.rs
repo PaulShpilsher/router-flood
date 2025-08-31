@@ -14,10 +14,10 @@ use crate::config::Config;
 use crate::error::Result;
 use crate::system_monitor::SystemMonitor;
 use crate::utils::raii::{ResourceGuard, SignalGuard, StatsGuard, TerminalRAIIGuard, WorkerGuard};
-use crate::core::simulation::setup_network_interface;
+use crate::network::simulation::setup_network_interface;
 use crate::stats::Stats;
-use crate::core::target::MultiPortTarget;
-use crate::core::worker_manager::Workers;
+use crate::network::target::MultiPortTarget;
+use crate::network::worker_manager::Workers;
 
 /// Enhanced simulation with RAII resource management
 pub struct SimulationRAII {

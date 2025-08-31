@@ -1,7 +1,7 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
-use crate::core::traits::TargetProvider;
+use crate::network::traits::TargetProvider;
 
 /// Multi-port target manager
 pub struct MultiPortTarget {

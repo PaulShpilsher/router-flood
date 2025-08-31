@@ -94,7 +94,7 @@ impl CpuAffinity {
         use std::mem;
         
         if cpu_id >= self.topology.total_cpus {
-            return Err(SystemError::ResourceUnavailable(
+            return Err(SystemError::resource_unavailable("CPU", 
                 format!("CPU {} not available (total: {})", cpu_id, self.topology.total_cpus)
             ).into());
         }
@@ -115,7 +115,7 @@ impl CpuAffinity {
         };
 
         if result != 0 {
-            return Err(SystemError::ResourceUnavailable(
+            return Err(SystemError::resource_unavailable("CPU", 
                 format!("Failed to set CPU affinity to CPU {}: {}", cpu_id, 
                     std::io::Error::last_os_error())
             ).into());
@@ -177,14 +177,14 @@ impl CpuAffinity {
     /// Get total CPU count
     fn get_cpu_count() -> Result<usize> {
         let cpuinfo = fs::read_to_string("/proc/cpuinfo")
-            .map_err(|e| SystemError::ResourceUnavailable(format!("Failed to read /proc/cpuinfo: {}", e)))?;
+            .map_err(|e| SystemError::resource_unavailable("CPU", format!("Failed to read /proc/cpuinfo: {}", e)))?;
         
         let cpu_count = cpuinfo.lines()
             .filter(|line| line.starts_with("processor"))
             .count();
         
         if cpu_count == 0 {
-            return Err(SystemError::ResourceUnavailable("No CPUs detected".to_string()).into());
+            return Err(SystemError::resource_unavailable("CPU", "No CPUs detected".to_string()).into());
         }
         
         Ok(cpu_count)
@@ -304,7 +304,7 @@ impl CpuAffinity {
     /// Detect if hyperthreading is enabled
     fn detect_hyperthreading() -> Result<bool> {
         let cpuinfo = fs::read_to_string("/proc/cpuinfo")
-            .map_err(|e| SystemError::ResourceUnavailable(format!("Failed to read /proc/cpuinfo: {}", e)))?;
+            .map_err(|e| SystemError::resource_unavailable("CPU", format!("Failed to read /proc/cpuinfo: {}", e)))?;
         
         let mut physical_cores = std::collections::HashSet::new();
         let mut logical_cores = 0;

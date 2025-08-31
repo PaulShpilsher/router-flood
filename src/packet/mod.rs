@@ -4,7 +4,7 @@
 //! with support for multiple protocols and zero-copy operations.
 
 pub mod builder;
-pub mod strategies;
+pub mod protocols;
 pub mod factory;
 pub mod types;
 

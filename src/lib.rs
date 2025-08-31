@@ -13,7 +13,7 @@
 pub mod cli;
 pub mod config;
 pub mod constants;
-pub mod core;
+pub mod network;
 pub mod system_monitor;
 pub mod packet;
 pub mod performance;
@@ -30,9 +30,9 @@ pub mod error;
 
 // Re-export key types for convenience
 pub use config::{Config, Target, LoadConfig, Safety, Monitoring, Export, ExportFormat, ProtocolMix};
-pub use core::simulation::{Simulation, SimulationRAII};
-pub use core::worker_manager::Workers;
-pub use core::target::MultiPortTarget;
+pub use network::simulation::{Simulation, SimulationRAII};
+pub use network::worker_manager::Workers;
+pub use network::target::MultiPortTarget;
 pub use error::{Result, RouterFloodError};
 pub use packet::{PacketBuilder, PacketStrategy, PacketType, PacketTarget};
 pub use stats::Stats;

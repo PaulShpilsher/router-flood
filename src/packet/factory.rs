@@ -128,7 +128,7 @@ impl Registry {
         factories
             .get(&packet_type)
             .map(|factory| factory.create())
-            .ok_or_else(|| RouterFloodError::Packet(crate::error::PacketError::InvalidParameters(format!("Unsupported protocol: {:?}", packet_type))))
+            .ok_or_else(|| RouterFloodError::PacketBuild(format!("Unsupported protocol: {:?}", packet_type)))
     }
     
     /// Get all registered packet types
@@ -194,9 +194,9 @@ impl Builder {
         } else if let Some(packet_type) = self.packet_type {
             global_registry().create_strategy(packet_type)
         } else {
-            Err(RouterFloodError::Packet(crate::error::PacketError::InvalidParameters(
+            Err(RouterFloodError::PacketBuild(
                 "No packet type or factory specified".into()
-            )))
+            ))
         }
     }
 }

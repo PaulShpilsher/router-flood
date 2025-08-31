@@ -41,19 +41,14 @@ impl PacketStrategy for Ipv6TcpStrategy {
         let target_ip = match target.ip {
             IpAddr::V6(ip) => ip,
             IpAddr::V4(_) => {
-                return Err(PacketError::InvalidParameters(
-                    "IPv6 TCP strategy requires IPv6 target".to_string()
-                ).into());
+                return Err(PacketError::build_failed("Packet", "IPv6 TCP strategy requires IPv6 target").into());
             }
         };
 
         let total_len = IPV6_HEADER_SIZE + TCP_HEADER_SIZE;
         
         if buffer.len() < total_len {
-            return Err(PacketError::BufferTooSmall {
-                required: total_len,
-                available: buffer.len(),
-            }.into());
+            return Err(PacketError::build_failed("Packet", "Buffer too small").into());
         }
 
         // Zero out the buffer area we'll use
@@ -61,10 +56,7 @@ impl PacketStrategy for Ipv6TcpStrategy {
 
         // Build IPv6 header
         let mut ip_packet = MutableIpv6Packet::new(&mut buffer[..total_len])
-            .ok_or_else(|| PacketError::BuildFailed {
-                packet_type: "IPv6-TCP".to_string(),
-                reason: "Failed to create IPv6 packet".to_string(),
-            })?;
+            .ok_or_else(|| PacketError::build_failed("IPv6-TCP", "Failed to create IPv6 packet"))?;
         
         ip_packet.set_version(6);
         ip_packet.set_traffic_class(0);
@@ -77,10 +69,7 @@ impl PacketStrategy for Ipv6TcpStrategy {
 
         // Build TCP packet
         let mut tcp_packet = MutableTcpPacket::new(ip_packet.payload_mut())
-            .ok_or_else(|| PacketError::BuildFailed {
-                packet_type: "IPv6-TCP".to_string(),
-                reason: "Failed to create TCP packet".to_string(),
-            })?;
+            .ok_or_else(|| PacketError::build_failed("IPv6-TCP", "Failed to create TCP packet"))?;
         
         tcp_packet.set_source(self.rng.port());
         tcp_packet.set_destination(target.port);

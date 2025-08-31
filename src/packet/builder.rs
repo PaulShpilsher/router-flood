@@ -73,12 +73,12 @@ impl PacketBuilder {
         let target = PacketTarget::new(target_ip, target_port);
         
         let strategy = self.strategies.get_mut(&packet_type)
-            .ok_or_else(|| PacketError::InvalidParameters(
+            .ok_or_else(|| PacketError::build_failed("Packet", 
                 format!("No strategy available for packet type: {}", packet_type)
             ))?;
 
         if !strategy.is_compatible_with(target_ip) {
-            return Err(PacketError::InvalidParameters(
+            return Err(PacketError::build_failed("Packet", 
                 format!("Packet type {} is not compatible with target IP {}", packet_type, target_ip)
             ).into());
         }
@@ -98,7 +98,7 @@ impl PacketBuilder {
         target_port: u16,
     ) -> Result<(Vec<u8>, &'static str)> {
         let strategy = self.strategies.get(&packet_type)
-            .ok_or_else(|| PacketError::InvalidParameters(
+            .ok_or_else(|| PacketError::build_failed("Packet", 
                 format!("No strategy available for packet type: {}", packet_type)
             ))?;
 

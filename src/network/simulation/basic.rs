@@ -12,10 +12,10 @@ use crate::config::Config;
 use crate::constants::GRACEFUL_SHUTDOWN_TIMEOUT;
 use crate::error::{RouterFloodError, Result};
 use crate::system_monitor::SystemMonitor;
-use crate::core::network::{find_interface_by_name, default_interface};
+use crate::network::network::{find_interface_by_name, default_interface};
 use crate::stats::Stats;
-use crate::core::target::MultiPortTarget;
-use crate::core::worker_manager::Workers;
+use crate::network::target::MultiPortTarget;
+use crate::network::worker_manager::Workers;
 
 /// Network interface setup
 pub fn setup_network_interface(config: &Config) -> Result<Option<pnet::datalink::NetworkInterface>> {

@@ -53,9 +53,7 @@ impl PacketStrategy for IcmpStrategy {
         let target_ip = match target.ip {
             IpAddr::V4(ip) => ip,
             IpAddr::V6(_) => {
-                return Err(PacketError::InvalidParameters(
-                    "ICMP strategy requires IPv4 target".to_string()
-                ).into());
+                return Err(PacketError::build_failed("Packet", "ICMP strategy requires IPv4 target").into());
             }
         };
 
@@ -63,10 +61,7 @@ impl PacketStrategy for IcmpStrategy {
         let total_len = IPV4_HEADER_SIZE + ICMP_HEADER_SIZE + payload_size;
         
         if buffer.len() < total_len {
-            return Err(PacketError::BufferTooSmall {
-                required: total_len,
-                available: buffer.len(),
-            }.into());
+            return Err(PacketError::build_failed("Packet", "Buffer too small").into());
         }
 
         // Zero out the buffer area we'll use
@@ -74,19 +69,13 @@ impl PacketStrategy for IcmpStrategy {
 
         // Build IP header
         let mut ip_packet = MutableIpv4Packet::new(&mut buffer[..total_len])
-            .ok_or_else(|| PacketError::BuildFailed {
-                packet_type: "ICMP".to_string(),
-                reason: "Failed to create IPv4 packet".to_string(),
-            })?;
+            .ok_or_else(|| PacketError::build_failed("ICMP", "Failed to create IPv4 packet"))?;
         
         self.setup_ip_header(&mut ip_packet, total_len, target_ip);
 
         // Build ICMP packet
         let mut icmp_packet = MutableIcmpPacket::new(ip_packet.payload_mut())
-            .ok_or_else(|| PacketError::BuildFailed {
-                packet_type: "ICMP".to_string(),
-                reason: "Failed to create ICMP packet".to_string(),
-            })?;
+            .ok_or_else(|| PacketError::build_failed("ICMP", "Failed to create ICMP packet"))?;
         
         icmp_packet.set_icmp_type(IcmpTypes::EchoRequest);
         icmp_packet.set_icmp_code(pnet::packet::icmp::IcmpCode(0));

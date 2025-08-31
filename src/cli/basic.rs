@@ -255,7 +255,7 @@ pub fn parse_export_format(format_str: &str) -> Result<ExportFormat> {
 
 /// List available network interfaces with pretty formatting
 fn list_network_interfaces() {
-    use crate::core::network::list_network_interfaces as list_interfaces;
+    use crate::network::list_network_interfaces as list_interfaces;
     
     println!("\n🌐 Available Network Interfaces:\n");
     println!("{:<20} {:<10} {:<15} IPv6", "Interface", "Status", "IPv4");

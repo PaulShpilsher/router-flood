@@ -83,9 +83,7 @@ impl PacketStrategy for Ipv6UdpStrategy {
         let target_ip = match target.ip {
             IpAddr::V6(ip) => ip,
             IpAddr::V4(_) => {
-                return Err(PacketError::InvalidParameters(
-                    "IPv6 UDP strategy requires IPv6 target".to_string()
-                ).into());
+                return Err(PacketError::build_failed("Packet", "IPv6 UDP strategy requires IPv6 target").into());
             }
         };
 
@@ -93,10 +91,7 @@ impl PacketStrategy for Ipv6UdpStrategy {
         let total_len = IPV6_HEADER_SIZE + UDP_HEADER_SIZE + payload_size;
         
         if buffer.len() < total_len {
-            return Err(PacketError::BufferTooSmall {
-                required: total_len,
-                available: buffer.len(),
-            }.into());
+            return Err(PacketError::build_failed("Packet", "Buffer too small").into());
         }
 
         // Zero out the buffer area we'll use
@@ -104,10 +99,7 @@ impl PacketStrategy for Ipv6UdpStrategy {
 
         // Build IPv6 header
         let mut ip_packet = MutableIpv6Packet::new(&mut buffer[..total_len])
-            .ok_or_else(|| PacketError::BuildFailed {
-                packet_type: "IPv6-UDP".to_string(),
-                reason: "Failed to create IPv6 packet".to_string(),
-            })?;
+            .ok_or_else(|| PacketError::build_failed("IPv6-UDP", "Failed to create IPv6 packet"))?;
         
         ip_packet.set_version(6);
         ip_packet.set_traffic_class(0);
@@ -120,10 +112,7 @@ impl PacketStrategy for Ipv6UdpStrategy {
 
         // Build UDP header + payload
         let mut udp_packet = MutableUdpPacket::new(ip_packet.payload_mut())
-            .ok_or_else(|| PacketError::BuildFailed {
-                packet_type: "IPv6-UDP".to_string(),
-                reason: "Failed to create UDP packet".to_string(),
-            })?;
+            .ok_or_else(|| PacketError::build_failed("IPv6-UDP", "Failed to create UDP packet"))?;
         
         udp_packet.set_source(self.rng.port());
         udp_packet.set_destination(target.port);

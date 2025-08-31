@@ -12,7 +12,7 @@ use crate::error::{RouterFloodError, Result};
 use crate::stats::Stats;
 use crate::utils::terminal::Terminal;
 use crate::transport::WorkerChannels;
-use crate::core::worker_manager::Workers;
+use crate::network::worker_manager::Workers;
 
 /// RAII guard for worker thread management
 /// 

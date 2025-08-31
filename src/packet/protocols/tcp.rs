@@ -65,19 +65,14 @@ impl PacketStrategy for TcpStrategy {
         let target_ip = match target.ip {
             IpAddr::V4(ip) => ip,
             IpAddr::V6(_) => {
-                return Err(PacketError::InvalidParameters(
-                    "TCP strategy requires IPv4 target".to_string()
-                ).into());
+                return Err(PacketError::build_failed("Packet", "TCP strategy requires IPv4 target").into());
             }
         };
 
         let total_len = IPV4_HEADER_SIZE + TCP_HEADER_SIZE; // No payload for SYN/ACK
         
         if buffer.len() < total_len {
-            return Err(PacketError::BufferTooSmall {
-                required: total_len,
-                available: buffer.len(),
-            }.into());
+            return Err(PacketError::build_failed("Packet", "Buffer too small").into());
         }
 
         // Zero out the buffer area we'll use
@@ -85,19 +80,13 @@ impl PacketStrategy for TcpStrategy {
 
         // Build IP header
         let mut ip_packet = MutableIpv4Packet::new(&mut buffer[..total_len])
-            .ok_or_else(|| PacketError::BuildFailed {
-                packet_type: "TCP".to_string(),
-                reason: "Failed to create IPv4 packet".to_string(),
-            })?;
+            .ok_or_else(|| PacketError::build_failed("TCP", "Failed to create IPv4 packet"))?;
         
         self.setup_ip_header(&mut ip_packet, total_len, target_ip);
 
         // Build TCP packet
         let mut tcp_packet = MutableTcpPacket::new(ip_packet.payload_mut())
-            .ok_or_else(|| PacketError::BuildFailed {
-                packet_type: "TCP".to_string(),
-                reason: "Failed to create TCP packet".to_string(),
-            })?;
+            .ok_or_else(|| PacketError::build_failed("TCP", "Failed to create TCP packet"))?;
         
         tcp_packet.set_source(self.rng.port());
         tcp_packet.set_destination(target.port);

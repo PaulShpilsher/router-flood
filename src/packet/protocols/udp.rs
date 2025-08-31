@@ -98,8 +98,9 @@ impl PacketStrategy for UdpStrategy {
         let target_ip = match target.ip {
             IpAddr::V4(ip) => ip,
             IpAddr::V6(_) => {
-                return Err(PacketError::InvalidParameters(
-                    "UDP strategy requires IPv4 target".to_string()
+                return Err(PacketError::build_failed(
+                    "UDP",
+                    "UDP strategy requires IPv4 target"
                 ).into());
             }
         };
@@ -108,10 +109,10 @@ impl PacketStrategy for UdpStrategy {
         let total_len = IPV4_HEADER_SIZE + UDP_HEADER_SIZE + payload_size;
         
         if buffer.len() < total_len {
-            return Err(PacketError::BufferTooSmall {
-                required: total_len,
-                available: buffer.len(),
-            }.into());
+            return Err(PacketError::build_failed(
+                "UDP",
+                format!("Buffer too small: required {}, available {}", total_len, buffer.len())
+            ).into());
         }
 
         // Zero out only the header areas (IP + UDP headers)
@@ -119,19 +120,19 @@ impl PacketStrategy for UdpStrategy {
 
         // Build IP header
         let mut ip_packet = MutableIpv4Packet::new(&mut buffer[..total_len])
-            .ok_or_else(|| PacketError::BuildFailed {
-                packet_type: "UDP".to_string(),
-                reason: "Failed to create IPv4 packet".to_string(),
-            })?;
+            .ok_or_else(|| PacketError::build_failed(
+                "UDP",
+                "Failed to create IPv4 packet"
+            ))?;
         
         self.setup_ip_header(&mut ip_packet, total_len, target_ip);
 
         // Build UDP header + payload
         let mut udp_packet = MutableUdpPacket::new(ip_packet.payload_mut())
-            .ok_or_else(|| PacketError::BuildFailed {
-                packet_type: "UDP".to_string(),
-                reason: "Failed to create UDP packet".to_string(),
-            })?;
+            .ok_or_else(|| PacketError::build_failed(
+                "UDP",
+                "Failed to create UDP packet"
+            ))?;
         
         udp_packet.set_source(self.rng.port());
         udp_packet.set_destination(target.port);

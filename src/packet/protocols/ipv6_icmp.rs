@@ -41,9 +41,7 @@ impl PacketStrategy for Ipv6IcmpStrategy {
         let target_ip = match target.ip {
             IpAddr::V6(ip) => ip,
             IpAddr::V4(_) => {
-                return Err(PacketError::InvalidParameters(
-                    "IPv6 ICMP strategy requires IPv6 target".to_string()
-                ).into());
+                return Err(PacketError::build_failed("Packet", "IPv6 ICMP strategy requires IPv6 target").into());
             }
         };
 
@@ -51,10 +49,7 @@ impl PacketStrategy for Ipv6IcmpStrategy {
         let total_len = IPV6_HEADER_SIZE + ICMP_HEADER_SIZE + payload_size;
         
         if buffer.len() < total_len {
-            return Err(PacketError::BufferTooSmall {
-                required: total_len,
-                available: buffer.len(),
-            }.into());
+            return Err(PacketError::build_failed("Packet", "Buffer too small").into());
         }
 
         // Zero out the buffer area we'll use
@@ -62,10 +57,7 @@ impl PacketStrategy for Ipv6IcmpStrategy {
 
         // Build IPv6 header
         let mut ip_packet = MutableIpv6Packet::new(&mut buffer[..total_len])
-            .ok_or_else(|| PacketError::BuildFailed {
-                packet_type: "IPv6-ICMP".to_string(),
-                reason: "Failed to create IPv6 packet".to_string(),
-            })?;
+            .ok_or_else(|| PacketError::build_failed("IPv6-ICMP", "Failed to create IPv6 packet"))?;
         
         ip_packet.set_version(6);
         ip_packet.set_traffic_class(0);
@@ -78,10 +70,7 @@ impl PacketStrategy for Ipv6IcmpStrategy {
 
         // Build ICMPv6 packet (simplified - using ICMP structure)
         let mut icmp_packet = MutableIcmpPacket::new(ip_packet.payload_mut())
-            .ok_or_else(|| PacketError::BuildFailed {
-                packet_type: "IPv6-ICMP".to_string(),
-                reason: "Failed to create ICMP packet".to_string(),
-            })?;
+            .ok_or_else(|| PacketError::build_failed("IPv6-ICMP", "Failed to create ICMP packet"))?;
         
         icmp_packet.set_icmp_type(IcmpTypes::EchoRequest);
         icmp_packet.set_icmp_code(pnet::packet::icmp::IcmpCode(0));
