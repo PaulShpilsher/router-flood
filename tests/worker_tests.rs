@@ -8,7 +8,7 @@
 use router_flood::config::ProtocolMix;
 use router_flood::stats::Stats;
 use router_flood::core::target::MultiPortTarget;
-use router_flood::core::worker_manager::WorkerManager;
+use router_flood::core::worker_manager::Workers;
 use std::net::{IpAddr, Ipv4Addr};
 use std::sync::Arc;
 
@@ -39,14 +39,14 @@ async fn test_worker_manager_creation() {
     let multi_port_target = Arc::new(MultiPortTarget::new(vec![80, 443]));
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
 
-    let worker_manager = WorkerManager::new(
+    let worker_manager = Workers::new(
         &config,
         stats,
         multi_port_target,
         target_ip,
         None, // interface
         true, // dry_run
-    ).expect("Failed to create WorkerManager");
+    ).expect("Failed to create Workers");
 
     assert!(worker_manager.is_running());
     
@@ -67,14 +67,14 @@ async fn test_worker_manager_lifecycle() {
     let multi_port_target = Arc::new(MultiPortTarget::new(vec![80]));
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
 
-    let worker_manager = WorkerManager::new(
+    let worker_manager = Workers::new(
         &config,
         stats.clone(),
         multi_port_target,
         target_ip,
         None, // interface
         true, // dry_run
-    ).expect("Failed to create WorkerManager");
+    ).expect("Failed to create Workers");
 
     // Let workers run briefly
     tokio::time::sleep(std::time::Duration::from_millis(50)).await;
@@ -107,14 +107,14 @@ async fn test_worker_with_multiple_ports() {
     let multi_port_target = Arc::new(MultiPortTarget::new(vec![80, 443, 8080, 3000]));
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
 
-    let worker_manager = WorkerManager::new(
+    let worker_manager = Workers::new(
         &config,
         stats.clone(),
         multi_port_target,
         target_ip,
         None, // interface
         true, // dry_run
-    ).expect("Failed to create WorkerManager");
+    ).expect("Failed to create Workers");
 
     // Let the worker run for a bit
     tokio::time::sleep(std::time::Duration::from_millis(100)).await;
@@ -149,14 +149,14 @@ async fn test_worker_protocol_mix() {
     let multi_port_target = Arc::new(MultiPortTarget::new(vec![80]));
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
 
-    let worker_manager = WorkerManager::new(
+    let worker_manager = Workers::new(
         &config,
         stats.clone(),
         multi_port_target,
         target_ip,
         None, // interface
         true, // dry_run
-    ).expect("Failed to create WorkerManager");
+    ).expect("Failed to create Workers");
 
     // Let it run to generate packets
     tokio::time::sleep(std::time::Duration::from_millis(200)).await;
@@ -183,14 +183,14 @@ async fn test_worker_rate_limiting() {
 
     let start_time = std::time::Instant::now();
     
-    let worker_manager = WorkerManager::new(
+    let worker_manager = Workers::new(
         &config,
         stats.clone(),
         multi_port_target,
         target_ip,
         None, // interface
         true, // dry_run
-    ).expect("Failed to create WorkerManager");
+    ).expect("Failed to create Workers");
 
     // Let it run for exactly 1 second
     tokio::time::sleep(std::time::Duration::from_millis(1000)).await;

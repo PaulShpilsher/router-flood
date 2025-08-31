@@ -17,7 +17,7 @@ use crate::utils::raii::{ResourceGuard, SignalGuard, StatsGuard, TerminalRAIIGua
 use crate::core::simulation::setup_network_interface;
 use crate::stats::Stats;
 use crate::core::target::MultiPortTarget;
-use crate::core::worker_manager::WorkerManager;
+use crate::core::worker_manager::Workers;
 
 /// Enhanced simulation with RAII resource management
 pub struct SimulationRAII {
@@ -76,7 +76,7 @@ impl SimulationRAII {
         
         // Create and start workers with guard (stopped on drop)
         let multi_port_target = Arc::new(MultiPortTarget::new(self.config.target.ports.clone()));
-        let worker_manager = WorkerManager::new(
+        let worker_manager = Workers::new(
             &self.config,
             stats.clone(),
             multi_port_target,

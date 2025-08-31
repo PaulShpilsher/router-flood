@@ -4,7 +4,7 @@ use router_flood::utils::raii::{
     ChannelGuard, ResourceGuard, SignalGuard, StatsGuard, 
     TerminalRAIIGuard, WorkerGuard
 };
-use router_flood::core::worker_manager::WorkerManager;
+use router_flood::core::worker_manager::Workers;
 use router_flood::core::target::MultiPortTarget;
 use router_flood::stats::Stats;
 use router_flood::transport::WorkerChannels;
@@ -135,7 +135,7 @@ async fn test_worker_guard_stop_on_drop() {
     let target = Arc::new(MultiPortTarget::new(vec![80, 443]));
     let target_ip = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
     
-    let manager = WorkerManager::new(
+    let manager = Workers::new(
         &config,
         stats,
         target,
@@ -198,7 +198,7 @@ async fn test_worker_guard_take_ownership() {
     let target = Arc::new(MultiPortTarget::new(vec![80]));
     let target_ip = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
     
-    let manager = WorkerManager::new(
+    let manager = Workers::new(
         &config,
         stats,
         target,

@@ -4,7 +4,7 @@
 
 use crate::error::Result;
 use crate::security::Capabilities;
-use super::prompts::PromptUtils;
+use super::prompts::Prompts;
 
 /// Interactive mode handler
 pub struct InteractiveMode {
@@ -27,7 +27,7 @@ impl InteractiveMode {
         let config = self.gather_configuration()?;
         self.display_summary(&config)?;
         
-        if PromptUtils::prompt_yes_no("Execute this configuration now", true)? {
+        if Prompts::prompt_yes_no("Execute this configuration now", true)? {
             self.execute_configuration(config).await?;
         } else {
             self.save_configuration(config)?;
@@ -39,7 +39,7 @@ impl InteractiveMode {
     /// Display welcome message
     fn display_welcome(&self) {
         println!("🎯 Router Flood Interactive Configuration");
-        PromptUtils::display_separator();
+        Prompts::display_separator();
         println!();
     }
 
@@ -54,48 +54,48 @@ impl InteractiveMode {
 
     /// Gather configuration from user input
     fn gather_configuration(&self) -> Result<InteractiveConfig> {
-        let target_ip = PromptUtils::prompt_for_input(
+        let target_ip = Prompts::prompt_for_input(
             "Target IP address (private range)", 
             "192.168.1.1"
         )?;
         
-        let ports = PromptUtils::prompt_for_input(
+        let ports = Prompts::prompt_for_input(
             "Target ports (comma-separated)", 
             "80,443"
         )?;
         
-        let threads = PromptUtils::prompt_for_input(
+        let threads = Prompts::prompt_for_input(
             "Number of threads", 
             "4"
         )?;
         
-        let rate = PromptUtils::prompt_for_input(
+        let rate = Prompts::prompt_for_input(
             "Packets per second per thread", 
             "100"
         )?;
         
-        let duration = PromptUtils::prompt_for_input(
+        let duration = Prompts::prompt_for_input(
             "Duration in seconds (empty for unlimited)", 
             ""
         )?;
         
-        let dry_run = PromptUtils::prompt_yes_no(
+        let dry_run = Prompts::prompt_yes_no(
             "Enable dry-run mode (recommended for first test)", 
             true
         )?;
         
-        let cpu_affinity = PromptUtils::prompt_yes_no(
+        let cpu_affinity = Prompts::prompt_yes_no(
             "Enable CPU affinity optimization", 
             false
         )?;
         
-        let export_stats = PromptUtils::prompt_yes_no(
+        let export_stats = Prompts::prompt_yes_no(
             "Export statistics", 
             false
         )?;
         
         let export_format = if export_stats {
-            Some(PromptUtils::prompt_for_input(
+            Some(Prompts::prompt_for_input(
                 "Export format (json/csv/both)", 
                 "json"
             )?)

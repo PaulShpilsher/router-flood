@@ -21,10 +21,10 @@ pub use capabilities::{
     Capabilities, 
     SecurityContext, 
     RequiredCapability,
-    TamperProofAuditLog
+    AuditLog
 };
 pub use threat_detection::{
-    ThreatDetector,
+    ThreatDetection,
     ThreatDetectionConfig,
     ThreatEvent,
     ThreatType,
@@ -33,7 +33,7 @@ pub use threat_detection::{
     ThreatSummary,
 };
 pub use input_validation::{
-    InputValidator,
+    InputValidation,
     ValidationConfig,
     ValidationResult,
     SanitizedString,

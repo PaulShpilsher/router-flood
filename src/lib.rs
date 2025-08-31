@@ -30,7 +30,7 @@ pub mod utils;
 // Re-export key types for convenience
 pub use config::{Config, TargetConfig, AttackConfig, SafetyConfig, MonitoringConfig, ExportConfig, ExportFormat, ProtocolMix};
 pub use core::simulation::{Simulation, SimulationRAII};
-pub use core::worker_manager::WorkerManager;
+pub use core::worker_manager::Workers;
 pub use core::target::MultiPortTarget;
 pub use error::{Result, RouterFloodError};
 pub use packet::{PacketBuilder, PacketStrategy, PacketType, Target};

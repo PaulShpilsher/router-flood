@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 /// Threat detection system (placeholder)
-pub struct ThreatDetector;
+pub struct ThreatDetection;
 
 /// Threat detection configuration
 #[derive(Debug, Clone)]
@@ -86,7 +86,7 @@ impl ThreatEvent {
     }
 }
 
-impl ThreatDetector {
+impl ThreatDetection {
     pub fn new(_config: ThreatDetectionConfig) -> Self {
         Self
     }

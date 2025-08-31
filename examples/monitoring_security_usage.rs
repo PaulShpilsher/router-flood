@@ -10,7 +10,7 @@ use router_flood::{
     performance::{SimdPacketBuilder, CpuAffinity},
     utils::buffer_pool::BufferPool,
     monitoring::PrometheusExporter,
-    security::{Capabilities, TamperProofAuditLog},
+    security::{Capabilities, AuditLog},
     error::Result,
 };
 
@@ -290,7 +290,7 @@ async fn security_audit_example() -> Result<()> {
     println!("Demonstrating tamper-proof audit logging...");
     
     let audit_file = "/tmp/router_flood_audit.log";
-    let mut audit_log = TamperProofAuditLog::new(audit_file, "example-session")?;
+    let mut audit_log = AuditLog::new(audit_file, "example-session")?;
 
     // Log various events
     let events = [

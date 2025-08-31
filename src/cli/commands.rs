@@ -9,12 +9,12 @@ use crate::performance::CpuAffinity;
 use clap::ArgMatches;
 
 /// Command executor for handling CLI commands
-pub struct CommandExecutor {
+pub struct Commands {
     capability_manager: Capabilities,
     cpu_manager: CpuAffinity,
 }
 
-impl CommandExecutor {
+impl Commands {
     /// Create a new command executor
     pub fn new() -> Result<Self> {
         Ok(Self {
@@ -232,7 +232,7 @@ impl CommandExecutor {
     }
 }
 
-impl Default for CommandExecutor {
+impl Default for Commands {
     fn default() -> Self {
         Self::new().unwrap_or_else(|_| {
             Self {

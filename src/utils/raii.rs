@@ -12,19 +12,19 @@ use crate::error::{NetworkError, Result};
 use crate::stats::Stats;
 use crate::utils::terminal::Terminal;
 use crate::transport::WorkerChannels;
-use crate::core::worker_manager::WorkerManager;
+use crate::core::worker_manager::Workers;
 
 /// RAII guard for worker thread management
 /// 
 /// Ensures workers are stopped gracefully when the guard is dropped
 pub struct WorkerGuard {
-    manager: Option<WorkerManager>,
+    manager: Option<Workers>,
     name: String,
 }
 
 impl WorkerGuard {
     /// Create a new worker guard
-    pub fn new(manager: WorkerManager, name: &str) -> Self {
+    pub fn new(manager: Workers, name: &str) -> Self {
         let name = name.to_string();
         debug!("WorkerGuard created for: {}", name);
         Self {
@@ -34,7 +34,7 @@ impl WorkerGuard {
     }
     
     /// Take ownership of the manager (for explicit shutdown)
-    pub fn take(&mut self) -> Option<WorkerManager> {
+    pub fn take(&mut self) -> Option<Workers> {
         self.manager.take()
     }
     

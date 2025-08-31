@@ -198,14 +198,14 @@ impl Default for Capabilities {
 }
 
 /// Enhanced audit logging with tamper detection
-pub struct TamperProofAuditLog {
+pub struct AuditLog {
     log_file: String,
     session_id: String,
     previous_hash: [u8; 32],
     entry_count: u64,
 }
 
-impl TamperProofAuditLog {
+impl AuditLog {
     /// Create a new tamper-proof audit log
     pub fn new(log_file: &str, session_id: &str) -> Result<Self> {
         let log_file = log_file.to_string();

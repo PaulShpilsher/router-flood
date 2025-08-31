@@ -6,9 +6,9 @@ use crate::error::Result;
 use std::io::{self, Write};
 
 /// Utility for handling user prompts
-pub struct PromptUtils;
+pub struct Prompts;
 
-impl PromptUtils {
+impl Prompts {
     /// Prompt for user input with default value
     pub fn prompt_for_input(prompt: &str, default: &str) -> Result<String> {
         print!("{}", prompt);

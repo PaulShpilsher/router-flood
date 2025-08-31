@@ -5,9 +5,9 @@
 use clap::{Arg, Command, value_parser};
 
 /// Build the command structure for the CLI
-pub struct CliParser;
+pub struct Parser;
 
-impl CliParser {
+impl Parser {
     /// Build the interactive command structure
     pub fn build_command() -> Command {
         Command::new("router-flood")

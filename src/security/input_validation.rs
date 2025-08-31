@@ -6,7 +6,7 @@ use std::net::IpAddr;
 use crate::error::{Result, ValidationError};
 
 /// Input validator with security focus
-pub struct InputValidator {
+pub struct InputValidation {
     config: ValidationConfig,
 }
 
@@ -61,7 +61,7 @@ impl Default for ValidationConfig {
     }
 }
 
-impl InputValidator {
+impl InputValidation {
     pub fn new(config: ValidationConfig) -> Self {
         Self { config }
     }
@@ -120,8 +120,8 @@ impl SanitizedString {
 }
 
 /// Convenience function to create an input validator
-pub fn create_input_validator() -> InputValidator {
-    InputValidator::new(ValidationConfig::default())
+pub fn create_input_validator() -> InputValidation {
+    InputValidation::new(ValidationConfig::default())
 }
 
 /// Convenience function to validate an IP address

@@ -14,12 +14,12 @@ use crate::core::target::MultiPortTarget;
 use crate::core::worker::{Worker, WorkerConfig};
 
 /// Manages the lifecycle of worker threads
-pub struct WorkerManager {
+pub struct Workers {
     handles: Vec<JoinHandle<()>>,
     running: Arc<AtomicBool>,
 }
 
-impl WorkerManager {
+impl Workers {
     /// Create a new worker manager and spawn worker threads
     pub fn new(
         config: &Config,

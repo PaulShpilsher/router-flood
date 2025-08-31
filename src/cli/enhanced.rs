@@ -11,10 +11,10 @@ use crate::security::Capabilities;
 use clap::{ArgMatches, Command};
 
 // Re-export the specialized modules for backward compatibility
-pub use self::parser::CliParser;
-pub use self::commands::CommandExecutor;
+pub use self::parser::Parser;
+pub use self::commands::Commands;
 pub use self::interactive::{InteractiveMode, InteractiveConfig};
-pub use self::prompts::PromptUtils;
+pub use self::prompts::Prompts;
 
 // Internal modules - these are submodules of enhanced
 #[path = "parser.rs"]
@@ -30,16 +30,16 @@ mod prompts;
 /// 
 /// This struct maintains backward compatibility while delegating
 /// to specialized modules internally.
-pub struct InteractiveCli {
-    command_executor: CommandExecutor,
+pub struct Interactive {
+    command_executor: Commands,
     capability_manager: Capabilities,
 }
 
-impl InteractiveCli {
+impl Interactive {
     /// Create a new interactive CLI manager
     pub fn new() -> Result<Self> {
         let capability_manager = Capabilities::new()?;
-        let command_executor = CommandExecutor::new()?;
+        let command_executor = Commands::new()?;
         
         Ok(Self {
             command_executor,
@@ -51,7 +51,7 @@ impl InteractiveCli {
     /// 
     /// Delegates to the parser module for command building
     pub fn build_command() -> Command {
-        CliParser::build_command()
+        Parser::build_command()
     }
 
     /// Handle configuration subcommands
@@ -88,11 +88,11 @@ impl InteractiveCli {
 
 
 
-impl Default for InteractiveCli {
+impl Default for Interactive {
     fn default() -> Self {
         Self::new().unwrap_or_else(|_| {
             Self {
-                command_executor: CommandExecutor::default(),
+                command_executor: Commands::default(),
                 capability_manager: Capabilities::default(),
             }
         })

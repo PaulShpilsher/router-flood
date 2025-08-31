@@ -18,7 +18,7 @@ use crate::monitoring::{
     EssentialMetricsCollector
 };
 use crate::security::{
-    ThreatDetector, ThreatDetectionConfig, InputValidator,
+    ThreatDetection, ThreatDetectionConfig, InputValidation,
     ValidationConfig, Capabilities
 };
 use crate::error::Result;
@@ -26,8 +26,8 @@ use crate::error::Result;
 /// Security-focused application runner with monitoring
 pub struct SecurityRunner {
     dashboard: Option<Dashboard>,
-    threat_detector: ThreatDetector,
-    input_validator: InputValidator,
+    threat_detector: ThreatDetection,
+    input_validator: InputValidation,
     capability_manager: Capabilities,
     metrics_collector: Arc<EssentialMetricsCollector>,
     config: MonitoringSecurityConfig,
@@ -115,10 +115,10 @@ impl SecurityRunner {
         let metrics_collector = Arc::new(EssentialMetricsCollector::new());
         
         // Initialize threat detector
-        let threat_detector = ThreatDetector::new(config.threat_config.clone());
+        let threat_detector = ThreatDetection::new(config.threat_config.clone());
         
         // Initialize input validator
-        let input_validator = InputValidator::new(config.validation_config.clone());
+        let input_validator = InputValidation::new(config.validation_config.clone());
         
         // Initialize capability manager
         let capability_manager = Capabilities::new()?;

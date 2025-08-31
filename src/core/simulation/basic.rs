@@ -15,7 +15,7 @@ use crate::system_monitor::SystemMonitor;
 use crate::core::network::{find_interface_by_name, get_default_interface};
 use crate::stats::Stats;
 use crate::core::target::MultiPortTarget;
-use crate::core::worker_manager::WorkerManager;
+use crate::core::worker_manager::Workers;
 
 /// Network interface setup
 pub fn setup_network_interface(config: &Config) -> Result<Option<pnet::datalink::NetworkInterface>> {
@@ -134,7 +134,7 @@ impl Simulation {
         
         // Create and start workers
         let multi_port_target = Arc::new(MultiPortTarget::new(self.config.target.ports.clone()));
-        let worker_manager = WorkerManager::new(
+        let worker_manager = Workers::new(
             &self.config,
             Arc::clone(&self.stats),
             multi_port_target,

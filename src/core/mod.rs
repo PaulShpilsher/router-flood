@@ -12,7 +12,7 @@ pub mod worker_manager;
 // Re-export commonly used types
 pub use simulation::{Simulation, SimulationRAII};
 pub use target::MultiPortTarget;
-pub use worker_manager::WorkerManager;
+pub use worker_manager::Workers;
 
 // Re-export core traits from consolidated module
 pub use traits::{
