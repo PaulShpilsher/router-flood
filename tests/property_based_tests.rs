@@ -8,7 +8,7 @@
 use proptest::prelude::*;
 use router_flood::config::*;
 use router_flood::packet::*;
-use router_flood::validation::*;
+use router_flood::security::validation::*;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 /// Generate valid private IPv4 addresses

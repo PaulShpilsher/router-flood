@@ -222,7 +222,7 @@ fn ip_validation_example() -> Result<()> {
     for ip_str in &test_ips {
         match ip_str.parse::<IpAddr>() {
             Ok(ip) => {
-                match router_flood::validation::validate_target_ip(&ip) {
+                match router_flood::security::validation::validate_target_ip(&ip) {
                     Ok(()) => println!("  ✅ {} - Valid private IP", ip_str),
                     Err(e) => println!("  ❌ {} - {}", ip_str, e),
                 }

@@ -6,7 +6,7 @@
 //! of the router-flood application, focusing on end-to-end functionality.
 
 use router_flood::config::{get_default_config, load_config};
-use router_flood::validation::{validate_system_requirements, validate_target_ip, validate_comprehensive_security};
+use router_flood::security::validation::{validate_system_requirements, validate_target_ip, validate_comprehensive_security};
 use router_flood::error::RouterFloodError;
 use router_flood::stats::StatsAggregator;
 use std::net::{IpAddr, Ipv4Addr};

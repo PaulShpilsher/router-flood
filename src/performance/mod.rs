@@ -7,7 +7,7 @@ pub mod constants;
 pub mod cpu_affinity;
 pub mod inline_hints;
 pub mod memory_pool;
-pub mod lookup_tables;
+pub mod tables;
 pub mod batch_pipeline;
 pub mod simd_packet;
 pub mod string_interning;

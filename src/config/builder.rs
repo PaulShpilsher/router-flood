@@ -3,7 +3,7 @@
 use super::validation::ConfigValidator;
 use crate::config::{Config, ProtocolMix, BurstPattern};
 use crate::error::{ConfigError, ValidationError, Result, messages};
-use crate::validation::validate_target_ip;
+use crate::security::validation::validate_target_ip;
 use std::net::IpAddr;
 
 /// Builder for creating and validating configurations

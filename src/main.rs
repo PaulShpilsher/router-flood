@@ -36,7 +36,7 @@ use router_flood::error::{Result, display_user_friendly_error};
 use router_flood::core::simulation::{setup_network_interface, Simulation};
 use router_flood::utils::terminal::TerminalGuard;
 use router_flood::ui::display_startup_banner;
-use router_flood::validation::{validate_comprehensive_security, validate_system_requirements};
+use router_flood::security::validation::{validate_comprehensive_security, validate_system_requirements};
 
 fn setup_logging() {
     let log_level = std::env::var("RUST_LOG").unwrap_or_else(|_| "info".to_string());

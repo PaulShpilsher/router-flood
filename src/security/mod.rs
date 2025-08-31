@@ -15,6 +15,7 @@ pub mod audit;
 pub mod capabilities;
 pub mod threat_detection;
 pub mod input_validation;
+pub mod validation;
 
 pub use capabilities::{
     CapabilityManager, 

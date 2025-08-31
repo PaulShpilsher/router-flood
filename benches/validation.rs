@@ -4,7 +4,7 @@
 //! and other validation operations.
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
-use router_flood::validation::{validate_target_ip, validate_comprehensive_security};
+use router_flood::security::validation::{validate_target_ip, validate_comprehensive_security};
 use router_flood::config::{AttackConfig, BurstPattern};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 

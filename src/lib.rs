@@ -20,14 +20,13 @@ pub mod system_monitor;
 pub mod monitoring;
 pub mod packet;
 pub mod performance;
-pub mod user_experience;
-pub mod monitoring_security;
+pub mod cli_runner;
+pub mod security_runner;
 pub mod security;
 pub mod stats;
 pub mod transport;
 pub mod ui;
 pub mod utils;
-pub mod validation;
 
 // Re-export key types for convenience
 pub use config::{Config, TargetConfig, AttackConfig, SafetyConfig, MonitoringConfig, ExportConfig, ExportFormat, ProtocolMix};

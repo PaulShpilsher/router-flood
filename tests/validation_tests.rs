@@ -4,7 +4,7 @@
 //!
 //! Tests for IP address validation and security checks.
 
-use router_flood::validation::*;
+use router_flood::security::validation::*;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 #[test]

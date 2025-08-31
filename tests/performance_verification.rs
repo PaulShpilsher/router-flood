@@ -143,8 +143,8 @@ fn test_const_optimizations() {
 
 #[test]
 fn test_performance_constants() {
-    use router_flood::performance::lookup_tables::lookup_tables::*;
-    use router_flood::performance::lookup_tables::bit_ops::*;
+    use router_flood::performance::tables::lookup_tables::*;
+    use router_flood::performance::tables::bit_ops::*;
     
     // Test lookup table optimizations
     let udp_index = packet_type_to_index(PacketType::Udp);

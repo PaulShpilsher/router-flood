@@ -1,12 +1,9 @@
-//! User Experience Enhancement Integration
+//! CLI runner with guided and interactive modes
 //!
-//! This module integrates user experience improvements:
+//! This module provides a CLI runner that supports:
 //! 1. Guided CLI with progressive disclosure
 //! 2. Streamlined configuration system
 //! 3. Interactive user-friendly error messages
-//!
-//! This system reduces complexity by 40% while maintaining full functionality
-//! through preset defaults and improved user guidance.
 
 use clap::ArgMatches;
 use tracing::info;
@@ -17,14 +14,14 @@ use crate::config::Config;
 use crate::error::{Result, RouterFloodError};
 use crate::error::actionable::{display_actionable_user_error, show_quick_help};
 
-/// Interactive user experience application runner
-pub struct UserExperienceRunner {
+/// CLI application runner with guided mode support
+pub struct CliRunner {
     config: PresetConfig,
     mode: GuidanceLevel,
     legacy_config: Config,
 }
 
-impl UserExperienceRunner {
+impl CliRunner {
     /// Create a new user experience runner from command line arguments
     pub fn from_args(matches: &ArgMatches) -> Result<Self> {
         // Handle special commands first

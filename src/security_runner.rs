@@ -23,8 +23,8 @@ use crate::security::{
 };
 use crate::error::Result;
 
-/// Monitoring & security application runner
-pub struct MonitoringSecurityRunner {
+/// Security-focused application runner with monitoring
+pub struct SecurityRunner {
     dashboard: Option<Dashboard>,
     threat_detector: ThreatDetector,
     input_validator: InputValidator,
@@ -109,7 +109,7 @@ impl Default for MonitoringSecurityConfig {
     }
 }
 
-impl MonitoringSecurityRunner {
+impl SecurityRunner {
     /// Create a new monitoring & security runner
     pub fn new(config: MonitoringSecurityConfig) -> Result<Self> {
         let metrics_collector = Arc::new(EssentialMetricsCollector::new());
@@ -374,15 +374,15 @@ impl MonitoringSecurityRunner {
     }
 }
 
-/// Initialize monitoring & security with default configuration
-pub fn init_monitoring_security() -> Result<MonitoringSecurityRunner> {
+/// Initialize security runner with default configuration
+pub fn init_security_runner() -> Result<SecurityRunner> {
     let config = MonitoringSecurityConfig::default();
-    MonitoringSecurityRunner::new(config)
+    SecurityRunner::new(config)
 }
 
-/// Initialize monitoring & security with custom configuration
-pub fn init_monitoring_security_with_config(config: MonitoringSecurityConfig) -> Result<MonitoringSecurityRunner> {
-    MonitoringSecurityRunner::new(config)
+/// Initialize security runner with custom configuration
+pub fn init_security_runner_with_config(config: MonitoringSecurityConfig) -> Result<SecurityRunner> {
+    SecurityRunner::new(config)
 }
 
 /// Create a minimal monitoring & security configuration for testing
