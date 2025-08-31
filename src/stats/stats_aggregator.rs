@@ -4,7 +4,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Instant;
 use std::collections::HashMap;
-use chrono::{Utc, DateTime};
+use chrono::Utc;
 
 use crate::config::Export;
 use crate::error::Result;

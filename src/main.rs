@@ -31,7 +31,6 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use router_flood::cli::{handle_pre_execution_commands, parse_arguments, process_cli_config};
 use router_flood::config::{default_config, load_config};
-use router_flood::constants::error_messages;
 use router_flood::error::{Result, display_user_friendly_error};
 use router_flood::network::simulation::{setup_network_interface, Simulation};
 use router_flood::utils::terminal::TerminalGuard;

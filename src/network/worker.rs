@@ -1,6 +1,6 @@
-//! High-performance batch worker with optimizations
+//! High-performance packet generation worker
 //!
-//! This worker uses batch processing, buffer reuse, and batched stats updates
+//! This worker uses buffer reuse and batched stats updates
 //! for improved performance under high load.
 
 use std::net::IpAddr;
@@ -24,7 +24,7 @@ pub struct WorkerConfig {
     pub dry_run: bool,
 }
 
-/// Worker with performance optimizations and batch processing
+/// Worker with performance optimizations
 pub struct Worker {
     local_stats: BatchStats,
     target: Arc<MultiPortTarget>,
@@ -80,7 +80,7 @@ impl Worker {
     pub async fn run(&mut self, running: Arc<AtomicBool>) {
         while running.load(Ordering::Relaxed) {
             // Process packet
-            if self.process_packet_batch().await.is_err() {
+            if self.process_packet().await.is_err() {
                 self.local_stats.increment_failed();
             }
             
@@ -92,7 +92,7 @@ impl Worker {
         self.local_stats.flush();
     }
     
-    async fn process_packet_batch(&mut self) -> Result<()> {
+    async fn process_packet(&mut self) -> Result<()> {
         let port = self.target.next_port();
         let packet_type = self.next_packet_type();
         
