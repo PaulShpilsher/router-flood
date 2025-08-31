@@ -1,11 +1,11 @@
 [package]
 name = "router-flood"
 version = "0.0.1"
-edition = "2021"
+edition = "2024"
 description = "Educational DDoS simulation tool for local network stress testing"
 license = "MIT"
-keywords = ["network", "testing", "ddos", "simulation", "stress-test"]
-categories = ["network-programming", "simulation"]
+keywords = ["network", "testing", "ddos", "simulation", "stress-test", "security"]
+categories = ["network-programming", "simulation", "security"]
 
 [dependencies]
 pnet = "0.35.0"

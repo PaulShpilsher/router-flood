@@ -48,15 +48,18 @@ pub mod simd {
         
         // Process 32 bytes at a time with AVX2
         while offset + 32 <= buffer.len() {
-            let random_bytes: [u8; 32] = rng.gen();
-            let vec = _mm256_loadu_si256(random_bytes.as_ptr() as *const __m256i);
-            _mm256_storeu_si256(buffer[offset..].as_mut_ptr() as *mut __m256i, vec);
+            let mut random_bytes = [0u8; 32];
+            rng.fill(&mut random_bytes);
+            unsafe {
+                let vec = _mm256_loadu_si256(random_bytes.as_ptr() as *const __m256i);
+                _mm256_storeu_si256(buffer[offset..].as_mut_ptr() as *mut __m256i, vec);
+            }
             offset += 32;
         }
         
         // Handle remaining bytes
         while offset < buffer.len() {
-            buffer[offset] = rng.gen();
+            rng.fill(&mut buffer[offset..offset+1]);
             offset += 1;
         }
         
