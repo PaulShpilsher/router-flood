@@ -18,7 +18,7 @@ use crate::error::Result;
 pub struct SecurityRunner {
     threat_detector: ThreatDetection,
     input_validator: InputValidation,
-    capabilities: Capabilities,
+    _capabilities: Capabilities,
     running: Arc<AtomicBool>,
 }
 
@@ -28,7 +28,7 @@ impl SecurityRunner {
         Ok(Self {
             threat_detector: ThreatDetection::new(ThreatDetectionConfig::default()),
             input_validator: InputValidation::new(ValidationConfig::default()),
-            capabilities: Capabilities::new()?,
+            _capabilities: Capabilities::new()?,
             running: Arc::new(AtomicBool::new(false)),
         })
     }

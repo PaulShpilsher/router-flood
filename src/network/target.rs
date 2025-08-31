@@ -1,9 +1,7 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
-use crate::network::traits::TargetProvider;
-
-/// Multi-port target manager
+/// Multi-port target manager for round-robin port selection
 pub struct MultiPortTarget {
     ports: Vec<u16>,
     current_index: Arc<AtomicUsize>,
@@ -24,15 +22,5 @@ impl MultiPortTarget {
 
     pub fn get_ports(&self) -> &[u16] {
         &self.ports
-    }
-}
-
-impl TargetProvider for MultiPortTarget {
-    fn next_port(&self) -> u16 {
-        self.next_port()
-    }
-    
-    fn get_ports(&self) -> &[u16] {
-        self.get_ports()
     }
 }

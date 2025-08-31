@@ -3,11 +3,17 @@
 //! This module provides trait-based abstractions for different transport
 //! mechanisms, enabling easy testing and multiple implementations.
 
-pub mod layer;
 pub mod mock;
 
-pub use layer::{TransportLayer, ChannelType};
 pub use mock::MockTransport;
+
+/// Channel type for different protocol layers
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ChannelType {
+    IPv4,
+    IPv6,
+    Layer2,
+}
 
 use crate::constants::TRANSPORT_BUFFER_SIZE;
 use crate::error::{RouterFloodError, Result};

@@ -9,7 +9,7 @@ use std::time::Duration;
 use tokio::time;
 use tracing::{error, info};
 
-use crate::security::audit::create_audit_entry;
+// Audit logging removed for simplification
 use crate::config::Config;
 use crate::error::Result;
 use crate::system_monitor::SystemMonitor;
@@ -120,24 +120,6 @@ impl SimulationRAII {
         } else {
             std::future::pending().await
         }
-    }
-    
-    fn setup_audit_logging(&self, stats: &Arc<Stats>) -> Result<()> {
-        // Audit logging removed for simplification
-        if false {
-            create_audit_entry(
-                &self.target_ip,
-                &self.config.target.ports,
-                self.config.attack.threads,
-                self.config.attack.packet_rate as u64,
-                self.config.attack.duration,
-                self.selected_interface.as_ref().map(|i| i.name.as_str()),
-                &stats.session_id,
-            ).map_err(|e| crate::error::RouterFloodError::Network(
-                format!("Audit setup failed: {}", e)
-            ))?;
-        }
-        Ok(())
     }
     
     fn print_simulation_info(&self) {

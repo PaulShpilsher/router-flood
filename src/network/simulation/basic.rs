@@ -7,12 +7,12 @@ use std::time::Duration;
 use tokio::time;
 use tracing::{error, info, warn};
 
-use crate::security::audit::create_audit_entry;
+// Audit logging removed for simplification
 use crate::config::Config;
 use crate::constants::GRACEFUL_SHUTDOWN_TIMEOUT;
 use crate::error::{RouterFloodError, Result};
 use crate::system_monitor::SystemMonitor;
-use crate::network::network::{find_interface_by_name, default_interface};
+use crate::network::{find_interface_by_name, default_interface};
 use crate::stats::Stats;
 use crate::network::target::MultiPortTarget;
 use crate::network::worker_manager::Workers;
@@ -164,22 +164,6 @@ impl Simulation {
         }
         
         self.finalize_simulation().await?;
-        Ok(())
-    }
-    
-    fn setup_audit_logging(&self) -> Result<()> {
-        // Audit logging removed for simplification
-        if false {
-            create_audit_entry(
-                &self.target_ip,
-                &self.config.target.ports,
-                self.config.attack.threads,
-                self.config.attack.packet_rate as u64,
-                self.config.attack.duration,
-                self.selected_interface.as_ref().map(|i| i.name.as_str()),
-                &self.stats.session_id,
-            ).map_err(|e| RouterFloodError::Network(format!("Audit setup failed: {}", e)))?;
-        }
         Ok(())
     }
     
