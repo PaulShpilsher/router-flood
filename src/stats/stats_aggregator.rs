@@ -97,6 +97,33 @@ impl Stats {
             );
         }
     }
+    
+    /// Print stats in place (updates same line)
+    pub fn print_stats_inplace(&self, system_stats: Option<&SystemStats>) {
+        use std::io::{self, Write};
+        
+        let elapsed = self.start_time.elapsed().as_secs_f64();
+        let packets_sent = self.packets_sent();
+        let packets_failed = self.packets_failed();
+        let bytes_sent = self.bytes_sent();
+        
+        let pps = packets_sent as f64 / elapsed;
+        let mbps = (bytes_sent as f64 * 8.0) / (elapsed * 1_000_000.0);
+        
+        // Move cursor up and clear line
+        print!("\r\x1b[K📊 Stats - Sent: {}, Failed: {}, Rate: {:.1} pps, {:.2} Mbps",
+            packets_sent, packets_failed, pps, mbps
+        );
+        
+        if let Some(sys) = system_stats {
+            print!(" | 💻 CPU: {:.1}%, Memory: {:.1}%",
+                sys.cpu_usage, sys.memory_usage
+            );
+        }
+        
+        // Flush to ensure immediate display
+        let _ = io::stdout().flush();
+    }
 
     /// Export statistics to file
     pub async fn export_stats(&self) -> Result<()> {

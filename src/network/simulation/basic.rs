@@ -67,10 +67,13 @@ impl MonitoringTasks {
         let interval = self.config.monitoring.interval_ms / 1000;
         
         tokio::spawn(async move {
+            // Print initial line
+            println!();
+            
             while running.load(Ordering::Relaxed) {
                 time::sleep(Duration::from_secs(interval)).await;
                 let sys_stats = system_monitor.get_system_stats().await;
-                stats.print_stats(sys_stats.as_ref());
+                stats.print_stats_inplace(sys_stats.as_ref());
             }
         });
     }
