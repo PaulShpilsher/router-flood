@@ -4,6 +4,7 @@
 //! color formatting, and progress bars.
 
 use router_flood::stats::*;
+use router_flood::stats::display as get_display;
 use std::sync::atomic::AtomicU64;
 use std::sync::Arc;
 use std::collections::HashMap;
@@ -390,8 +391,7 @@ fn test_display_drop_behavior() {
 
 #[test]
 fn test_fallback_when_no_display_initialized() {
-    // Test that get_display returns None when not initialized
-    use router_flood::stats::get_display;
+    // Test that display() returns None when not initialized
     
     // Clear any existing display first
     if let Some(display) = get_display() {

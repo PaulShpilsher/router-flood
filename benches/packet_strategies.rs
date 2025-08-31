@@ -8,7 +8,7 @@ use router_flood::packet::strategies::{
     UdpStrategy, TcpStrategy, IcmpStrategy,
     Ipv6UdpStrategy, Ipv6TcpStrategy, Ipv6IcmpStrategy, ArpStrategy
 };
-use router_flood::packet::{PacketStrategy, Target};
+use router_flood::packet::{PacketStrategy, PacketTarget};
 use router_flood::utils::rng::BatchedRng;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
@@ -18,10 +18,10 @@ fn benchmark_udp_strategy(c: &mut Criterion) {
     
     let mut rng = BatchedRng::new();
     let packet_size_range = (64, 1400);
-    let target = Target {
-        ip: IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)),
-        port: 80,
-    };
+    let target = PacketTarget::new(
+        IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)),
+        80
+    );
     
     for buffer_size in [128, 512, 1400] {
         group.bench_with_input(
@@ -47,10 +47,10 @@ fn benchmark_tcp_syn_strategy(c: &mut Criterion) {
     let mut group = c.benchmark_group("strategies/tcp_syn");
     
     let mut rng = BatchedRng::new();
-    let target = Target {
-        ip: IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)),
-        port: 443,
-    };
+    let target = PacketTarget::new(
+        IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)),
+        443
+    );
     
     for buffer_size in [128, 256, 512] {
         group.bench_with_input(
@@ -76,10 +76,10 @@ fn benchmark_tcp_ack_strategy(c: &mut Criterion) {
     let mut group = c.benchmark_group("strategies/tcp_ack");
     
     let mut rng = BatchedRng::new();
-    let target = Target {
-        ip: IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)),
-        port: 443,
-    };
+    let target = PacketTarget::new(
+        IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)),
+        443
+    );
     
     for buffer_size in [128, 256, 512] {
         group.bench_with_input(
@@ -105,10 +105,10 @@ fn benchmark_icmp_strategy(c: &mut Criterion) {
     let mut group = c.benchmark_group("strategies/icmp");
     
     let mut rng = BatchedRng::new();
-    let target = Target {
-        ip: IpAddr::V4(Ipv4Addr::new(8, 8, 8, 8)),
-        port: 0, // ICMP doesn't use ports
-    };
+    let target = PacketTarget::new(
+        IpAddr::V4(Ipv4Addr::new(8, 8, 8, 8)),
+        0 // ICMP doesn't use ports
+    );
     
     for buffer_size in [64, 128, 256] {
         group.bench_with_input(
@@ -135,10 +135,10 @@ fn benchmark_ipv6_udp_strategy(c: &mut Criterion) {
     
     let mut rng = BatchedRng::new();
     let packet_size_range = (64, 1400);
-    let target = Target {
-        ip: IpAddr::V6(Ipv6Addr::new(0x2001, 0xdb8, 0, 0, 0, 0, 0, 1)),
-        port: 53,
-    };
+    let target = PacketTarget::new(
+        IpAddr::V6(Ipv6Addr::new(0x2001, 0xdb8, 0, 0, 0, 0, 0, 1)),
+        53
+    );
     
     group.bench_function("build", |b| {
         let mut strategy = Ipv6UdpStrategy::new(packet_size_range, &mut rng);
@@ -158,10 +158,10 @@ fn benchmark_ipv6_tcp_strategy(c: &mut Criterion) {
     let mut group = c.benchmark_group("strategies/ipv6_tcp");
     
     let mut rng = BatchedRng::new();
-    let target = Target {
-        ip: IpAddr::V6(Ipv6Addr::new(0x2001, 0xdb8, 0, 0, 0, 0, 0, 2)),
-        port: 22,
-    };
+    let target = PacketTarget::new(
+        IpAddr::V6(Ipv6Addr::new(0x2001, 0xdb8, 0, 0, 0, 0, 0, 2)),
+        22
+    );
     
     group.bench_function("build", |b| {
         let mut strategy = Ipv6TcpStrategy::new(&mut rng);
@@ -181,10 +181,10 @@ fn benchmark_ipv6_icmp_strategy(c: &mut Criterion) {
     let mut group = c.benchmark_group("strategies/ipv6_icmp");
     
     let mut rng = BatchedRng::new();
-    let target = Target {
-        ip: IpAddr::V6(Ipv6Addr::new(0x2001, 0xdb8, 0, 0, 0, 0, 0, 3)),
-        port: 0,
-    };
+    let target = PacketTarget::new(
+        IpAddr::V6(Ipv6Addr::new(0x2001, 0xdb8, 0, 0, 0, 0, 0, 3)),
+        0
+    );
     
     group.bench_function("build", |b| {
         let mut strategy = Ipv6IcmpStrategy::new(&mut rng);
@@ -204,10 +204,10 @@ fn benchmark_arp_strategy(c: &mut Criterion) {
     let mut group = c.benchmark_group("strategies/arp");
     
     let mut rng = BatchedRng::new();
-    let target = Target {
-        ip: IpAddr::V4(Ipv4Addr::new(192, 168, 1, 254)),
-        port: 0,
-    };
+    let target = PacketTarget::new(
+        IpAddr::V4(Ipv4Addr::new(192, 168, 1, 254)),
+        0
+    );
     
     group.bench_function("build", |b| {
         let mut strategy = ArpStrategy::new(&mut rng);
@@ -227,14 +227,14 @@ fn benchmark_strategy_comparison(c: &mut Criterion) {
     let mut group = c.benchmark_group("strategies/comparison");
     
     let mut rng = BatchedRng::new();
-    let target_v4 = Target {
-        ip: IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)),
-        port: 80,
-    };
-    let target_v6 = Target {
-        ip: IpAddr::V6(Ipv6Addr::new(0x2001, 0xdb8, 0, 0, 0, 0, 0, 1)),
-        port: 80,
-    };
+    let target_v4 = PacketTarget::new(
+        IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)),
+        80
+    );
+    let target_v6 = PacketTarget::new(
+        IpAddr::V6(Ipv6Addr::new(0x2001, 0xdb8, 0, 0, 0, 0, 0, 1)),
+        80
+    );
     
     // Compare all strategies with same buffer size
     let buffer_size = 512;
@@ -301,10 +301,10 @@ fn benchmark_buffer_sizes(c: &mut Criterion) {
     let mut group = c.benchmark_group("strategies/buffer_size");
     
     let mut rng = BatchedRng::new();
-    let target = Target {
-        ip: IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)),
-        port: 80,
-    };
+    let target = PacketTarget::new(
+        IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)),
+        80
+    );
     
     for buffer_size in [64, 128, 256, 512, 1024, 1400] {
         group.bench_with_input(
