@@ -10,7 +10,6 @@ use chrono::Utc;
 use csv::Writer;
 use tokio::fs;
 use tracing::info;
-use uuid::Uuid;
 
 use crate::config::{Export, ExportFormat};
 use crate::constants::{stats as stats_constants, STATS_EXPORT_DIR};
@@ -32,7 +31,7 @@ impl Default for Stats {
         Self {
             collector: Arc::new(LockFreeStatsCollector::new()),
             start_time: Instant::now(),
-            session_id: Uuid::new_v4().to_string(),
+            session_id: format!("session_{}", chrono::Utc::now().timestamp()),
             export_config: None,
         }
     }
@@ -44,7 +43,7 @@ impl Stats {
         Self {
             collector: Arc::new(LockFreeStatsCollector::new()),
             start_time: Instant::now(),
-            session_id: Uuid::new_v4().to_string(),
+            session_id: format!("session_{}", chrono::Utc::now().timestamp()),
             export_config,
         }
     }

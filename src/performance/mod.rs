@@ -1,16 +1,13 @@
 //! Performance optimization modules
 //!
-//! This module contains various performance optimizations including
-//! SIMD operations, CPU affinity management, and advanced memory management.
+//! This module contains critical performance optimizations including
+//! SIMD operations, CPU affinity management, lock-free memory pools,
+//! and zero-copy packet construction.
 
-pub mod constants;
 pub mod cpu_affinity;
-pub mod inline_hints;
 pub mod memory_pool;
-pub mod tables;
 pub mod batch_pipeline;
 pub mod simd_packet;
-pub mod string_interning;
 pub mod zero_copy;
 
 // Re-export commonly used types
@@ -22,9 +19,6 @@ pub use batch_pipeline::{
     BatchPacketProcessor, ProcessedPacket, PipelineMetrics
 };
 pub use simd_packet::SimdPacketBuilder;
-pub use string_interning::{
-    InternedString, StringInterner, GlobalStringInterner, intern, protocols, errors, fields
-};
 
 // Re-export the main buffer pool from utils
 pub use crate::utils::buffer_pool::BufferPool;

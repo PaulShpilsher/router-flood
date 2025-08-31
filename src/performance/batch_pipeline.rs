@@ -10,8 +10,7 @@ use std::time::Instant;
 use crate::error::{Result, PacketError};
 use crate::packet::PacketType;
 use crate::performance::{
-    ZeroCopyPacketBuilder, Memory, ManagedMemory,
-    InternedString, protocols
+    ZeroCopyPacketBuilder, Memory, ManagedMemory
 };
 use crate::stats::internal_lockfree::{LockFreeStatsCollector, BatchedStatsCollector};
 
@@ -20,7 +19,6 @@ pub struct BatchPacketProcessor {
     memory_manager: Arc<Memory>,
     stats_collector: Arc<LockFreeStatsCollector>,
     packet_builder: ZeroCopyPacketBuilder,
-    protocol_names: ProtocolNameCache,
 }
 
 impl BatchPacketProcessor {
@@ -30,7 +28,6 @@ impl BatchPacketProcessor {
             memory_manager: Arc::new(Memory::new()),
             stats_collector: Arc::new(LockFreeStatsCollector::new()),
             packet_builder: ZeroCopyPacketBuilder::new(1500),
-            protocol_names: ProtocolNameCache::new(),
         }
     }
     
@@ -86,23 +83,23 @@ impl BatchPacketProcessor {
         packet_type: PacketType,
         target_ip: IpAddr,
         target_port: u16,
-    ) -> Result<InternedString> {
+    ) -> Result<&'static str> {
         match packet_type {
             PacketType::Udp => {
                 self.build_udp_packet(target_ip, target_port)?;
-                Ok(self.protocol_names.udp.clone())
+                Ok("UDP")
             }
             PacketType::TcpSyn => {
                 self.build_tcp_packet(target_ip, target_port, 0x02)?; // SYN flag
-                Ok(self.protocol_names.tcp_syn.clone())
+                Ok("TCP_SYN")
             }
             PacketType::TcpAck => {
                 self.build_tcp_packet(target_ip, target_port, 0x10)?; // ACK flag
-                Ok(self.protocol_names.tcp_ack.clone())
+                Ok("TCP_ACK")
             }
             PacketType::Icmp => {
                 self.build_icmp_packet(target_ip)?;
-                Ok(self.protocol_names.icmp.clone())
+                Ok("ICMP")
             }
             _ => {
                 // For now, return error for unsupported packet types
@@ -276,35 +273,10 @@ impl Default for BatchPacketProcessor {
     }
 }
 
-/// Cache of interned protocol names for performance
-struct ProtocolNameCache {
-    udp: InternedString,
-    tcp_syn: InternedString,
-    tcp_ack: InternedString,
-    icmp: InternedString,
-    // Unused protocol fields removed:
-    // ipv6_udp: InternedString,
-    // ipv6_tcp: InternedString,
-    // ipv6_icmp: InternedString,
-    // arp: InternedString,
-}
-
-impl ProtocolNameCache {
-    fn new() -> Self {
-        Self {
-            udp: protocols::udp(),
-            tcp_syn: protocols::tcp_syn(),
-            tcp_ack: protocols::tcp_ack(),
-            icmp: protocols::icmp(),
-            // Unused protocol fields removed
-        }
-    }
-}
-
 /// Result of packet processing
 pub struct ProcessedPacket<'a> {
     pub data: ManagedMemory<'a>,
-    pub protocol_name: InternedString,
+    pub protocol_name: &'static str,
     pub processing_time: std::time::Duration,
     pub is_pooled: bool,
 }

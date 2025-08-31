@@ -8,7 +8,7 @@
 use clap::ArgMatches;
 use tracing::info;
 
-use crate::cli::guided::{GuidedCli, GuidanceLevel};
+// use crate::cli::guided::{GuidedCli, GuidanceLevel};
 use crate::config::preset::PresetConfig;
 use crate::config::Config;
 use crate::error::{Result, RouterFloodError};
@@ -17,7 +17,7 @@ use crate::error::actionable::{display_actionable_user_error, show_quick_help};
 /// CLI application runner with guided mode support
 pub struct CliRunner {
     config: PresetConfig,
-    mode: GuidanceLevel,
+    // mode: GuidanceLevel,
     legacy_config: Config,
 }
 

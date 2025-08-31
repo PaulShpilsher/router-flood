@@ -13,10 +13,11 @@ use std::time::Duration;
 use tokio::time;
 use tracing::{info, warn, error};
 
-use crate::monitoring::{
-    Dashboard, DashboardConfig, DashboardBuilder, AlertThresholds,
-    EssentialMetricsCollector
-};
+// Monitoring module removed - to be integrated inline
+// use crate::monitoring::{
+//     Dashboard, DashboardConfig, DashboardBuilder, AlertThresholds,
+//     EssentialMetricsCollector
+// };
 use crate::security::{
     ThreatDetection, ThreatDetectionConfig, InputValidation,
     ValidationConfig, Capabilities
