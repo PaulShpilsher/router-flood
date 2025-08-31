@@ -20,14 +20,14 @@ use super::collector::{SessionStats, SystemStats};
 use super::display::{get_display};
 
 /// High-performance packet flood statistics tracker using lock-free implementation
-pub struct FloodStatsTracker {
+pub struct StatsAggregator {
     collector: Arc<LockFreeStatsCollector>,
     pub start_time: Instant,
     pub session_id: String,
     pub export_config: Option<ExportConfig>,
 }
 
-impl Default for FloodStatsTracker {
+impl Default for StatsAggregator {
     fn default() -> Self {
         Self {
             collector: Arc::new(LockFreeStatsCollector::new()),
@@ -38,7 +38,7 @@ impl Default for FloodStatsTracker {
     }
 }
 
-impl FloodStatsTracker {
+impl StatsAggregator {
     /// Create a new high-performance stats collector
     pub fn new(export_config: Option<ExportConfig>) -> Self {
         Self {
@@ -293,8 +293,8 @@ impl FloodStatsTracker {
     }
 }
 
-/// Clone implementation for FloodStatsTracker
-impl Clone for FloodStatsTracker {
+/// Clone implementation for StatsAggregator
+impl Clone for StatsAggregator {
     fn clone(&self) -> Self {
         Self {
             collector: self.collector.clone(),

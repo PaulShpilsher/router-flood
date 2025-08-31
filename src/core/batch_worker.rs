@@ -9,7 +9,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::time;
 
-use crate::stats::{FloodStatsTracker, LocalStats};
+use crate::stats::{StatsAggregator, LocalStats};
 use crate::core::target::MultiPortTarget;
 use crate::packet::{PacketBuilder, PacketType};
 use crate::config::ProtocolMix;
@@ -30,7 +30,7 @@ pub struct BatchWorker {
     #[allow(dead_code)]
     id: usize,
     #[allow(dead_code)]
-    stats: Arc<FloodStatsTracker>,
+    stats: Arc<StatsAggregator>,
     local_stats: LocalStats,
     target: Arc<MultiPortTarget>,
     target_ip: IpAddr,
@@ -49,7 +49,7 @@ pub struct BatchWorker {
 impl BatchWorker {
     pub fn new(
         id: usize,
-        stats: Arc<FloodStatsTracker>,
+        stats: Arc<StatsAggregator>,
         target_ip: IpAddr,
         target: Arc<MultiPortTarget>,
         config: BatchWorkerConfig,

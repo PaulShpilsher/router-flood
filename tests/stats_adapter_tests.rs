@@ -4,7 +4,6 @@ use router_flood::stats::adapter::{LockFreeStatsAdapter, LocalStatsExt};
 use router_flood::stats::LocalStats;
 use router_flood::stats::lockfree::{LockFreeStats, ProtocolId};
 use std::sync::Arc;
-use std::sync::atomic::Ordering;
 
 #[test]
 fn test_lock_free_adapter_creation() {

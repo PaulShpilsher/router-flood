@@ -8,9 +8,8 @@
 use router_flood::config::{get_default_config, load_config};
 use router_flood::validation::{validate_system_requirements, validate_target_ip, validate_comprehensive_security};
 use router_flood::error::RouterFloodError;
-use router_flood::stats::FloodStatsTracker;
+use router_flood::stats::StatsAggregator;
 use std::net::{IpAddr, Ipv4Addr};
-use std::sync::atomic::Ordering;
 
 #[test]
 fn test_config_and_validation_integration() {
@@ -85,7 +84,7 @@ fn test_system_requirements_dry_run_integration() {
 
 #[test]
 fn test_stats_and_protocols_integration() {
-    let stats = FloodStatsTracker::default();
+    let stats = StatsAggregator::default();
     
     // Test that all protocol constants work with stats
     let test_protocols = vec!["UDP", "TCP", "ICMP", "IPv6", "ARP"];
@@ -159,9 +158,9 @@ fn test_error_type_conversions() {
 #[test]
 fn test_session_id_uniqueness() {
     // Test that multiple FloodStats instances have unique session IDs
-    let stats1 = FloodStatsTracker::default();
-    let stats2 = FloodStatsTracker::default();
-    let stats3 = FloodStatsTracker::default();
+    let stats1 = StatsAggregator::default();
+    let stats2 = StatsAggregator::default();
+    let stats3 = StatsAggregator::default();
     
     assert_ne!(stats1.session_id, stats2.session_id);
     assert_ne!(stats2.session_id, stats3.session_id);
@@ -206,7 +205,7 @@ async fn test_stats_export_dry_run() {
         include_system_stats: false,
     };
     
-    let stats = FloodStatsTracker::new(Some(export_config));
+    let stats = StatsAggregator::new(Some(export_config));
     
     // Add some test data
     stats.increment_sent(100, "UDP");

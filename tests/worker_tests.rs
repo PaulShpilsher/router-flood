@@ -6,11 +6,10 @@
 //! Tests for worker thread management and packet sending logic.
 
 use router_flood::config::ProtocolMix;
-use router_flood::stats::FloodStatsTracker;
+use router_flood::stats::StatsAggregator;
 use router_flood::core::target::MultiPortTarget;
 use router_flood::core::worker::WorkerManager;
 use std::net::{IpAddr, Ipv4Addr};
-use std::sync::atomic::Ordering;
 use std::sync::Arc;
 
 fn create_test_protocol_mix() -> ProtocolMix {
@@ -36,7 +35,7 @@ fn create_test_config() -> router_flood::config::Config {
 #[tokio::test]
 async fn test_worker_manager_creation() {
     let config = create_test_config();
-    let stats = Arc::new(FloodStatsTracker::default());
+    let stats = Arc::new(StatsAggregator::default());
     let multi_port_target = Arc::new(MultiPortTarget::new(vec![80, 443]));
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
 
@@ -64,7 +63,7 @@ async fn test_worker_manager_creation() {
 #[tokio::test]
 async fn test_worker_manager_lifecycle() {
     let config = create_test_config();
-    let stats = Arc::new(FloodStatsTracker::default());
+    let stats = Arc::new(StatsAggregator::default());
     let multi_port_target = Arc::new(MultiPortTarget::new(vec![80]));
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
 
@@ -104,7 +103,7 @@ async fn test_worker_with_multiple_ports() {
     let mut config = create_test_config();
     config.attack.threads = 1; // Single worker for predictable testing
     
-    let stats = Arc::new(FloodStatsTracker::default());
+    let stats = Arc::new(StatsAggregator::default());
     let multi_port_target = Arc::new(MultiPortTarget::new(vec![80, 443, 8080, 3000]));
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
 
@@ -146,7 +145,7 @@ async fn test_worker_protocol_mix() {
         arp_ratio: 0.0,
     };
     
-    let stats = Arc::new(FloodStatsTracker::default());
+    let stats = Arc::new(StatsAggregator::default());
     let multi_port_target = Arc::new(MultiPortTarget::new(vec![80]));
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
 
@@ -178,7 +177,7 @@ async fn test_worker_rate_limiting() {
     config.attack.threads = 1;
     config.attack.packet_rate = 5; // Very low rate
     
-    let stats = Arc::new(FloodStatsTracker::default());
+    let stats = Arc::new(StatsAggregator::default());
     let multi_port_target = Arc::new(MultiPortTarget::new(vec![80]));
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
 

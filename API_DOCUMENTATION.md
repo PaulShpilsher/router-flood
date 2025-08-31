@@ -24,7 +24,7 @@ use router_flood::*;
 use router_flood::config::{Config, ConfigBuilder, ProtocolMix};
 use router_flood::packet::{PacketBuilder, PacketType};
 use router_flood::core::simulation::Simulation;
-use router_flood::stats::{FloodStats, LockFreeStats};
+use router_flood::stats::{StatsAggregator, LockFreeStats};
 use router_flood::abstractions::{NetworkProvider, SystemProvider};
 use router_flood::utils::raii::{WorkerGuard, ResourceGuard};
 ```
@@ -39,7 +39,7 @@ use router_flood::utils::raii::{WorkerGuard, ResourceGuard};
 | `abstractions` | Trait abstractions | `NetworkProvider`, `SystemProvider` |
 | `performance` | Performance optimizations | `BufferPool`, `CpuAffinity`, `SimdOptimizer` |
 | `security` | Security and validation | `Validator`, `AuditLogger`, `Capabilities` |
-| `stats` | Statistics and monitoring | `FloodStats`, `LockFreeStats`, `PerCpuStats` |
+| `stats` | Statistics and monitoring | `StatsAggregator`, `LockFreeStats`, `PerCpuStats` |
 | `transport` | Network transport | `TransportChannel`, `WorkerChannels` |
 | `utils` | Utilities | `BufferPool`, `RAII Guards`, `BatchedRng` |
 
@@ -281,12 +281,12 @@ validate_port_range(&ports)?;
 ### Statistics Collection
 
 ```rust
-use router_flood::stats::{FloodStats, LockFreeStats, PerCpuStats};
+use router_flood::stats::{StatsAggregator, LockFreeStats, PerCpuStats};
 use router_flood::stats::lockfree::ProtocolId;
 use std::sync::Arc;
 
 // Traditional mutex-based statistics
-let stats = Arc::new(FloodStats::default());
+let stats = Arc::new(StatsAggregator::default());
 stats.increment_sent(64, "UDP");
 stats.increment_failed();
 

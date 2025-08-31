@@ -350,7 +350,7 @@ This update introduces lock-free statistics, RAII resource management, modular r
 - **Import Updates**: All imports updated to new paths
 
 #### Statistics System Enhancement
-- **Backward Compatibility**: Adapter for existing `FloodStats` interface
+- **Backward Compatibility**: Adapter for existing `StatsAggregator` interface
 - **Migration Path**: Smooth transition from mutex to lock-free
 - **Protocol Conversion**: Name to ID mapping system
 - **Local Batching**: Reduced contention with thread-local counters

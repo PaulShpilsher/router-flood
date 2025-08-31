@@ -18,7 +18,7 @@ router-flood/
 │   │   └── worker.rs       # Worker manager
 │   │
 │   ├── stats/              # Statistics system
-│   │   ├── mod.rs          # FloodStatsTracker
+│   │   ├── mod.rs          # StatsAggregator
 │   │   ├── local_stats.rs  # Thread-local batching
 │   │   └── stats_collector.rs
 │   │
@@ -76,15 +76,15 @@ worker.run(running_flag).await;
 - Pre-calculates packet type distribution
 - Uses local statistics to reduce contention
 
-### FloodStatsTracker
+### StatsAggregator
 
 Lock-free statistics collection:
 
 ```rust
-use crate::stats::FloodStats;
+use crate::stats::StatsAggregator;
 
 // Create stats tracker
-let stats = Arc::new(FloodStats::new(export_config));
+let stats = Arc::new(StatsAggregator::new(export_config));
 
 // Record statistics
 stats.increment_sent(packet_size, protocol);

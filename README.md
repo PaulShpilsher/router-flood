@@ -36,7 +36,7 @@ A comprehensive, safety-first network testing tool designed for educational purp
 ```
 Core Components:
 ├── BatchWorker         # High-performance packet generation with batching
-├── FloodStatsTracker   # Lock-free statistics with per-CPU counters
+├── StatsAggregator   # Lock-free statistics with per-CPU counters
 ├── BufferPool          # Zero-allocation buffer management
 └── Simple Traits       # Direct dispatch without async overhead
 ```
@@ -86,7 +86,7 @@ sudo setcap cap_net_raw+ep ./target/release/router-flood
 - Pre-calculated packet type distribution
 - Local statistics batching
 
-#### **FloodStatsTracker** (Statistics)
+#### **StatsAggregator** (Statistics)
 - Lock-free implementation with atomic operations
 - Per-CPU cache-aligned counters
 - Automatic batched aggregation

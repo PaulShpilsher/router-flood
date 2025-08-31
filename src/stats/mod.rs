@@ -10,7 +10,7 @@ pub mod local;
 pub mod lockfree;
 pub mod observer;
 pub mod display;
-pub mod stats_collector;
+pub mod stats_aggregator;
 
 pub use adapter::{LockFreeStatsAdapter, LocalStatsExt};
 pub use collector::{StatsCollector, SessionStats, SystemStats};
@@ -19,7 +19,7 @@ pub use local::LocalStats;
 pub use lockfree::{LockFreeStats, LockFreeLocalStats, PerCpuStats, ProtocolId, StatsSnapshot};
 pub use observer::{StatsObserver, StatsSubject, StatsEvent, ObserverBuilder};
 pub use display::{StatsDisplay, init_display, get_display};
-pub use stats_collector::FloodStatsTracker;
+pub use stats_aggregator::StatsAggregator;
 
 // Re-export the internal lock-free implementation for advanced users
 pub use crate::performance::lockfree_stats::LockFreeStatsCollector as InternalLockFreeCollector;

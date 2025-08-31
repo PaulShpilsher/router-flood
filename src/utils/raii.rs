@@ -9,7 +9,7 @@ use tokio::task::JoinHandle;
 use tracing::{debug, error};
 
 use crate::error::{NetworkError, Result};
-use crate::stats::FloodStatsTracker;
+use crate::stats::StatsAggregator;
 use crate::utils::terminal::TerminalController;
 use crate::transport::WorkerChannels;
 use crate::core::worker::WorkerManager;
@@ -157,20 +157,20 @@ impl Drop for SignalGuard {
 ///
 /// Ensures stats are exported when the guard is dropped
 pub struct StatsGuard {
-    stats: Arc<FloodStatsTracker>,
+    stats: Arc<StatsAggregator>,
     name: String,
 }
 
 impl StatsGuard {
     /// Create a new stats guard
-    pub fn new(stats: Arc<FloodStatsTracker>, name: &str) -> Self {
+    pub fn new(stats: Arc<StatsAggregator>, name: &str) -> Self {
         let name = name.to_string();
         debug!("StatsGuard created for: {}", name);
         Self { stats, name }
     }
     
     /// Get reference to stats
-    pub fn stats(&self) -> &Arc<FloodStatsTracker> {
+    pub fn stats(&self) -> &Arc<StatsAggregator> {
         &self.stats
     }
     
