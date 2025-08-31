@@ -6,6 +6,28 @@
 [![Security](https://img.shields.io/badge/security-capability--based-blue.svg)](#security)
 [![Performance](https://img.shields.io/badge/performance-optimized-brightgreen.svg)](#performance)
 
+## ⚠️ Important Disclaimer
+
+**This tool is for educational and authorized testing purposes only.** Users are responsible for complying with all applicable laws and regulations. Unauthorized use against systems you don't own or lack permission to test is strictly prohibited and may be illegal. By using this software, you agree to use it responsibly and only on networks and systems you own or have explicit permission to test.
+
+---
+
+## 📑 Table of Contents
+
+- [Key Features](#-key-features)
+- [Quick Start](#-quick-start)
+- [Architecture Overview](#-architecture-overview)
+- [Configuration](#-configuration)
+- [Testing](#-testing)
+- [Performance Tuning](#-performance-tuning)
+- [Security](#️-security)
+- [Troubleshooting](#-troubleshooting)
+- [Documentation](#-documentation)
+- [Contributing](#-contributing)
+- [License](#-license)
+
+---
+
 A comprehensive, safety-first network testing tool designed for educational purposes and authorized network testing scenarios. Router Flood features a streamlined architecture with consolidated, high-performance components.
 
 ## 🎯 Key Features
@@ -36,7 +58,7 @@ A comprehensive, safety-first network testing tool designed for educational purp
 ```
 Core Components:
 ├── BatchWorker         # High-performance packet generation with batching
-├── StatsAggregator   # Lock-free statistics with per-CPU counters
+├── Stats             # Lock-free statistics with per-CPU counters
 ├── BufferPool          # Zero-allocation buffer management
 └── Simple Traits       # Direct dispatch without async overhead
 ```
@@ -46,14 +68,16 @@ Core Components:
 ### Prerequisites
 
 - **Rust 1.70+**: [Install Rust](https://rustup.rs/)
-- **Linux System**: Required for raw socket capabilities
+- **Linux System**: Required for raw socket capabilities (kernel 3.10+)
 - **Network Access**: Private network for testing
+- **Memory**: Minimum 512MB RAM (2GB+ recommended for high-throughput testing)
+- **CPU**: Multi-core processor recommended for optimal performance
 
 ### Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/router-flood.git
+git clone https://github.com/paulspilsher/router-flood.git
 cd router-flood
 
 # Build with optimizations
@@ -86,7 +110,7 @@ sudo setcap cap_net_raw+ep ./target/release/router-flood
 - Pre-calculated packet type distribution
 - Local statistics batching
 
-#### **StatsAggregator** (Statistics)
+#### **Stats** (Statistics)
 - Lock-free implementation with atomic operations
 - Per-CPU cache-aligned counters
 - Automatic batched aggregation
@@ -120,7 +144,7 @@ target:
     tcp_syn_ratio: 0.3
     icmp_ratio: 0.1
 
-attack:
+load:
   threads: 4
   packet_rate: 1000
   duration: 60
@@ -195,6 +219,18 @@ cargo bench --bench buffer_pool
 3. Monitor system resources during tests
 4. Keep audit logs for compliance
 
+## 🔧 Troubleshooting
+
+### Common Issues
+
+| Issue | Solution |
+|-------|----------|
+| Permission denied | Run `sudo setcap cap_net_raw+ep ./target/release/router-flood` |
+| Cannot open raw socket | Ensure you're on Linux with CAP_NET_RAW capability |
+| High CPU usage | Reduce thread count or packet rate |
+| Memory issues | Adjust buffer pool size in configuration |
+| Target not reachable | Verify network connectivity and firewall rules |
+
 ## 📚 Documentation
 
 - [API Documentation](./API_DOCUMENTATION.md)
@@ -210,10 +246,6 @@ Contributions are welcome! Please read our [Contributing Guide](./CONTRIBUTING.m
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## ⚠️ Disclaimer
-
-This tool is for **educational and authorized testing purposes only**. Users are responsible for complying with all applicable laws and regulations. Unauthorized use against systems you don't own or lack permission to test is strictly prohibited and may be illegal.
 
 ## 🙏 Acknowledgments
 

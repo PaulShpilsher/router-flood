@@ -24,8 +24,8 @@ use router_flood::*;
 use router_flood::config::{Config, ConfigBuilder, ProtocolMix};
 use router_flood::packet::{PacketBuilder, PacketType};
 use router_flood::core::simulation::Simulation;
-use router_flood::stats::{StatsAggregator, LockFreeStats};
-use router_flood::abstractions::{NetworkProvider, SystemProvider};
+use router_flood::stats::{Stats, LockFreeStats};
+// Abstractions module has been removed for simplicity
 use router_flood::utils::raii::{WorkerGuard, ResourceGuard};
 ```
 
@@ -36,10 +36,9 @@ use router_flood::utils::raii::{WorkerGuard, ResourceGuard};
 | `config` | Configuration management | `Config`, `ConfigBuilder`, `ProtocolMix` |
 | `packet` | Packet construction | `PacketBuilder`, `PacketType` |
 | `core` | Core functionality | `Simulation`, `Target`, `Worker`, `Network` |
-| `abstractions` | Trait abstractions | `NetworkProvider`, `SystemProvider` |
 | `performance` | Performance optimizations | `BufferPool`, `CpuAffinity`, `SimdOptimizer` |
 | `security` | Security and validation | `Validator`, `AuditLogger`, `Capabilities` |
-| `stats` | Statistics and monitoring | `StatsAggregator`, `LockFreeStats`, `PerCpuStats` |
+| `stats` | Statistics and monitoring | `Stats`, `LockFreeStats`, `PerCpuStats` |
 | `transport` | Network transport | `TransportChannel`, `WorkerChannels` |
 | `utils` | Utilities | `BufferPool`, `RAII Guards`, `BatchedRng` |
 
@@ -180,7 +179,7 @@ use router_flood::performance::{LockFreeBufferPool, SharedBufferPool};
 let pool = LockFreeBufferPool::new(1500, 1000); // buffer_size, pool_size
 
 // Get a buffer
-if let Some(mut buffer) = pool.get_buffer() {
+if let Some(mut buffer) = pool.buffer() {
     // Use buffer for packet construction
     // Buffer is automatically returned when dropped
 }
@@ -281,12 +280,12 @@ validate_port_range(&ports)?;
 ### Statistics Collection
 
 ```rust
-use router_flood::stats::{StatsAggregator, LockFreeStats, PerCpuStats};
+use router_flood::stats::{Stats, LockFreeStats, PerCpuStats};
 use router_flood::stats::lockfree::ProtocolId;
 use std::sync::Arc;
 
 // Traditional mutex-based statistics
-let stats = Arc::new(StatsAggregator::default());
+let stats = Arc::new(Stats::default());
 stats.increment_sent(64, "UDP");
 stats.increment_failed();
 
@@ -339,11 +338,11 @@ monitor.start_monitoring(stats_collector, Duration::from_secs(1)).await?;
 
 ```rust
 use router_flood::utils::raii::*;
-use router_flood::core::worker::WorkerManager;
+use router_flood::core::worker_manager::Workers;
 use router_flood::transport::WorkerChannels;
 
 // Worker management with automatic cleanup
-let manager = WorkerManager::new(config);
+let workers = Workers::new(config);
 let _guard = WorkerGuard::new(manager, "main_worker");
 // Worker automatically stops when guard is dropped
 

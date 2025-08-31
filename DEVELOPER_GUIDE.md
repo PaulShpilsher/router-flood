@@ -15,10 +15,10 @@ router-flood/
 │   │   ├── simulation/     # Simulation control
 │   │   ├── target.rs       # Target management
 │   │   ├── traits.rs       # Simple trait definitions
-│   │   └── worker.rs       # Worker manager
+│   │   └── worker_manager.rs # Workers manager
 │   │
 │   ├── stats/              # Statistics system
-│   │   ├── mod.rs          # StatsAggregator
+│   │   ├── mod.rs          # Stats
 │   │   ├── local_stats.rs  # Thread-local batching
 │   │   └── stats_collector.rs
 │   │
@@ -76,15 +76,15 @@ worker.run(running_flag).await;
 - Pre-calculates packet type distribution
 - Uses local statistics to reduce contention
 
-### StatsAggregator
+### Stats
 
 Lock-free statistics collection:
 
 ```rust
-use crate::stats::StatsAggregator;
+use crate::stats::Stats;
 
 // Create stats tracker
-let stats = Arc::new(StatsAggregator::new(export_config));
+let stats = Arc::new(Stats::new(export_config));
 
 // Record statistics
 stats.increment_sent(packet_size, protocol);
@@ -114,7 +114,7 @@ use crate::utils::buffer_pool::BufferPool;
 let pool = BufferPool::new(buffer_size, pool_size);
 
 // Get buffer (always succeeds)
-let buffer = pool.get_buffer();
+let buffer = pool.buffer();
 
 // Use buffer...
 
