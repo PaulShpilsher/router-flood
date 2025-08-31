@@ -210,10 +210,10 @@ impl SimdPacketBuilder {
         let total_size = 20 + 8 + payload_size; // IP + UDP + payload
         
         if buffer.len() < total_size {
-            return Err(PacketError::BufferTooSmall {
-                required: total_size,
-                available: buffer.len(),
-            }.into());
+            return Err(PacketError::build_failed(
+                "UDP",
+                format!("Buffer too small: required {}, available {}", total_size, buffer.len())
+            ).into());
         }
 
         // Build IP header (20 bytes)
@@ -240,10 +240,10 @@ impl SimdPacketBuilder {
         protocol: u8,
     ) -> Result<()> {
         if buffer.len() < 20 {
-            return Err(PacketError::BufferTooSmall {
-                required: 20,
-                available: buffer.len(),
-            }.into());
+            return Err(PacketError::build_failed(
+                "TCP",
+                format!("Buffer too small: required 20, available {}", buffer.len())
+            ).into());
         }
 
         // Version (4) + IHL (5) = 0x45
@@ -290,10 +290,10 @@ impl SimdPacketBuilder {
         payload_len: usize,
     ) -> Result<()> {
         if buffer.len() < 8 {
-            return Err(PacketError::BufferTooSmall {
-                required: 8,
-                available: buffer.len(),
-            }.into());
+            return Err(PacketError::build_failed(
+                "ICMP",
+                format!("Buffer too small: required 8, available {}", buffer.len())
+            ).into());
         }
 
         let udp_len = 8 + payload_len;

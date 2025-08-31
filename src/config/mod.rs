@@ -186,7 +186,7 @@ pub fn validate_config(config: &Config) -> Result<()> {
     }
     
     // Validate packet rate
-    if config.attack.packet_rate <= 0.0 || config.attack.packet_rate > MAX_PACKET_RATE {
+    if config.attack.packet_rate <= 0.0 || config.attack.packet_rate > MAX_PACKET_RATE as f64 {
         return Err(ConfigError::new(
             format!("Packet rate must be between 0 and {}", MAX_PACKET_RATE)
         ).into());

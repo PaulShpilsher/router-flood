@@ -129,7 +129,7 @@ impl SimulationRAII {
                 &self.target_ip,
                 &self.config.target.ports,
                 self.config.attack.threads,
-                self.config.attack.packet_rate,
+                self.config.attack.packet_rate as u64,
                 self.config.attack.duration,
                 self.selected_interface.as_ref().map(|i| i.name.as_str()),
                 &stats.session_id,

@@ -33,7 +33,7 @@ use router_flood::cli::{handle_pre_execution_commands, parse_arguments, process_
 use router_flood::config::{default_config, load_config};
 use router_flood::constants::error_messages;
 use router_flood::error::{Result, display_user_friendly_error};
-use router_flood::core::simulation::{setup_network_interface, Simulation};
+use router_flood::network::simulation::{setup_network_interface, Simulation};
 use router_flood::utils::terminal::TerminalGuard;
 use router_flood::ui::display_startup_banner;
 use router_flood::security::validation::{validate_comprehensive_security, validate_system_requirements};
@@ -58,10 +58,7 @@ fn initialize_configuration(matches: &clap::ArgMatches) -> Result<router_flood::
 
 fn parse_target_ip(config: &router_flood::config::Config) -> Result<IpAddr> {
     config.target.ip.parse()
-        .map_err(|_| router_flood::error::ValidationError::InvalidIpRange {
-            ip: config.target.ip.to_string(),
-            reason: error_messages::INVALID_IP_FORMAT,
-        }.into())
+        .map_err(|_| router_flood::error::ValidationError::new("ip", "Invalid IP range").into())
 }
 
 fn perform_validations(config: &router_flood::config::Config, target_ip: &IpAddr) -> Result<()> {
@@ -69,7 +66,7 @@ fn perform_validations(config: &router_flood::config::Config, target_ip: &IpAddr
         target_ip,
         &config.target.ports,
         config.attack.threads,
-        config.attack.packet_rate,
+        config.attack.packet_rate as u64,
     )?;
     
     validate_system_requirements(config.safety.dry_run)?;

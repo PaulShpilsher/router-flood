@@ -68,10 +68,7 @@ impl InputValidation {
 
     pub fn validate_ip_address(&self, ip_str: &str) -> Result<ValidationResult<ValidatedIpAddr>> {
         let addr: IpAddr = ip_str.parse()
-            .map_err(|_| ValidationError::InvalidIpRange {
-                ip: ip_str.to_string(),
-                reason: "Invalid IP address format",
-            })?;
+            .map_err(|_| ValidationError::new("ip", "Invalid IP range"))?;
         
         let is_private = match addr {
             IpAddr::V4(ipv4) => ipv4.is_private(),
@@ -96,11 +93,7 @@ impl InputValidation {
 
     pub fn validate_port_list(&self, ports: &[u16]) -> Result<ValidationResult<Vec<u16>>> {
         if ports.len() > self.config.max_array_size {
-            return Err(ValidationError::ExceedsLimit {
-                field: "port_list",
-                value: ports.len() as u64,
-                limit: self.config.max_array_size as u64,
-            }.into());
+            return Err(ValidationError::new("limit", "Value exceeds limit").into());
         }
         Ok(ValidationResult {
             value: ports.to_vec(),
@@ -127,10 +120,7 @@ pub fn create_input_validator() -> InputValidation {
 /// Convenience function to validate an IP address
 pub fn validate_ip_address(ip_str: &str) -> Result<ValidatedIpAddr> {
     let addr: IpAddr = ip_str.parse()
-        .map_err(|_| ValidationError::InvalidIpRange {
-            ip: ip_str.to_string(),
-            reason: "Invalid IP address format",
-        })?;
+        .map_err(|_| ValidationError::new("ip", "Invalid IP range"))?;
     
     let is_private = match addr {
         IpAddr::V4(ipv4) => ipv4.is_private(),
@@ -153,11 +143,7 @@ pub fn validate_ip_address(ip_str: &str) -> Result<ValidatedIpAddr> {
 /// Convenience function to validate a port list
 pub fn validate_port_list(ports: &[u16]) -> Result<Vec<u16>> {
     if ports.len() > 1000 {
-        return Err(ValidationError::ExceedsLimit {
-            field: "port_list",
-            value: ports.len() as u64,
-            limit: 1000,
-        }.into());
+        return Err(ValidationError::new("limit", "Value exceeds limit").into());
     }
     Ok(ports.to_vec())
 }

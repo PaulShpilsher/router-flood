@@ -103,10 +103,10 @@ impl BatchPacketProcessor {
             }
             _ => {
                 // For now, return error for unsupported packet types
-                Err(PacketError::BuildFailed {
-                    packet_type: format!("{:?}", packet_type),
-                    reason: "Packet type not yet implemented in optimized pipeline".to_string()
-                }.into())
+                Err(PacketError::build_failed(
+                    &format!("{:?}", packet_type),
+                    "Packet type not yet implemented in optimized pipeline"
+                ).into())
             }
         }
     }
@@ -119,32 +119,20 @@ impl BatchPacketProcessor {
                 let dst_mac = [0x00, 0x11, 0x22, 0x33, 0x44, 0x55];
                 let src_mac = [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
                 self.packet_builder.ethernet_header(&dst_mac, &src_mac, 0x0800)
-                    .map_err(|e| PacketError::BuildFailed {
-                        packet_type: "UDP".to_string(),
-                        reason: e.to_string()
-                    })?;
+                    .map_err(|e| PacketError::build_failed("UDP".to_string(), e.to_string()))?;
                 
                 // IPv4 header
                 let src_ip = 0xC0A80001; // 192.168.0.1
                 let dst_ip = u32::from(ipv4);
                 self.packet_builder.ipv4_header(14, src_ip, dst_ip, 17, 28)
-                    .map_err(|e| PacketError::BuildFailed {
-                        packet_type: "UDP".to_string(),
-                        reason: e.to_string()
-                    })?;
+                    .map_err(|e| PacketError::build_failed("UDP".to_string(), e.to_string()))?;
                 
                 // UDP header
                 self.packet_builder.udp_header(34, 12345, target_port, 8)
-                    .map_err(|e| PacketError::BuildFailed {
-                        packet_type: "UDP".to_string(),
-                        reason: e.to_string()
-                    })?;
+                    .map_err(|e| PacketError::build_failed("UDP".to_string(), e.to_string()))?;
             }
             IpAddr::V6(_) => {
-                return Err(PacketError::BuildFailed {
-                    packet_type: "UDP".to_string(),
-                    reason: "IPv6 not supported for UDP packet type".to_string()
-                }.into());
+                return Err(PacketError::build_failed("UDP".to_string(), "IPv6 not supported for UDP packet type".to_string()).into());
             }
         }
         Ok(())
@@ -158,32 +146,20 @@ impl BatchPacketProcessor {
                 let dst_mac = [0x00, 0x11, 0x22, 0x33, 0x44, 0x55];
                 let src_mac = [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
                 self.packet_builder.ethernet_header(&dst_mac, &src_mac, 0x0800)
-                    .map_err(|e| PacketError::BuildFailed {
-                        packet_type: "TCP".to_string(),
-                        reason: e.to_string()
-                    })?;
+                    .map_err(|e| PacketError::build_failed("TCP".to_string(), e.to_string()))?;
                 
                 // IPv4 header
                 let src_ip = 0xC0A80001; // 192.168.0.1
                 let dst_ip = u32::from(ipv4);
                 self.packet_builder.ipv4_header(14, src_ip, dst_ip, 6, 40)
-                    .map_err(|e| PacketError::BuildFailed {
-                        packet_type: "TCP".to_string(),
-                        reason: e.to_string()
-                    })?;
+                    .map_err(|e| PacketError::build_failed("TCP".to_string(), e.to_string()))?;
                 
                 // TCP header
                 self.packet_builder.tcp_header(34, 12345, target_port, 1000, 0, flags)
-                    .map_err(|e| PacketError::BuildFailed {
-                        packet_type: "TCP".to_string(),
-                        reason: e.to_string()
-                    })?;
+                    .map_err(|e| PacketError::build_failed("TCP".to_string(), e.to_string()))?;
             }
             IpAddr::V6(_) => {
-                return Err(PacketError::BuildFailed {
-                    packet_type: "TCP".to_string(),
-                    reason: "IPv6 not supported for TCP packet type".to_string()
-                }.into());
+                return Err(PacketError::build_failed("TCP".to_string(), "IPv6 not supported for TCP packet type".to_string()).into());
             }
         }
         Ok(())
@@ -197,52 +173,28 @@ impl BatchPacketProcessor {
                 let dst_mac = [0x00, 0x11, 0x22, 0x33, 0x44, 0x55];
                 let src_mac = [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
                 self.packet_builder.ethernet_header(&dst_mac, &src_mac, 0x0800)
-                    .map_err(|e| PacketError::BuildFailed {
-                        packet_type: "ICMP".to_string(),
-                        reason: e.to_string()
-                    })?;
+                    .map_err(|e| PacketError::build_failed("ICMP".to_string(), e.to_string()))?;
                 
                 // IPv4 header
                 let src_ip = 0xC0A80001; // 192.168.0.1
                 let dst_ip = u32::from(ipv4);
                 self.packet_builder.ipv4_header(14, src_ip, dst_ip, 1, 28)
-                    .map_err(|e| PacketError::BuildFailed {
-                        packet_type: "ICMP".to_string(),
-                        reason: e.to_string()
-                    })?;
+                    .map_err(|e| PacketError::build_failed("ICMP".to_string(), e.to_string()))?;
                 
                 // ICMP header (simplified)
                 self.packet_builder.buffer.write_u8(34, 8)
-                    .map_err(|e| PacketError::BuildFailed {
-                        packet_type: "ICMP".to_string(),
-                        reason: e.to_string()
-                    })?; // Type: Echo Request
+                    .map_err(|e| PacketError::build_failed("ICMP".to_string(), e.to_string()))?; // Type: Echo Request
                 self.packet_builder.buffer.write_u8(35, 0)
-                    .map_err(|e| PacketError::BuildFailed {
-                        packet_type: "ICMP".to_string(),
-                        reason: e.to_string()
-                    })?; // Code
+                    .map_err(|e| PacketError::build_failed("ICMP".to_string(), e.to_string()))?; // Code
                 self.packet_builder.buffer.write_u16_be(36, 0)
-                    .map_err(|e| PacketError::BuildFailed {
-                        packet_type: "ICMP".to_string(),
-                        reason: e.to_string()
-                    })?; // Checksum
+                    .map_err(|e| PacketError::build_failed("ICMP".to_string(), e.to_string()))?; // Checksum
                 self.packet_builder.buffer.write_u16_be(38, 1)
-                    .map_err(|e| PacketError::BuildFailed {
-                        packet_type: "ICMP".to_string(),
-                        reason: e.to_string()
-                    })?; // ID
+                    .map_err(|e| PacketError::build_failed("ICMP".to_string(), e.to_string()))?; // ID
                 self.packet_builder.buffer.write_u16_be(40, 1)
-                    .map_err(|e| PacketError::BuildFailed {
-                        packet_type: "ICMP".to_string(),
-                        reason: e.to_string()
-                    })?; // Sequence
+                    .map_err(|e| PacketError::build_failed("ICMP".to_string(), e.to_string()))?; // Sequence
             }
             IpAddr::V6(_) => {
-                return Err(PacketError::BuildFailed {
-                    packet_type: "ICMP".to_string(),
-                    reason: "IPv6 not supported for ICMP packet type".to_string()
-                }.into());
+                return Err(PacketError::build_failed("ICMP".to_string(), "IPv6 not supported for ICMP packet type".to_string()).into());
             }
         }
         Ok(())

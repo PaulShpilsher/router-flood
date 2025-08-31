@@ -4,7 +4,7 @@
 //! following the Abstract Factory and Registry patterns.
 
 use super::{PacketStrategy, PacketType};
-use super::strategies::{UdpStrategy, TcpStrategy, IcmpStrategy};
+use super::protocols::{UdpStrategy, TcpStrategy, IcmpStrategy};
 use crate::error::{Result, RouterFloodError};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};

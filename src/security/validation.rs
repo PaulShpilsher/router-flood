@@ -25,19 +25,13 @@ pub fn validate_target_ip(ip: &IpAddr) -> Result<()> {
                 info!("Target IP {} validated as private range", ip);
                 Ok(())
             } else {
-                Err(ValidationError::InvalidIpRange {
-                    ip: ip.to_string(),
-                    reason: error_messages::PRIVATE_RANGE_REQUIRED,
-                }.into())
+                Err(ValidationError::new("ip", "Invalid IP range").into())
             }
         }
         IpAddr::V6(ipv6) => {
             // Check for IPv6 private ranges (link-local, unique local)
             if ipv6.is_loopback() {
-                return Err(ValidationError::InvalidIpRange {
-                    ip: ip.to_string(),
-                    reason: "Cannot target IPv6 loopback address",
-                }.into());
+                return Err(ValidationError::new("ip", "Invalid IP range").into());
             }
 
             // Link-local (fe80::/10) or unique local (fc00::/7)
@@ -49,10 +43,7 @@ pub fn validate_target_ip(ip: &IpAddr) -> Result<()> {
                 info!("Target IPv6 {} validated as private range", ip);
                 Ok(())
             } else {
-                Err(ValidationError::InvalidIpRange {
-                    ip: ip.to_string(),
-                    reason: error_messages::PRIVATE_RANGE_REQUIRED,
-                }.into())
+                Err(ValidationError::new("ip", "Invalid IP range").into())
             }
         }
     }
@@ -73,10 +64,7 @@ pub fn validate_comprehensive_security(
 ) -> Result<()> {
     // Check if targeting loopback or multicast
     if is_loopback_or_multicast(ip) {
-        return Err(ValidationError::InvalidIpRange {
-            ip: ip.to_string(),
-            reason: error_messages::LOOPBACK_PROHIBITED,
-        }.into());
+        return Err(ValidationError::new("ip", "Invalid IP range").into());
     }
 
     // Validate private IP
@@ -84,20 +72,12 @@ pub fn validate_comprehensive_security(
 
     // Check thread limits
     if threads > MAX_THREADS {
-        return Err(ValidationError::ExceedsLimit {
-            field: "threads",
-            value: threads as u64,
-            limit: MAX_THREADS as u64,
-        }.into());
+        return Err(ValidationError::new("limit", "Value exceeds limit").into());
     }
 
     // Check rate limits
     if rate > MAX_PACKET_RATE {
-        return Err(ValidationError::ExceedsLimit {
-            field: "packet_rate",
-            value: rate,
-            limit: MAX_PACKET_RATE,
-        }.into());
+        return Err(ValidationError::new("limit", "Value exceeds limit").into());
     }
 
     // Check for common service ports that shouldn't be flooded

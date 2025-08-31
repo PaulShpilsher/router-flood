@@ -23,35 +23,35 @@ impl PacketBuilder {
         // Initialize strategies for each packet type
         strategies.insert(
             PacketType::Udp,
-            Box::new(super::strategies::UdpStrategy::new(packet_size_range, &mut rng)),
+            Box::new(super::protocols::UdpStrategy::new(packet_size_range, &mut rng)),
         );
         strategies.insert(
             PacketType::TcpSyn,
-            Box::new(super::strategies::TcpStrategy::new_syn(&mut rng)),
+            Box::new(super::protocols::TcpStrategy::new_syn(&mut rng)),
         );
         strategies.insert(
             PacketType::TcpAck,
-            Box::new(super::strategies::TcpStrategy::new_ack(&mut rng)),
+            Box::new(super::protocols::TcpStrategy::new_ack(&mut rng)),
         );
         strategies.insert(
             PacketType::Icmp,
-            Box::new(super::strategies::IcmpStrategy::new(&mut rng)),
+            Box::new(super::protocols::IcmpStrategy::new(&mut rng)),
         );
         strategies.insert(
             PacketType::Ipv6Udp,
-            Box::new(super::strategies::Ipv6UdpStrategy::new(packet_size_range, &mut rng)),
+            Box::new(super::protocols::Ipv6UdpStrategy::new(packet_size_range, &mut rng)),
         );
         strategies.insert(
             PacketType::Ipv6Tcp,
-            Box::new(super::strategies::Ipv6TcpStrategy::new(&mut rng)),
+            Box::new(super::protocols::Ipv6TcpStrategy::new(&mut rng)),
         );
         strategies.insert(
             PacketType::Ipv6Icmp,
-            Box::new(super::strategies::Ipv6IcmpStrategy::new(&mut rng)),
+            Box::new(super::protocols::Ipv6IcmpStrategy::new(&mut rng)),
         );
         strategies.insert(
             PacketType::Arp,
-            Box::new(super::strategies::ArpStrategy::new(&mut rng)),
+            Box::new(super::protocols::ArpStrategy::new(&mut rng)),
         );
 
         Self {
