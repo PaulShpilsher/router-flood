@@ -11,6 +11,7 @@
 //! - Rate limiting and anomaly detection
 //! - Comprehensive security logging
 
+pub mod audit;
 pub mod capabilities;
 pub mod threat_detection;
 pub mod input_validation;

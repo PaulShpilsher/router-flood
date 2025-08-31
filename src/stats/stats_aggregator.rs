@@ -15,7 +15,7 @@ use uuid::Uuid;
 use crate::config::{ExportConfig, ExportFormat};
 use crate::constants::{stats as stats_constants, STATS_EXPORT_DIR};
 use crate::error::{Result, StatsError};
-use crate::performance::lockfree_stats::{LockFreeStatsCollector, StatsSnapshot};
+use super::internal_lockfree::{LockFreeStatsCollector, StatsSnapshot};
 use super::collector::{SessionStats, SystemStats};
 use super::display::{get_display};
 

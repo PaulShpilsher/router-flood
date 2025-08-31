@@ -1,13 +1,13 @@
-//! Local statistics accumulator for batched updates
+//! Batch statistics accumulator for optimized updates
 //!
-//! This module provides a local accumulator that batches updates to reduce
+//! This module provides an accumulator that batches updates to reduce
 //! contention on the global statistics counters.
 
 use super::StatsAggregator;
 use std::sync::Arc;
 
-/// Local stats accumulator to batch atomic updates
-pub struct LocalStats {
+/// Stats accumulator to batch atomic updates
+pub struct BatchAccumulator {
     packets_sent: u64,
     packets_failed: u64,
     bytes_sent: u64,
@@ -60,7 +60,7 @@ impl ProtocolCounts {
     }
 }
 
-impl LocalStats {
+impl BatchAccumulator {
     /// Create a new local stats accumulator
     pub fn new(stats_ref: Arc<StatsAggregator>, batch_size: usize) -> Self {
         Self {
@@ -145,7 +145,7 @@ impl LocalStats {
     }
 }
 
-impl Drop for LocalStats {
+impl Drop for BatchAccumulator {
     fn drop(&mut self) {
         // Ensure any remaining stats are flushed when worker terminates
         self.flush();

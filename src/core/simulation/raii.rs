@@ -9,15 +9,15 @@ use std::time::Duration;
 use tokio::time;
 use tracing::{error, info};
 
-use crate::audit::create_audit_entry;
+use crate::security::audit::create_audit_entry;
 use crate::config::Config;
 use crate::error::Result;
-use crate::monitor::SystemMonitor;
+use crate::system_monitor::SystemMonitor;
 use crate::utils::raii::{ResourceGuard, SignalGuard, StatsGuard, TerminalRAIIGuard, WorkerGuard};
 use crate::core::simulation::setup_network_interface;
 use crate::stats::StatsAggregator;
 use crate::core::target::MultiPortTarget;
-use crate::core::worker::WorkerManager;
+use crate::core::worker_manager::WorkerManager;
 
 /// Enhanced simulation with RAII resource management
 pub struct SimulationRAII {

@@ -4,7 +4,7 @@ use router_flood::utils::raii::{
     ChannelGuard, ResourceGuard, SignalGuard, StatsGuard, 
     TerminalRAIIGuard, WorkerGuard
 };
-use router_flood::core::worker::WorkerManager;
+use router_flood::core::worker_manager::WorkerManager;
 use router_flood::core::target::MultiPortTarget;
 use router_flood::stats::StatsAggregator;
 use router_flood::transport::WorkerChannels;

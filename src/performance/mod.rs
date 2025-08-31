@@ -6,7 +6,6 @@
 pub mod constants;
 pub mod cpu_affinity;
 pub mod inline_hints;
-pub mod lockfree_stats;
 pub mod memory_pool;
 pub mod lookup_tables;
 pub mod batch_pipeline;
@@ -16,9 +15,6 @@ pub mod zero_copy;
 
 // Re-export commonly used types
 pub use cpu_affinity::{CpuAffinityManager, CpuTopology};
-pub use lockfree_stats::{
-    LockFreeStatsCollector, BatchedStatsCollector, StatsSnapshot, PerCpuStats
-};
 pub use memory_pool::{
     LockFreeMemoryPool, MemoryPoolManager, ManagedMemory, PoolStats as MemoryPoolStats
 };

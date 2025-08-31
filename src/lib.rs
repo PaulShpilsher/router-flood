@@ -11,13 +11,12 @@
 //! - Enhanced user-friendly error messages with actionable guidance
 
 pub mod abstractions;
-pub mod audit;
 pub mod cli;
 pub mod config;
 pub mod constants;
 pub mod core;
 pub mod error;
-pub mod monitor;
+pub mod system_monitor;
 pub mod monitoring;
 pub mod packet;
 pub mod performance;
@@ -33,7 +32,7 @@ pub mod validation;
 // Re-export key types for convenience
 pub use config::{Config, TargetConfig, AttackConfig, SafetyConfig, MonitoringConfig, ExportConfig, ExportFormat, ProtocolMix};
 pub use core::simulation::{Simulation, SimulationRAII};
-pub use core::worker::WorkerManager;
+pub use core::worker_manager::WorkerManager;
 pub use core::target::MultiPortTarget;
 pub use error::{Result, RouterFloodError};
 pub use packet::{PacketBuilder, PacketStrategy, PacketType, Target};

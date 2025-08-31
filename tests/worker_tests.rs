@@ -8,7 +8,7 @@
 use router_flood::config::ProtocolMix;
 use router_flood::stats::StatsAggregator;
 use router_flood::core::target::MultiPortTarget;
-use router_flood::core::worker::WorkerManager;
+use router_flood::core::worker_manager::WorkerManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::sync::Arc;
 

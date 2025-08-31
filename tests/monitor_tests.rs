@@ -2,7 +2,7 @@
 //!
 //! Tests for system monitoring and resource tracking functionality.
 
-use router_flood::monitor::*;
+use router_flood::system_monitor::*;
 use router_flood::stats::SystemStats;
 
 #[test]

@@ -4,8 +4,7 @@
 //! used throughout the application.
 
 pub mod buffer_pool;
-pub mod pool_adapters;
-pub mod pool_trait;
+pub mod pool;
 pub mod protocol_utils;
 pub mod raii;
 pub mod rng;
@@ -14,7 +13,7 @@ pub mod terminal;
 
 // Re-export commonly used types
 pub use buffer_pool::BufferPool;
-pub use pool_trait::{BufferPool as BufferPoolTrait, ObservablePool, PoolStatistics, SizedBufferPool};
+pub use pool::{BufferPoolTrait, ObservablePool, PoolStatistics, SizedBufferPool};
 pub use protocol_utils::PacketTypeExt;
 pub use raii::{ResourceGuard, SignalGuard, StatsGuard};
 pub use rng::BatchedRng;

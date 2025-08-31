@@ -5,7 +5,7 @@
 //!
 //! Tests for audit trail creation and logging functionality.
 
-use router_flood::audit::*;
+use router_flood::security::audit::*;
 use std::net::{IpAddr, Ipv4Addr};
 use uuid::Uuid;
 

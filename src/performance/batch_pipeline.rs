@@ -11,8 +11,9 @@ use crate::error::{Result, PacketError};
 use crate::packet::PacketType;
 use crate::performance::{
     ZeroCopyPacketBuilder, MemoryPoolManager, ManagedMemory,
-    LockFreeStatsCollector, BatchedStatsCollector, InternedString, protocols
+    InternedString, protocols
 };
+use crate::stats::internal_lockfree::{LockFreeStatsCollector, BatchedStatsCollector};
 
 /// High-performance batch packet processor
 pub struct BatchPacketProcessor {

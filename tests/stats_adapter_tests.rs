@@ -1,7 +1,7 @@
 //! Tests for stats adapter module
 
-use router_flood::stats::adapter::{LockFreeStatsAdapter, LocalStatsExt};
-use router_flood::stats::LocalStats;
+use router_flood::stats::adapter::{LockFreeStatsAdapter, BatchStatsExt};
+use router_flood::stats::BatchAccumulator;
 use router_flood::stats::lockfree::{LockFreeStats, ProtocolId};
 use std::sync::Arc;
 
@@ -79,14 +79,14 @@ fn test_adapter_to_flood_stats_conversion() {
 }
 
 #[test]
-fn test_local_stats_with_lock_free() {
+fn test_batch_accumulator_with_lock_free() {
     let lock_free = Arc::new(LockFreeStats::new());
-    let local_stats = LocalStats::with_lock_free(lock_free.clone(), 10);
+    let batch_stats = BatchAccumulator::with_lock_free(lock_free.clone(), 10);
     
-    // LocalStats should work with lock-free backend
+    // BatchAccumulator should work with lock-free backend
     // Note: We can't directly test much here without exposing internals
     // but we verify it creates successfully
-    drop(local_stats);
+    drop(batch_stats);
     
     // After drop, stats should be flushed
     let snapshot = lock_free.snapshot();

@@ -12,7 +12,7 @@ use crate::error::{NetworkError, Result};
 use crate::stats::StatsAggregator;
 use crate::utils::terminal::TerminalController;
 use crate::transport::WorkerChannels;
-use crate::core::worker::WorkerManager;
+use crate::core::worker_manager::WorkerManager;
 
 /// RAII guard for worker thread management
 /// 

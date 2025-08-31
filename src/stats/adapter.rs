@@ -58,14 +58,14 @@ impl LockFreeStatsAdapter {
     }
 }
 
-/// Extension trait to add lock-free support to LocalStats
-pub trait LocalStatsExt {
+/// Extension trait to add lock-free support to BatchAccumulator
+pub trait BatchStatsExt {
     fn with_lock_free(stats: Arc<LockFreeStats>, batch_size: usize) -> Self;
 }
 
-impl LocalStatsExt for super::LocalStats {
+impl BatchStatsExt for super::BatchAccumulator {
     fn with_lock_free(_stats: Arc<LockFreeStats>, batch_size: usize) -> Self {
-        // Create a FloodStats instance for the LocalStats to use
+        // Create a StatsAggregator instance for the BatchAccumulator to use
         let flood_stats = Arc::new(StatsAggregator::default());
         
         Self::new(flood_stats, batch_size)

@@ -7,15 +7,15 @@ use std::time::Duration;
 use tokio::time;
 use tracing::{error, info, warn};
 
-use crate::audit::create_audit_entry;
+use crate::security::audit::create_audit_entry;
 use crate::config::Config;
 use crate::constants::GRACEFUL_SHUTDOWN_TIMEOUT;
 use crate::error::{NetworkError, Result};
-use crate::monitor::SystemMonitor;
+use crate::system_monitor::SystemMonitor;
 use crate::core::network::{find_interface_by_name, get_default_interface};
 use crate::stats::StatsAggregator;
 use crate::core::target::MultiPortTarget;
-use crate::core::worker::WorkerManager;
+use crate::core::worker_manager::WorkerManager;
 
 /// Network interface setup
 pub fn setup_network_interface(config: &Config) -> Result<Option<pnet::datalink::NetworkInterface>> {
