@@ -3,7 +3,6 @@
 //! This module provides a trait-based architecture for statistics collection
 //! with support for different collection strategies and export formats.
 
-pub mod adapter;
 pub mod collector;
 pub mod export;
 pub mod batch_accumulator;
@@ -13,7 +12,6 @@ pub mod display;
 pub mod stats_aggregator;
 pub mod internal_lockfree;
 
-pub use adapter::{LockFreeStatsAdapter, BatchStatsExt};
 pub use collector::{StatsCollector, SessionStats, SystemStats};
 pub use export::StatsExporter;
 pub use batch_accumulator::BatchAccumulator;

@@ -229,50 +229,6 @@ impl PresetConfig {
         Ok(())
     }
 
-    /// Convert to legacy Config format for backward compatibility
-    pub fn to_legacy_config(&self) -> crate::config::Config {
-        let (threads, packet_rate) = self.test.intensity.to_thread_rate();
-        
-        crate::config::Config {
-            target: crate::config::TargetConfig {
-                ip: self.target.ip.clone(),
-                ports: self.target.ports.clone(),
-                protocol_mix: self.test.protocols.to_protocol_mix(),
-                interface: self.target.interface.clone(),
-            },
-            attack: crate::config::AttackConfig {
-                threads,
-                packet_rate,
-                duration: Some(self.test.duration),
-                packet_size_range: (64, 1400), // Sensible defaults
-                burst_pattern: crate::config::BurstPattern::Sustained { rate: packet_rate },
-                randomize_timing: true,
-            },
-            safety: crate::config::SafetyConfig {
-                max_threads: 100,
-                max_packet_rate: 10000,
-                require_private_ranges: self.safety.private_only,
-                enable_monitoring: true,
-                audit_logging: self.safety.audit_log,
-                dry_run: self.safety.dry_run,
-                perfect_simulation: false,
-            },
-            monitoring: crate::config::MonitoringConfig {
-                stats_interval: 5,
-                system_monitoring: true,
-                export_interval: Some(60),
-                performance_tracking: false, // Preset
-            },
-            export: crate::config::ExportConfig {
-                enabled: self.test.export.enabled,
-                format: self.test.export.format.to_legacy_format(),
-                filename_pattern: self.test.export.filename.clone()
-                    .unwrap_or_else(|| "router_flood_{timestamp}".to_string()),
-                include_system_stats: false, // Preset
-            },
-        }
-    }
-
     /// Create a quick test configuration
     pub fn quick_test(target_ip: &str) -> Self {
         Self {
@@ -450,43 +406,11 @@ impl LoadLevel {
 }
 
 impl ProtocolConfig {
-    /// Convert to legacy protocol mix
-    pub fn to_protocol_mix(&self) -> crate::config::ProtocolMix {
-        let enabled_count = [self.udp, self.tcp, self.icmp].iter().filter(|&&x| x).count() as f64;
-        
-        if enabled_count == 0.0 {
-            // Fallback to UDP only
-            return crate::config::ProtocolMix {
-                udp_ratio: 1.0,
-                tcp_syn_ratio: 0.0,
-                tcp_ack_ratio: 0.0,
-                icmp_ratio: 0.0,
-                ipv6_ratio: 0.0,
-                arp_ratio: 0.0,
-            };
-        }
-
-        let ratio_per_protocol = 1.0 / enabled_count;
-        
-        crate::config::ProtocolMix {
-            udp_ratio: if self.udp { ratio_per_protocol } else { 0.0 },
-            tcp_syn_ratio: if self.tcp { ratio_per_protocol * 0.8 } else { 0.0 },
-            tcp_ack_ratio: if self.tcp { ratio_per_protocol * 0.2 } else { 0.0 },
-            icmp_ratio: if self.icmp { ratio_per_protocol } else { 0.0 },
-            ipv6_ratio: 0.0, // Preset - no IPv6 support
-            arp_ratio: 0.0,  // Preset - no ARP support
-        }
-    }
+    // Methods for ProtocolConfig if needed
 }
 
 impl ExportFormat {
-    /// Convert to legacy export format
-    fn to_legacy_format(&self) -> crate::config::ExportFormat {
-        match self {
-            ExportFormat::Json => crate::config::ExportFormat::Json,
-            ExportFormat::Csv => crate::config::ExportFormat::Csv,
-        }
-    }
+    // Methods for ExportFormat if needed
 }
 
 impl std::str::FromStr for LoadLevel {

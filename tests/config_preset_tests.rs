@@ -32,20 +32,6 @@ fn test_load_level_conversion() {
 }
 
 #[test]
-fn test_protocol_mix_conversion() {
-    let protocols = ProtocolConfig {
-        udp: true,
-        tcp: true,
-        icmp: false,
-    };
-    
-    let mix = protocols.to_protocol_mix();
-    assert!(mix.udp_ratio > 0.0);
-    assert!(mix.tcp_syn_ratio > 0.0);
-    assert_eq!(mix.icmp_ratio, 0.0);
-}
-
-#[test]
 fn test_validation_errors() {
     let mut config = PresetConfig::default();
     
