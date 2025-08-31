@@ -23,35 +23,35 @@ impl PacketBuilder {
         // Initialize strategies for each packet type
         strategies.insert(
             PacketType::Udp,
-            Box::new(super::strategies::UdpStrategy::new(packet_size_range, &mut rng)),
+            Box::new(super::protocols::UdpStrategy::new(packet_size_range, &mut rng)),
         );
         strategies.insert(
             PacketType::TcpSyn,
-            Box::new(super::strategies::TcpStrategy::new_syn(&mut rng)),
+            Box::new(super::protocols::TcpStrategy::new_syn(&mut rng)),
         );
         strategies.insert(
             PacketType::TcpAck,
-            Box::new(super::strategies::TcpStrategy::new_ack(&mut rng)),
+            Box::new(super::protocols::TcpStrategy::new_ack(&mut rng)),
         );
         strategies.insert(
             PacketType::Icmp,
-            Box::new(super::strategies::IcmpStrategy::new(&mut rng)),
+            Box::new(super::protocols::IcmpStrategy::new(&mut rng)),
         );
         strategies.insert(
             PacketType::Ipv6Udp,
-            Box::new(super::strategies::Ipv6UdpStrategy::new(packet_size_range, &mut rng)),
+            Box::new(super::protocols::Ipv6UdpStrategy::new(packet_size_range, &mut rng)),
         );
         strategies.insert(
             PacketType::Ipv6Tcp,
-            Box::new(super::strategies::Ipv6TcpStrategy::new(&mut rng)),
+            Box::new(super::protocols::Ipv6TcpStrategy::new(&mut rng)),
         );
         strategies.insert(
             PacketType::Ipv6Icmp,
-            Box::new(super::strategies::Ipv6IcmpStrategy::new(&mut rng)),
+            Box::new(super::protocols::Ipv6IcmpStrategy::new(&mut rng)),
         );
         strategies.insert(
             PacketType::Arp,
-            Box::new(super::strategies::ArpStrategy::new(&mut rng)),
+            Box::new(super::protocols::ArpStrategy::new(&mut rng)),
         );
 
         Self {
@@ -73,12 +73,12 @@ impl PacketBuilder {
         let target = PacketTarget::new(target_ip, target_port);
         
         let strategy = self.strategies.get_mut(&packet_type)
-            .ok_or_else(|| PacketError::InvalidParameters(
+            .ok_or_else(|| PacketError::build_failed("Packet", 
                 format!("No strategy available for packet type: {}", packet_type)
             ))?;
 
         if !strategy.is_compatible_with(target_ip) {
-            return Err(PacketError::InvalidParameters(
+            return Err(PacketError::build_failed("Packet", 
                 format!("Packet type {} is not compatible with target IP {}", packet_type, target_ip)
             ).into());
         }
@@ -98,7 +98,7 @@ impl PacketBuilder {
         target_port: u16,
     ) -> Result<(Vec<u8>, &'static str)> {
         let strategy = self.strategies.get(&packet_type)
-            .ok_or_else(|| PacketError::InvalidParameters(
+            .ok_or_else(|| PacketError::build_failed("Packet", 
                 format!("No strategy available for packet type: {}", packet_type)
             ))?;
 

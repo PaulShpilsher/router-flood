@@ -3,14 +3,20 @@
 //! This module provides trait-based abstractions for different transport
 //! mechanisms, enabling easy testing and multiple implementations.
 
-pub mod layer;
 pub mod mock;
 
-pub use layer::{TransportLayer, ChannelType};
 pub use mock::MockTransport;
 
+/// Channel type for different protocol layers
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ChannelType {
+    IPv4,
+    IPv6,
+    Layer2,
+}
+
 use crate::constants::TRANSPORT_BUFFER_SIZE;
-use crate::error::{NetworkError, Result};
+use crate::error::{RouterFloodError, Result};
 use pnet::transport::{transport_channel, TransportChannelType, TransportSender};
 use pnet::packet::ip::IpNextHeaderProtocols;
 use pnet::datalink::{channel, Channel, DataLinkSender, NetworkInterface};
@@ -53,7 +59,7 @@ impl WorkerChannels {
             TRANSPORT_BUFFER_SIZE,
             TransportChannelType::Layer3(IpNextHeaderProtocols::Ipv4),
         )
-        .map_err(|e| NetworkError::ChannelCreation(format!("IPv4 channel: {}", e)))?;
+        .map_err(|e| RouterFloodError::Network(format!("IPv4 channel: {}", e)))?;
         
         Ok(tx)
     }
@@ -64,7 +70,7 @@ impl WorkerChannels {
             TRANSPORT_BUFFER_SIZE,
             TransportChannelType::Layer3(IpNextHeaderProtocols::Ipv6),
         )
-        .map_err(|e| NetworkError::ChannelCreation(format!("IPv6 channel: {}", e)))?;
+        .map_err(|e| RouterFloodError::Network(format!("IPv6 channel: {}", e)))?;
         
         Ok(tx)
     }
@@ -74,8 +80,8 @@ impl WorkerChannels {
         if let Some(iface) = interface {
             match channel(iface, Default::default()) {
                 Ok(Channel::Ethernet(tx, _)) => Ok(Some(tx)),
-                Ok(_) => Err(NetworkError::ChannelCreation("Unknown L2 channel type".to_string()).into()),
-                Err(e) => Err(NetworkError::ChannelCreation(format!("L2 channel: {}", e)).into()),
+                Ok(_) => Err(RouterFloodError::Network("Unknown L2 channel type".to_string()).into()),
+                Err(e) => Err(RouterFloodError::Network(format!("L2 channel: {}", e)).into()),
             }
         } else {
             Ok(None)
@@ -95,10 +101,10 @@ impl WorkerChannels {
     fn send_ipv4_packet(&mut self, packet_data: &[u8], target_ip: IpAddr) -> Result<()> {
         if let Some(ref mut tx) = self.ipv4_sender {
             let packet = pnet::packet::ipv4::Ipv4Packet::new(packet_data)
-                .ok_or_else(|| NetworkError::PacketSend("Invalid IPv4 packet data".to_string()))?;
+                .ok_or_else(|| RouterFloodError::Network("Invalid IPv4 packet data".to_string()))?;
             
             tx.send_to(packet, target_ip)
-                .map_err(|e| NetworkError::PacketSend(format!("Failed to send IPv4 packet: {}", e)))?;
+                .map_err(|e| RouterFloodError::Network(format!("Failed to send IPv4 packet: {}", e)))?;
         }
         Ok(())
     }
@@ -107,10 +113,10 @@ impl WorkerChannels {
     fn send_ipv6_packet(&mut self, packet_data: &[u8], target_ip: IpAddr) -> Result<()> {
         if let Some(ref mut tx) = self.ipv6_sender {
             let packet = pnet::packet::ipv6::Ipv6Packet::new(packet_data)
-                .ok_or_else(|| NetworkError::PacketSend("Invalid IPv6 packet data".to_string()))?;
+                .ok_or_else(|| RouterFloodError::Network("Invalid IPv6 packet data".to_string()))?;
             
             tx.send_to(packet, target_ip)
-                .map_err(|e| NetworkError::PacketSend(format!("Failed to send IPv6 packet: {}", e)))?;
+                .map_err(|e| RouterFloodError::Network(format!("Failed to send IPv6 packet: {}", e)))?;
         }
         Ok(())
     }
@@ -120,8 +126,8 @@ impl WorkerChannels {
         if let Some(ref mut tx) = self.l2_sender {
             match tx.send_to(packet_data, None) {
                 Some(Ok(())) => {}
-                Some(Err(e)) => return Err(NetworkError::PacketSend(format!("Failed to send L2 packet: {}", e)).into()),
-                None => return Err(NetworkError::PacketSend("L2 send returned None".to_string()).into()),
+                Some(Err(e)) => return Err(RouterFloodError::Network(format!("Failed to send L2 packet: {}", e)).into()),
+                None => return Err(RouterFloodError::Network("L2 send returned None".to_string()).into()),
             }
         }
         Ok(())

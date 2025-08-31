@@ -203,7 +203,8 @@ impl Drop for StatsDisplay {
 }
 
 /// Global stats display instance
-static STATS_DISPLAY: once_cell::sync::OnceCell<Arc<StatsDisplay>> = once_cell::sync::OnceCell::new();
+use std::sync::OnceLock;
+static STATS_DISPLAY: OnceLock<Arc<StatsDisplay>> = OnceLock::new();
 
 /// Initialize the global stats display
 pub fn init_display(enabled: bool) -> Arc<StatsDisplay> {

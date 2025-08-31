@@ -1,15 +1,12 @@
 //! Packet building and protocol handling
 //!
-//! This module provides a trait-based architecture for packet construction
-//! with support for multiple protocols and zero-copy operations.
+//! This module provides packet construction for multiple protocols.
 
 pub mod builder;
-pub mod strategies;
-pub mod factory;
+pub mod protocols;
 pub mod types;
 
 pub use builder::PacketBuilder;
-pub use factory::{StrategyFactory, Registry, Builder, global_registry};
 pub use types::PacketType;
 
 use crate::error::Result;

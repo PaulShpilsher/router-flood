@@ -21,14 +21,14 @@ fn main() -> Result<()> {
     }
     println!();
     
-    // Display attack configuration
-    println!("Attack Configuration:");
+    // Display load configuration
+    println!("Load Configuration:");
     println!("  Threads: {}", config.attack.threads);
     println!("  Packet Rate: {} pps", config.attack.packet_rate);
     if let Some(duration) = config.attack.duration {
         println!("  Duration: {} seconds", duration);
     }
-    println!("  Packet Size Range: {:?}", config.attack.packet_size_range);
+    println!("  Payload Size: {} bytes", config.attack.payload_size);
     println!();
     
     // Display protocol mix
@@ -37,17 +37,18 @@ fn main() -> Result<()> {
     println!("  TCP SYN: {:.1}%", config.target.protocol_mix.tcp_syn_ratio * 100.0);
     println!("  TCP ACK: {:.1}%", config.target.protocol_mix.tcp_ack_ratio * 100.0);
     println!("  ICMP: {:.1}%", config.target.protocol_mix.icmp_ratio * 100.0);
-    println!("  IPv6: {:.1}%", config.target.protocol_mix.ipv6_ratio * 100.0);
-    println!("  ARP: {:.1}%", config.target.protocol_mix.arp_ratio * 100.0);
+    println!("  Custom: {:.1}%", config.target.protocol_mix.custom_ratio * 100.0);
     println!();
     
     // Display safety configuration
     println!("Safety Configuration:");
-    println!("  Max Threads: {}", config.safety.max_threads);
-    println!("  Max Packet Rate: {}", config.safety.max_packet_rate);
-    println!("  Require Private Ranges: {}", config.safety.require_private_ranges);
     println!("  Dry Run: {}", config.safety.dry_run);
-    println!("  Perfect Simulation: {}", config.safety.perfect_simulation);
+    println!("  Rate Limit: {}", config.safety.rate_limit);
+    if let Some(bandwidth) = config.safety.max_bandwidth_mbps {
+        println!("  Max Bandwidth: {} Mbps", bandwidth);
+    }
+    println!("  Allow Localhost: {}", config.safety.allow_localhost);
+    println!("  Require Confirmation: {}", config.safety.require_confirmation);
     println!();
     
     // Validate configuration
@@ -58,8 +59,7 @@ fn main() -> Result<()> {
         + config.target.protocol_mix.tcp_syn_ratio
         + config.target.protocol_mix.tcp_ack_ratio
         + config.target.protocol_mix.icmp_ratio
-        + config.target.protocol_mix.ipv6_ratio
-        + config.target.protocol_mix.arp_ratio;
+        + config.target.protocol_mix.custom_ratio;
     
     if (total_ratio - 1.0).abs() < 0.001 {
         println!("  ✅ Protocol ratios valid (sum = {:.3})", total_ratio);
@@ -67,17 +67,17 @@ fn main() -> Result<()> {
         println!("  ❌ Protocol ratios invalid (sum = {:.3}, expected 1.0)", total_ratio);
     }
     
-    // Check safety limits
-    if config.attack.threads <= config.safety.max_threads {
-        println!("  ✅ Thread count within limits");
+    // Check safety settings
+    if config.safety.dry_run {
+        println!("  ✅ Running in dry-run mode (safe)");
     } else {
-        println!("  ❌ Thread count exceeds safety limit");
+        println!("  ⚠️  Not in dry-run mode");
     }
     
-    if config.attack.packet_rate <= config.safety.max_packet_rate {
-        println!("  ✅ Packet rate within limits");
+    if config.safety.rate_limit {
+        println!("  ✅ Rate limiting enabled");
     } else {
-        println!("  ❌ Packet rate exceeds safety limit");
+        println!("  ⚠️  Rate limiting disabled");
     }
     
     println!("\nNote: This example demonstrates reading and validating configuration.");

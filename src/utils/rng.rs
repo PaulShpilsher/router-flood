@@ -183,14 +183,14 @@ impl BatchedRng {
     /// Replenish sequence number batch
     fn replenish_sequence_batch(&mut self) {
         for _ in 0..self.batch_size {
-            self.sequence_batch.push_back(self.rng.gen());
+            self.sequence_batch.push_back(self.rng.gen_range(0..u32::MAX));
         }
     }
 
     /// Replenish identification batch
     fn replenish_id_batch(&mut self) {
         for _ in 0..self.batch_size {
-            self.id_batch.push_back(self.rng.gen());
+            self.id_batch.push_back(self.rng.gen_range(0..u16::MAX));
         }
     }
 
@@ -211,14 +211,14 @@ impl BatchedRng {
     /// Replenish IPv6 flow label batch
     fn replenish_flow_batch(&mut self) {
         for _ in 0..self.batch_size {
-            self.flow_batch.push_back(self.rng.gen::<u32>() & 0xFFFFF);
+            self.flow_batch.push_back(self.rng.gen_range(0..=0xFFFFF));
         }
     }
 
     /// Replenish byte batch
     fn replenish_byte_batch(&mut self) {
         for _ in 0..self.batch_size {
-            self.byte_batch.push_back(self.rng.gen());
+            self.byte_batch.push_back(self.rng.gen_range(0..=255));
         }
     }
 

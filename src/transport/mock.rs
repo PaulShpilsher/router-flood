@@ -1,6 +1,6 @@
 //! Mock transport implementation for testing
 
-use super::layer::{TransportLayer, ChannelType};
+use super::ChannelType;
 use crate::error::Result;
 use std::net::IpAddr;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -41,11 +41,12 @@ impl Default for MockTransport {
     }
 }
 
-impl TransportLayer for MockTransport {
-    fn send_packet(&self, _data: &[u8], _target: IpAddr, _channel_type: ChannelType) -> Result<()> {
+impl MockTransport {
+    /// Send a packet (mock implementation)
+    pub fn send_packet(&self, _data: &[u8], _target: IpAddr, _channel_type: ChannelType) -> Result<()> {
         if self.should_fail && self.packets_sent() % 100 == 99 {
             // Simulate 1% failure rate
-            return Err(crate::error::NetworkError::PacketSend(
+            return Err(crate::error::RouterFloodError::Network(
                 "Mock transport simulated failure".to_string()
             ).into());
         }
@@ -54,11 +55,13 @@ impl TransportLayer for MockTransport {
         Ok(())
     }
     
-    fn is_available(&self) -> bool {
+    /// Check if transport is available
+    pub fn is_available(&self) -> bool {
         true
     }
     
-    fn name(&self) -> &'static str {
+    /// Get transport name
+    pub fn name(&self) -> &'static str {
         "Mock"
     }
 }

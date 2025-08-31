@@ -1,17 +1,17 @@
 [package]
 name = "router-flood"
 version = "0.0.1"
-edition = "2021"
+edition = "2024"
 description = "Educational DDoS simulation tool for local network stress testing"
 license = "MIT"
-keywords = ["network", "testing", "ddos", "simulation", "stress-test"]
-categories = ["network-programming", "simulation"]
+keywords = ["packet-generator", "network-testing", "stress-testing", "load-testing", "performance"]
+categories = ["network-programming", "testing", "command-line-utilities"]
 
 [dependencies]
 pnet = "0.35.0"
 rand = "0.8.5"
 clap = { version = "4.5.4", features = ["derive"] }
-tokio = { version = "1.38.0", features = ["full", "signal"] }
+tokio = { version = "1.47", features = ["full", "signal"] }
 libc = "0.2"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -20,86 +20,20 @@ log = "0.4"
 env_logger = "0.11"
 chrono = { version = "0.4", features = ["serde"] }
 csv = "1.3"
-sysinfo = "0.31"
+sysinfo = "0.32"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-config = "0.14"
-uuid = { version = "1.0", features = ["v4"] }
 futures = "0.3"
-sha2 = "0.10"
-hex = "0.4"
 num_cpus = "1.16"
-termios = "0.3"
-once_cell = "1.19"
 regex = "1.10"
+termios = "0.3"
 
 [features]
 default = []
-http-server = ["warp"]
-
-[dependencies.warp]
-version = "0.3"
-optional = true
 
 [dev-dependencies]
 tokio-test = "0.4"
 tempfile = "3.8"
-proptest = "1.4"
 criterion = { version = "0.5", features = ["html_reports"] }
+proptest = "1.6"
 
-[[bench]]
-name = "packet_building"
-harness = false
-
-[[bench]]
-name = "config_validation"
-harness = false
-
-[[bench]]
-name = "lockfree_stats"
-harness = false
-
-[[bench]]
-name = "raii_guards"
-harness = false
-
-
-[[bench]]
-name = "transport"
-harness = false
-
-[[bench]]
-name = "rate_limiting"
-harness = false
-
-[[bench]]
-name = "buffer_pool"
-harness = false
-
-[[bench]]
-name = "protocol_selection"
-harness = false
-
-[[bench]]
-name = "validation"
-harness = false
-
-[[bench]]
-name = "rng"
-harness = false
-
-[[bench]]
-name = "simd"
-harness = false
-
-[[bench]]
-name = "export"
-harness = false
-
-[[bench]]
-name = "worker_coordination"
-harness = false
-
-[[bench]]
-name = "packet_strategies"
-harness = false

@@ -1,172 +1,129 @@
-//! Centralized configuration validation
+//! Configuration validation utilities
+//!
+//! This module provides validation helpers for configuration values.
 
-use crate::config::Config;
-use crate::error::{ValidationError, Result, messages};
-use crate::security::validation::validate_comprehensive_security;
+use crate::error::{Result, ValidationError};
 use std::net::IpAddr;
+use std::str::FromStr;
 
-/// Centralized configuration validator
-pub struct ConfigValidator;
+/// Validate an IP address string
+pub fn validate_ip(ip_str: &str) -> Result<IpAddr> {
+    IpAddr::from_str(ip_str)
+        .map_err(|_| ValidationError::new("ip", "Invalid IP address format").into())
+}
 
-impl ConfigValidator {
-    /// Perform comprehensive validation of a configuration
-    pub fn validate(config: &Config) -> Result<()> {
-        // Parse and validate target IP
-        let target_ip: IpAddr = config.target.ip.parse()
-            .map_err(|_| ValidationError::InvalidIpRange {
-                ip: config.target.ip.clone(),
-                reason: messages::INVALID_IP_FORMAT,
-            })?;
-        
-        // Validate comprehensive security
-        validate_comprehensive_security(
-            &target_ip,
-            &config.target.ports,
-            config.attack.threads,
-            config.attack.packet_rate,
-        )?;
-        
-        // Validate protocol mix ratios
-        Self::validate_protocol_mix(config)?;
-        
-        // Validate packet size range
-        Self::validate_packet_size_range(config)?;
-        
-        // Validate burst pattern
-        Self::validate_burst_pattern(config)?;
-        
-        // Validate monitoring configuration
-        Self::validate_monitoring_config(config)?;
-        
-        Ok(())
+/// Validate a port number
+pub fn validate_port(port: u16) -> Result<u16> {
+    if port == 0 {
+        Err(ValidationError::new("port", "Port number cannot be 0").into())
+    } else {
+        Ok(port)
+    }
+}
+
+/// Validate a list of ports
+pub fn validate_ports(ports: &[u16]) -> Result<()> {
+    if ports.is_empty() {
+        return Err(ValidationError::new("ports", "At least one port must be specified").into());
     }
     
-    fn validate_protocol_mix(config: &Config) -> Result<()> {
-        let mix = &config.target.protocol_mix;
-        let total = mix.udp_ratio + mix.tcp_syn_ratio + mix.tcp_ack_ratio + 
-                   mix.icmp_ratio + mix.ipv6_ratio + mix.arp_ratio;
-        
-        if (total - 1.0).abs() > 0.001 {
-            return Err(ValidationError::SystemRequirement(
-                messages::PROTOCOL_RATIOS_SUM
-            ).into());
-        }
-        
-        // Check individual ratios are valid
-        let ratios = [
-            mix.udp_ratio, mix.tcp_syn_ratio, mix.tcp_ack_ratio,
-            mix.icmp_ratio, mix.ipv6_ratio, mix.arp_ratio,
-        ];
-        
-        for ratio in ratios {
-            if !(0.0..=1.0).contains(&ratio) {
-                return Err(ValidationError::SystemRequirement(
-                    messages::PROTOCOL_RATIOS_RANGE
-                ).into());
-            }
-        }
-        
-        Ok(())
+    for &port in ports {
+        validate_port(port)?;
     }
     
-    fn validate_packet_size_range(config: &Config) -> Result<()> {
-        let (min_size, max_size) = config.attack.packet_size_range;
-        
-        if min_size > max_size {
-            return Err(ValidationError::SystemRequirement(
-                messages::MIN_PACKET_SIZE_TOO_LARGE
-            ).into());
-        }
-        
-        if min_size < crate::constants::MIN_PAYLOAD_SIZE {
-            return Err(ValidationError::ExceedsLimit {
-                field: messages::MIN_PACKET_SIZE_FIELD,
-                value: min_size as u64,
-                limit: crate::constants::MIN_PAYLOAD_SIZE as u64,
-            }.into());
-        }
-        
-        if max_size > crate::constants::MAX_PAYLOAD_SIZE {
-            return Err(ValidationError::ExceedsLimit {
-                field: messages::MAX_PACKET_SIZE_FIELD,
-                value: max_size as u64,
-                limit: crate::constants::MAX_PAYLOAD_SIZE as u64,
-            }.into());
-        }
-        
+    Ok(())
+}
+
+/// Validate thread count
+pub fn validate_threads(threads: usize) -> Result<usize> {
+    if threads == 0 {
+        Err(ValidationError::new("threads", "Thread count must be at least 1").into())
+    } else if threads > 256 {
+        Err(ValidationError::new("threads", "Thread count cannot exceed 256").into())
+    } else {
+        Ok(threads)
+    }
+}
+
+/// Validate packet rate
+pub fn validate_packet_rate(rate: f64) -> Result<f64> {
+    if rate <= 0.0 {
+        Err(ValidationError::new("packet_rate", "Packet rate must be positive").into())
+    } else if rate > 1_000_000_000.0 {
+        Err(ValidationError::new("packet_rate", "Packet rate is unrealistically high").into())
+    } else {
+        Ok(rate)
+    }
+}
+
+/// Validate payload size
+pub fn validate_payload_size(size: usize) -> Result<usize> {
+    if size < 1 {
+        Err(ValidationError::new("payload_size", "Payload size must be at least 1 byte").into())
+    } else if size > 65507 {
+        Err(ValidationError::new("payload_size", "Payload size cannot exceed 65507 bytes (UDP limit)").into())
+    } else {
+        Ok(size)
+    }
+}
+
+/// Validate duration
+pub fn validate_duration(duration: Option<u64>) -> Result<Option<u64>> {
+    match duration {
+        Some(0) => Err(ValidationError::new("duration", "Duration must be at least 1 second").into()),
+        Some(d) if d > 86400 => Err(ValidationError::new("duration", "Duration cannot exceed 24 hours").into()),
+        _ => Ok(duration)
+    }
+}
+
+/// Validate bandwidth limit
+pub fn validate_bandwidth(mbps: Option<f64>) -> Result<Option<f64>> {
+    match mbps {
+        Some(bw) if bw <= 0.0 => Err(ValidationError::new("bandwidth", "Bandwidth limit must be positive").into()),
+        Some(bw) if bw > 100_000.0 => Err(ValidationError::new("bandwidth", "Bandwidth limit exceeds 100 Gbps").into()),
+        _ => Ok(mbps)
+    }
+}
+
+/// Validate protocol mix ratios
+pub fn validate_protocol_mix(
+    udp: f64,
+    tcp_syn: f64,
+    tcp_ack: f64,
+    icmp: f64,
+    custom: f64
+) -> Result<()> {
+    let total = udp + tcp_syn + tcp_ack + icmp + custom;
+    
+    if (total - 1.0).abs() > 0.01 {
+        Err(ValidationError::new(
+            "protocol_mix",
+            format!("Protocol ratios must sum to 1.0, got {:.2}", total)
+        ).into())
+    } else {
         Ok(())
     }
-    
-    fn validate_burst_pattern(config: &Config) -> Result<()> {
-        use crate::config::BurstPattern;
-        
-        match &config.attack.burst_pattern {
-            BurstPattern::Sustained { rate } => {
-                if *rate == 0 {
-                    return Err(ValidationError::SystemRequirement(
-                        messages::SUSTAINED_RATE_ZERO
-                    ).into());
-                }
-                if *rate > crate::constants::MAX_PACKET_RATE {
-                    return Err(ValidationError::ExceedsLimit {
-                        field: messages::SUSTAINED_RATE_FIELD,
-                        value: *rate,
-                        limit: crate::constants::MAX_PACKET_RATE,
-                    }.into());
-                }
-            }
-            BurstPattern::Bursts { burst_size, burst_interval_ms } => {
-                if *burst_size == 0 {
-                    return Err(ValidationError::SystemRequirement(
-                        messages::BURST_SIZE_ZERO
-                    ).into());
-                }
-                if *burst_interval_ms == 0 {
-                    return Err(ValidationError::SystemRequirement(
-                        messages::BURST_INTERVAL_ZERO
-                    ).into());
-                }
-            }
-            BurstPattern::Ramp { start_rate, end_rate, ramp_duration } => {
-                if *start_rate == 0 || *end_rate == 0 {
-                    return Err(ValidationError::SystemRequirement(
-                        messages::RAMP_RATES_ZERO
-                    ).into());
-                }
-                if *ramp_duration == 0 {
-                    return Err(ValidationError::SystemRequirement(
-                        messages::RAMP_DURATION_ZERO
-                    ).into());
-                }
-                if *start_rate > crate::constants::MAX_PACKET_RATE || 
-                   *end_rate > crate::constants::MAX_PACKET_RATE {
-                    return Err(ValidationError::ExceedsLimit {
-                        field: messages::SUSTAINED_RATE_FIELD, // Using sustained_rate field for ramp rates
-                        value: (*start_rate).max(*end_rate),
-                        limit: crate::constants::MAX_PACKET_RATE,
-                    }.into());
-                }
-            }
+}
+
+/// Validate network interface name
+pub fn validate_interface(interface: Option<&str>) -> Result<Option<String>> {
+    match interface {
+        Some(iface) if iface.is_empty() => {
+            Err(ValidationError::new("interface", "Interface name cannot be empty").into())
         }
-        
-        Ok(())
+        Some(iface) if iface.len() > 16 => {
+            Err(ValidationError::new("interface", "Interface name too long").into())
+        }
+        Some(iface) => Ok(Some(iface.to_string())),
+        None => Ok(None)
     }
-    
-    fn validate_monitoring_config(config: &Config) -> Result<()> {
-        if config.monitoring.stats_interval == 0 {
-            return Err(ValidationError::SystemRequirement(
-                messages::STATS_INTERVAL_ZERO
-            ).into());
-        }
-        
-        if let Some(export_interval) = config.monitoring.export_interval {
-            if export_interval == 0 {
-                return Err(ValidationError::SystemRequirement(
-                    messages::EXPORT_INTERVAL_ZERO
-                ).into());
-            }
-        }
-        
-        Ok(())
+}
+
+/// Validate export path
+pub fn validate_export_path(path: &str) -> Result<String> {
+    if path.is_empty() {
+        Err(ValidationError::new("export_path", "Export path cannot be empty").into())
+    } else {
+        Ok(path.to_string())
     }
 }

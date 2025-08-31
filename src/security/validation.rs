@@ -25,19 +25,13 @@ pub fn validate_target_ip(ip: &IpAddr) -> Result<()> {
                 info!("Target IP {} validated as private range", ip);
                 Ok(())
             } else {
-                Err(ValidationError::InvalidIpRange {
-                    ip: ip.to_string(),
-                    reason: error_messages::PRIVATE_RANGE_REQUIRED,
-                }.into())
+                Err(ValidationError::new("ip", "Invalid IP range").into())
             }
         }
         IpAddr::V6(ipv6) => {
             // Check for IPv6 private ranges (link-local, unique local)
             if ipv6.is_loopback() {
-                return Err(ValidationError::InvalidIpRange {
-                    ip: ip.to_string(),
-                    reason: "Cannot target IPv6 loopback address",
-                }.into());
+                return Err(ValidationError::new("ip", "Invalid IP range").into());
             }
 
             // Link-local (fe80::/10) or unique local (fc00::/7)
@@ -49,10 +43,7 @@ pub fn validate_target_ip(ip: &IpAddr) -> Result<()> {
                 info!("Target IPv6 {} validated as private range", ip);
                 Ok(())
             } else {
-                Err(ValidationError::InvalidIpRange {
-                    ip: ip.to_string(),
-                    reason: error_messages::PRIVATE_RANGE_REQUIRED,
-                }.into())
+                Err(ValidationError::new("ip", "Invalid IP range").into())
             }
         }
     }
@@ -73,10 +64,7 @@ pub fn validate_comprehensive_security(
 ) -> Result<()> {
     // Check if targeting loopback or multicast
     if is_loopback_or_multicast(ip) {
-        return Err(ValidationError::InvalidIpRange {
-            ip: ip.to_string(),
-            reason: error_messages::LOOPBACK_PROHIBITED,
-        }.into());
+        return Err(ValidationError::new("ip", "Invalid IP range").into());
     }
 
     // Validate private IP
@@ -84,20 +72,12 @@ pub fn validate_comprehensive_security(
 
     // Check thread limits
     if threads > MAX_THREADS {
-        return Err(ValidationError::ExceedsLimit {
-            field: "threads",
-            value: threads as u64,
-            limit: MAX_THREADS as u64,
-        }.into());
+        return Err(ValidationError::new("limit", "Value exceeds limit").into());
     }
 
     // Check rate limits
     if rate > MAX_PACKET_RATE {
-        return Err(ValidationError::ExceedsLimit {
-            field: "packet_rate",
-            value: rate,
-            limit: MAX_PACKET_RATE,
-        }.into());
+        return Err(ValidationError::new("limit", "Value exceeds limit").into());
     }
 
     // Check for common service ports that shouldn't be flooded
@@ -113,7 +93,8 @@ pub fn validate_comprehensive_security(
 pub fn validate_system_requirements(dry_run: bool) -> Result<()> {
     // Check if running as root (required for raw sockets, but not for dry-run)
     if !dry_run && unsafe { libc::geteuid() } != ROOT_UID {
-        return Err(ValidationError::PrivilegeRequired(
+        return Err(ValidationError::new(
+            "privileges",
             error_messages::ROOT_REQUIRED
         ).into());
     }
@@ -130,4 +111,39 @@ pub fn validate_system_requirements(dry_run: bool) -> Result<()> {
     }
 
     Ok(())
+}
+
+/// Input validator with security focus (simplified from input_validation.rs)
+pub struct InputValidation {
+    config: ValidationConfig,
+}
+
+/// Validation configuration
+#[derive(Debug, Clone)]
+pub struct ValidationConfig {
+    pub max_string_length: usize,
+    pub strict_ip_validation: bool,
+}
+
+impl Default for ValidationConfig {
+    fn default() -> Self {
+        Self {
+            max_string_length: 1024,
+            strict_ip_validation: true,
+        }
+    }
+}
+
+impl InputValidation {
+    pub fn new(config: ValidationConfig) -> Self {
+        Self { config }
+    }
+    
+    pub fn validate_ip(&self, ip: &IpAddr) -> Result<()> {
+        if self.config.strict_ip_validation {
+            validate_target_ip(ip)
+        } else {
+            Ok(())
+        }
+    }
 }

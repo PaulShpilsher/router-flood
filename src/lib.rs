@@ -13,10 +13,8 @@
 pub mod cli;
 pub mod config;
 pub mod constants;
-pub mod core;
-pub mod error;
+pub mod network;
 pub mod system_monitor;
-pub mod monitoring;
 pub mod packet;
 pub mod performance;
 pub mod cli_runner;
@@ -27,15 +25,18 @@ pub mod transport;
 pub mod ui;
 pub mod utils;
 
+// Use the new consolidated error module
+pub mod error;
+
 // Re-export key types for convenience
 pub use config::{Config, Target, LoadConfig, Safety, Monitoring, Export, ExportFormat, ProtocolMix};
-pub use core::simulation::{Simulation, SimulationRAII};
-pub use core::worker_manager::Workers;
-pub use core::target::MultiPortTarget;
+pub use network::simulation::Simulation;
+pub use network::worker_manager::Workers;
+pub use network::target::MultiPortTarget;
 pub use error::{Result, RouterFloodError};
 pub use packet::{PacketBuilder, PacketStrategy, PacketType, PacketTarget};
 pub use stats::Stats;
-pub use utils::buffer_pool::BufferPool;
+// BufferPool removed - use performance::memory_pool instead
 pub use utils::terminal::{Terminal, TerminalGuard};
 pub use utils::raii::ResourceGuard;
 
@@ -48,8 +49,7 @@ pub type StatsRef = Arc<Stats>;
 /// Shared reference to Config
 pub type ConfigRef = Arc<Config>;
 
-/// Shared reference to BufferPool
-pub type PoolRef = Arc<BufferPool>;
+// Memory pooling available via performance::memory_pool
 
 /// Shared reference to Workers
 pub type WorkersRef = Arc<Workers>;
