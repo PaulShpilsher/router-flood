@@ -10,7 +10,7 @@ pub mod target;
 pub mod worker_manager;
 
 // Re-export commonly used types
-pub use simulation::{Simulation, SimulationRAII};
+pub use simulation::Simulation;
 pub use target::MultiPortTarget;
 pub use worker_manager::Workers;
 

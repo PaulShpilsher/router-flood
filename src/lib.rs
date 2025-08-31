@@ -30,7 +30,7 @@ pub mod error;
 
 // Re-export key types for convenience
 pub use config::{Config, Target, LoadConfig, Safety, Monitoring, Export, ExportFormat, ProtocolMix};
-pub use network::simulation::{Simulation, SimulationRAII};
+pub use network::simulation::Simulation;
 pub use network::worker_manager::Workers;
 pub use network::target::MultiPortTarget;
 pub use error::{Result, RouterFloodError};

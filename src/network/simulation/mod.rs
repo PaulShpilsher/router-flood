@@ -1,7 +1,5 @@
-//! Simulation orchestration modules
+//! Simulation orchestration module
 
 mod basic;
-mod raii;
 
 pub use basic::{Simulation, setup_network_interface};
-pub use raii::SimulationRAII;
