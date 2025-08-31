@@ -13,7 +13,7 @@ use crate::constants::GRACEFUL_SHUTDOWN_TIMEOUT;
 use crate::error::{NetworkError, Result};
 use crate::monitor::SystemMonitor;
 use crate::core::network::{find_interface_by_name, get_default_interface};
-use crate::stats::FloodStats;
+use crate::stats::FloodStatsTracker;
 use crate::core::target::MultiPortTarget;
 use crate::core::worker::WorkerManager;
 
@@ -43,14 +43,14 @@ pub fn setup_network_interface(config: &Config) -> Result<Option<pnet::datalink:
 
 /// Monitoring tasks manager
 pub(crate) struct MonitoringTasks {
-    stats: Arc<FloodStats>,
+    stats: Arc<FloodStatsTracker>,
     system_monitor: Arc<SystemMonitor>,
     running: Arc<AtomicBool>,
     config: Config,
 }
 
 impl MonitoringTasks {
-    fn new(stats: Arc<FloodStats>, config: Config, running: Arc<AtomicBool>) -> Self {
+    fn new(stats: Arc<FloodStatsTracker>, config: Config, running: Arc<AtomicBool>) -> Self {
         let system_monitor = Arc::new(SystemMonitor::new(config.monitoring.system_monitoring));
         Self { stats, system_monitor, running, config }
     }
@@ -99,7 +99,7 @@ pub struct Simulation {
     config: Config,
     target_ip: IpAddr,
     selected_interface: Option<pnet::datalink::NetworkInterface>,
-    stats: Arc<FloodStats>,
+    stats: Arc<FloodStatsTracker>,
     running: Arc<AtomicBool>,
 }
 
@@ -109,7 +109,7 @@ impl Simulation {
         target_ip: IpAddr,
         selected_interface: Option<pnet::datalink::NetworkInterface>,
     ) -> Self {
-        let stats = Arc::new(FloodStats::new(
+        let stats = Arc::new(FloodStatsTracker::new(
             config.export.enabled.then_some(config.export.clone()),
         ));
         let running = Arc::new(AtomicBool::new(true));

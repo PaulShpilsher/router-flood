@@ -9,18 +9,28 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::time;
 
-use crate::stats::{FloodStats, LocalStats};
+use crate::stats::{FloodStatsTracker, LocalStats};
 use crate::core::target::MultiPortTarget;
 use crate::packet::{PacketBuilder, PacketType};
 use crate::config::ProtocolMix;
 use crate::error::Result;
+
+/// Configuration for BatchWorker
+pub struct BatchWorkerConfig {
+    pub packet_rate: u64,
+    pub packet_size_range: (usize, usize),
+    pub protocol_mix: ProtocolMix,
+    pub randomize_timing: bool,
+    pub dry_run: bool,
+    pub perfect_simulation: bool,
+}
 
 /// Batch worker with performance optimizations
 pub struct BatchWorker {
     #[allow(dead_code)]
     id: usize,
     #[allow(dead_code)]
-    stats: Arc<FloodStats>,
+    stats: Arc<FloodStatsTracker>,
     local_stats: LocalStats,
     target: Arc<MultiPortTarget>,
     target_ip: IpAddr,
@@ -39,16 +49,17 @@ pub struct BatchWorker {
 impl BatchWorker {
     pub fn new(
         id: usize,
-        stats: Arc<FloodStats>,
+        stats: Arc<FloodStatsTracker>,
         target_ip: IpAddr,
         target: Arc<MultiPortTarget>,
-        packet_rate: u64,
-        packet_size_range: (usize, usize),
-        protocol_mix: ProtocolMix,
-        randomize_timing: bool,
-        dry_run: bool,
-        perfect_simulation: bool,
+        config: BatchWorkerConfig,
     ) -> Self {
+        let packet_rate = config.packet_rate;
+        let packet_size_range = config.packet_size_range;
+        let protocol_mix = config.protocol_mix;
+        let randomize_timing = config.randomize_timing;
+        let dry_run = config.dry_run;
+        let perfect_simulation = config.perfect_simulation;
         // Create local stats with batching (flush every 50 packets)
         let local_stats = LocalStats::new(stats.clone(), 50);
         let packet_builder = PacketBuilder::new(packet_size_range, protocol_mix.clone());

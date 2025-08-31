@@ -210,8 +210,8 @@ impl MetricsExporter {
         let mut prometheus_content = String::new();
         
         // Add metadata
-        prometheus_content.push_str(&format!("# HELP router_flood_info Router Flood metrics\n"));
-        prometheus_content.push_str(&format!("# TYPE router_flood_info gauge\n"));
+        prometheus_content.push_str("# HELP router_flood_info Router Flood metrics\n");
+        prometheus_content.push_str("# TYPE router_flood_info gauge\n");
         prometheus_content.push_str(&format!("router_flood_info{{version=\"{}\"}} 1\n\n", 
             data.metadata.version));
         

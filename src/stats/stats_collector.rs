@@ -248,7 +248,7 @@ impl FloodStatsTracker {
 
         // Write header
         writer
-            .write_record(&[
+            .write_record([
                 "session_id",
                 "timestamp",
                 "packets_sent",
@@ -267,7 +267,7 @@ impl FloodStatsTracker {
 
         // Write data
         writer
-            .write_record(&[
+            .write_record([
                 &stats.session_id,
                 &stats.timestamp.to_rfc3339(),
                 &stats.packets_sent.to_string(),

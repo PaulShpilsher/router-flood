@@ -9,9 +9,9 @@ use tokio::task::JoinHandle;
 
 use crate::config::Config;
 use crate::error::{NetworkError, Result};
-use crate::stats::FloodStats;
+use crate::stats::FloodStatsTracker;
 use crate::core::target::MultiPortTarget;
-use crate::core::batch_worker::BatchWorker;
+use crate::core::batch_worker::{BatchWorker, BatchWorkerConfig};
 
 /// Manages the lifecycle of worker threads
 pub struct WorkerManager {
@@ -23,7 +23,7 @@ impl WorkerManager {
     /// Create a new worker manager and spawn worker threads
     pub fn new(
         config: &Config,
-        stats: Arc<FloodStats>,
+        stats: Arc<FloodStatsTracker>,
         multi_port_target: Arc<MultiPortTarget>,
         target_ip: IpAddr,
         interface: Option<&pnet::datalink::NetworkInterface>,
@@ -46,7 +46,7 @@ impl WorkerManager {
     /// Spawn worker threads based on configuration
     fn spawn_workers(
         config: &Config,
-        stats: Arc<FloodStats>,
+        stats: Arc<FloodStatsTracker>,
         running: Arc<AtomicBool>,
         multi_port_target: Arc<MultiPortTarget>,
         target_ip: IpAddr,
@@ -67,17 +67,21 @@ impl WorkerManager {
             let dry_run = config.safety.dry_run;
             let perfect_simulation = config.safety.perfect_simulation;
             
-            let mut worker = BatchWorker::new(
-                task_id,
-                stats,
-                target_ip,
-                target,
-                per_worker_rate,
+            let worker_config = BatchWorkerConfig {
+                packet_rate: per_worker_rate,
                 packet_size_range,
                 protocol_mix,
                 randomize_timing,
                 dry_run,
                 perfect_simulation,
+            };
+            
+            let mut worker = BatchWorker::new(
+                task_id,
+                stats,
+                target_ip,
+                target,
+                worker_config,
             );
 
             let handle = tokio::spawn(async move {

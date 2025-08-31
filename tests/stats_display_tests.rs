@@ -244,7 +244,7 @@ fn test_stats_print_with_display() {
     // Initialize the display
     init_display(true);
     
-    let stats = FloodStats::default();
+    let stats = FloodStatsTracker::default();
     
     // Add some test data
     stats.increment_sent(64, "UDP");
@@ -399,7 +399,7 @@ fn test_fallback_when_no_display_initialized() {
     }
     
     // Now test that stats can be printed without a display
-    let stats = FloodStats::default();
+    let stats = FloodStatsTracker::default();
     stats.increment_sent(64, "UDP");
     
     // This should not panic even without display initialized

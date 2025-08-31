@@ -59,7 +59,7 @@ impl ConfigValidator {
         ];
         
         for ratio in ratios {
-            if ratio < 0.0 || ratio > 1.0 {
+            if !(0.0..=1.0).contains(&ratio) {
                 return Err(ValidationError::SystemRequirement(
                     messages::PROTOCOL_RATIOS_RANGE
                 ).into());

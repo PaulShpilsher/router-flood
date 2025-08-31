@@ -110,9 +110,9 @@ where
 {
     fn with_context(self, _context: &str) -> Result<T> {
         self.map_err(|e| {
-            let error = e.into();
+            
             // Add context to error (this would require extending error types)
-            error
+            e.into()
         })
     }
 

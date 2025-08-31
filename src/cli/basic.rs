@@ -71,7 +71,7 @@ pub fn parse_arguments() -> ArgMatches {
                 .value_name("IP")
                 .help("Target router IP (must be private range)")
                 .long_help("Target router IP address. Must be in private ranges:\n  • 192.168.0.0/16 (e.g., 192.168.1.1)\n  • 10.0.0.0/8 (e.g., 10.0.0.1)\n  • 172.16.0.0/12 (e.g., 172.16.0.1)")
-                .required_unless_present_any(&["config", "list-interfaces"]),
+                .required_unless_present_any(["config", "list-interfaces"]),
         )
         .arg(
             Arg::new("ports")
@@ -80,13 +80,13 @@ pub fn parse_arguments() -> ArgMatches {
                 .value_name("PORTS")
                 .help("Target ports (comma-separated, e.g., 80,443,22)")
                 .long_help("Target ports for testing (comma-separated).\nCommon ports: 80 (HTTP), 443 (HTTPS), 22 (SSH), 53 (DNS), 21 (FTP), 25 (SMTP)")
-                .required_unless_present_any(&["config", "list-interfaces"]),
+                .required_unless_present_any(["config", "list-interfaces"]),
         )
         .arg(
             Arg::new("threads")
                 .long("threads")
                 .value_name("NUM")
-                .help(&format!("Number of async tasks (default: {}, max: {})", 
+                .help(format!("Number of async tasks (default: {}, max: {})", 
                     defaults::THREAD_COUNT, MAX_THREADS))
                 .default_value("4"),
         )
@@ -94,7 +94,7 @@ pub fn parse_arguments() -> ArgMatches {
             Arg::new("rate")
                 .long("rate")
                 .value_name("PPS")
-                .help(&format!("Packets per second per thread (default: {})", 
+                .help(format!("Packets per second per thread (default: {})", 
                     defaults::PACKET_RATE))
                 .default_value("100"),
         )
@@ -270,7 +270,7 @@ fn list_network_interfaces() {
     use crate::core::network::list_network_interfaces as list_interfaces;
     
     println!("\n🌐 Available Network Interfaces:\n");
-    println!("{:<20} {:<10} {:<15} {}", "Interface", "Status", "IPv4", "IPv6");
+    println!("{:<20} {:<10} {:<15} IPv6", "Interface", "Status", "IPv4");
     println!("{}", "─".repeat(80));
     
     for iface in list_interfaces() {

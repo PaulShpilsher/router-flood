@@ -47,18 +47,16 @@ impl UserExperienceRunner {
 
         // Process arguments with guided CLI
         let (legacy_config, mode) = GuidedCli::process_arguments(matches)
-            .map_err(|e| {
-                display_actionable_user_error(&e);
-                e
+            .inspect_err(|e| {
+                display_actionable_user_error(e);
             })?;
 
         // Convert legacy config to simple config for internal use
         let config = Self::legacy_to_simple_config(&legacy_config);
 
         // Validate configuration with actionable error messages
-        config.validate().map_err(|e| {
-            display_actionable_user_error(&e);
-            e
+        config.validate().inspect_err(|e| {
+            display_actionable_user_error(e);
         })?;
 
         Ok(Self {
@@ -149,15 +147,13 @@ impl UserExperienceRunner {
         info!("Validating configuration file: {}", file);
         
         let config = PresetConfig::load_from_file(file)
-            .map_err(|e| {
-                display_actionable_user_error(&e);
-                e
+            .inspect_err(|e| {
+                display_actionable_user_error(e);
             })?;
         
         config.validate()
-            .map_err(|e| {
-                display_actionable_user_error(&e);
-                e
+            .inspect_err(|e| {
+                display_actionable_user_error(e);
             })?;
         
         println!("✅ Configuration file '{}' is valid!", file);

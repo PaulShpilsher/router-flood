@@ -17,7 +17,7 @@ fn create_test_export_config() -> ExportConfig {
 
 #[test]
 fn test_flood_stats_creation() {
-    let stats = FloodStats::new(Some(create_test_export_config()));
+    let stats = FloodStatsTracker::new(Some(create_test_export_config()));
     
     // Test initial values
     assert_eq!(stats.packets_sent(), 0);
@@ -30,7 +30,7 @@ fn test_flood_stats_creation() {
 
 #[test]
 fn test_flood_stats_default() {
-    let stats = FloodStats::default();
+    let stats = FloodStatsTracker::default();
     
     // Default should have no export config
     assert_eq!(stats.packets_sent(), 0);
@@ -40,7 +40,7 @@ fn test_flood_stats_default() {
 
 #[test]
 fn test_packet_counting() {
-    let stats = FloodStats::default();
+    let stats = FloodStatsTracker::default();
     
     // Test packet increments using the actual API
     stats.increment_sent(64, "UDP");
@@ -58,7 +58,7 @@ fn test_packet_counting() {
 
 #[test]
 fn test_failed_packet_counting() {
-    let stats = FloodStats::default();
+    let stats = FloodStatsTracker::default();
     
     stats.increment_failed();
     assert_eq!(stats.packets_failed(), 1);
@@ -72,7 +72,7 @@ fn test_failed_packet_counting() {
 
 #[test]
 fn test_bytes_sent_tracking() {
-    let stats = FloodStats::default();
+    let stats = FloodStatsTracker::default();
     
     stats.increment_sent(100, "UDP");
     assert_eq!(stats.bytes_sent(), 100);
@@ -85,7 +85,7 @@ fn test_bytes_sent_tracking() {
 
 #[test]
 fn test_packet_accumulation() {
-    let stats = FloodStats::default();
+    let stats = FloodStatsTracker::default();
     
     // Add some packets and bytes
     for i in 0..10 {
@@ -103,7 +103,7 @@ fn test_packet_accumulation() {
 
 #[test]
 fn test_protocol_stats_tracking() {
-    let stats = FloodStats::default();
+    let stats = FloodStatsTracker::default();
     
     // Add packets for different protocols
     stats.increment_sent(64, "UDP");
@@ -122,7 +122,7 @@ fn test_concurrent_stats_updates() {
     use std::sync::Arc;
     use std::thread;
     
-    let stats = Arc::new(FloodStats::default());
+    let stats = Arc::new(FloodStatsTracker::default());
     let num_threads = 10;
     let increments_per_thread = 100;
     
@@ -151,7 +151,7 @@ fn test_concurrent_stats_updates() {
 
 #[test]
 fn test_stats_summary_creation() {
-    let stats = FloodStats::default();
+    let stats = FloodStatsTracker::default();
     
     // Add some test data
     stats.increment_sent(64, "UDP");
@@ -172,7 +172,7 @@ async fn test_stats_export_json() {
     let mut export_config = create_test_export_config();
     export_config.format = ExportFormat::Json;
     
-    let stats = FloodStats::new(Some(export_config));
+    let stats = FloodStatsTracker::new(Some(export_config));
     
     // Add some test data
     stats.increment_sent(64, "UDP");
@@ -189,7 +189,7 @@ async fn test_stats_export_csv() {
     let mut export_config = create_test_export_config();
     export_config.format = ExportFormat::Csv;
     
-    let stats = FloodStats::new(Some(export_config));
+    let stats = FloodStatsTracker::new(Some(export_config));
     
     // Add some test data
     stats.increment_sent(64, "UDP");
@@ -205,7 +205,7 @@ async fn test_stats_export_both_formats() {
     let mut export_config = create_test_export_config();
     export_config.format = ExportFormat::Both;
     
-    let stats = FloodStats::new(Some(export_config));
+    let stats = FloodStatsTracker::new(Some(export_config));
     
     // Add some test data
     stats.increment_sent(64, "UDP");

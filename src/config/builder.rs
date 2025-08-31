@@ -81,7 +81,7 @@ impl ConfigBuilder {
             ));
         } else if [mix.udp_ratio, mix.tcp_syn_ratio, mix.tcp_ack_ratio, 
                    mix.icmp_ratio, mix.ipv6_ratio, mix.arp_ratio]
-                   .iter().any(|&ratio| ratio < 0.0 || ratio > 1.0) {
+                   .iter().any(|&ratio| !(0.0..=1.0).contains(&ratio)) {
             self.errors.push(ValidationError::SystemRequirement(
                 messages::PROTOCOL_RATIOS_RANGE
             ));

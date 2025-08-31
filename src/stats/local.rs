@@ -3,7 +3,7 @@
 //! This module provides a local accumulator that batches updates to reduce
 //! contention on the global statistics counters.
 
-use super::FloodStats;
+use super::FloodStatsTracker;
 use std::sync::Arc;
 
 /// Local stats accumulator to batch atomic updates
@@ -14,7 +14,7 @@ pub struct LocalStats {
     protocol_counts: ProtocolCounts,
     batch_size: usize,
     update_count: usize,
-    stats_ref: Arc<FloodStats>,
+    stats_ref: Arc<FloodStatsTracker>,
 }
 
 /// Protocol-specific counters
@@ -62,7 +62,7 @@ impl ProtocolCounts {
 
 impl LocalStats {
     /// Create a new local stats accumulator
-    pub fn new(stats_ref: Arc<FloodStats>, batch_size: usize) -> Self {
+    pub fn new(stats_ref: Arc<FloodStatsTracker>, batch_size: usize) -> Self {
         Self {
             packets_sent: 0,
             packets_failed: 0,

@@ -2,7 +2,7 @@
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
 use router_flood::stats::lockfree::{LockFreeStats, LockFreeLocalStats, PerCpuStats, ProtocolId};
-use router_flood::stats::{FloodStats, LocalStats};
+use router_flood::stats::{FloodStatsTracker, LocalStats};
 use std::sync::Arc;
 
 fn benchmark_lockfree_vs_traditional(c: &mut Criterion) {
@@ -19,7 +19,7 @@ fn benchmark_lockfree_vs_traditional(c: &mut Criterion) {
     });
     
     // Benchmark traditional FloodStats
-    let flood_stats = Arc::new(FloodStats::default());
+    let flood_stats = Arc::new(FloodStatsTracker::default());
     
     group.bench_function("traditional_increment", |b| {
         b.iter(|| {
@@ -40,7 +40,7 @@ fn benchmark_lockfree_vs_traditional(c: &mut Criterion) {
     });
     
     // Benchmark traditional with local batching
-    let flood_for_local = Arc::new(FloodStats::default());
+    let flood_for_local = Arc::new(FloodStatsTracker::default());
     let mut traditional_local = LocalStats::new(flood_for_local.clone(), 100);
     
     group.bench_function("traditional_batched_increment", |b| {

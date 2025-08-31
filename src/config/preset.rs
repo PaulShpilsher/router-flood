@@ -12,7 +12,7 @@ use tracing::info;
 use crate::error::{ConfigError, Result};
 
 /// Preset main configuration with intelligent defaults
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct PresetConfig {
     /// Target configuration - what to test
     pub target: TargetConfig,
@@ -109,7 +109,9 @@ pub struct ExportConfig {
 /// Preset export formats
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "lowercase")]
+#[derive(Default)]
 pub enum ExportFormat {
+    #[default]
     Json,
     Csv,
 }
@@ -131,16 +133,7 @@ fn default_true() -> bool {
     true
 }
 
-// Default implementations
-impl Default for PresetConfig {
-    fn default() -> Self {
-        Self {
-            target: TargetConfig::default(),
-            test: TestConfig::default(),
-            safety: SafetyConfig::default(),
-        }
-    }
-}
+// Default implementation removed - using #[derive(Default)]
 
 impl Default for TargetConfig {
     fn default() -> Self {
@@ -193,11 +186,6 @@ impl Default for ExportConfig {
     }
 }
 
-impl Default for ExportFormat {
-    fn default() -> Self {
-        ExportFormat::Json
-    }
-}
 
 impl PresetConfig {
     /// Create a new preset configuration with defaults

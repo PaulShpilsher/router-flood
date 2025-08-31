@@ -24,14 +24,6 @@ pub use stats_collector::FloodStatsTracker;
 // Re-export the internal lock-free implementation for advanced users
 pub use crate::performance::lockfree_stats::LockFreeStatsCollector as InternalLockFreeCollector;
 
-// Legacy imports removed - all functionality now provided by FloodStatsTracker
-
-/// Type alias for backward compatibility - now uses the high-performance FloodStatsTracker
-pub type FloodStats = FloodStatsTracker;
-
-// Legacy implementation removed - FloodStats is now a type alias to FloodStatsTracker
-// All functionality is provided by FloodStatsTracker which uses the lock-free implementation
-
 // Include the protocol breakdown module
 pub mod protocol_breakdown;
 pub use protocol_breakdown::{ProtocolBreakdown, ProtocolIndex};

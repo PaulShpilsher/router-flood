@@ -92,7 +92,7 @@ impl DefaultStatsExporter {
 
         // Write header
         writer
-            .write_record(&[
+            .write_record([
                 "session_id",
                 "timestamp",
                 "packets_sent",
@@ -111,7 +111,7 @@ impl DefaultStatsExporter {
 
         // Write data - using constants for protocol names
         writer
-            .write_record(&[
+            .write_record([
                 &stats.session_id,
                 &stats.timestamp.to_rfc3339(),
                 &stats.packets_sent.to_string(),

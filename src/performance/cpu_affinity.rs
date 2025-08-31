@@ -234,7 +234,7 @@ impl CpuAffinityManager {
         let cpulist_path = format!("/sys/devices/system/node/node{}/cpulist", node_id);
         let cpulist = fs::read_to_string(cpulist_path).ok()?;
         
-        Self::parse_cpu_list(&cpulist.trim())
+        Self::parse_cpu_list(cpulist.trim())
     }
 
     /// Parse CPU list format (e.g., "0-3,8-11")

@@ -3,21 +3,21 @@
 //! This module provides compatibility adapters for transitioning to the new
 //! high-performance statistics implementation.
 
-use super::{FloodStats, lockfree::{LockFreeStats, ProtocolId}};
+use super::{FloodStatsTracker, lockfree::{LockFreeStats, ProtocolId}};
 use std::sync::Arc;
 use crate::config::ExportConfig;
 
 /// Adapter that wraps lock-free stats to maintain backward compatibility
 pub struct LockFreeStatsAdapter {
     /// The underlying FloodStats (FloodStatsTracker)
-    stats: Arc<FloodStats>,
+    stats: Arc<FloodStatsTracker>,
     /// Internal lock-free stats reference (if needed for specialized access)
     inner: Arc<LockFreeStats>,
 }
 
 impl LockFreeStatsAdapter {
     pub fn new(export_config: Option<ExportConfig>) -> Self {
-        let stats = Arc::new(FloodStats::new(export_config));
+        let stats = Arc::new(FloodStatsTracker::new(export_config));
         let inner = Arc::new(LockFreeStats::new());
         
         Self {
@@ -32,12 +32,12 @@ impl LockFreeStatsAdapter {
     }
     
     /// Get the FloodStats reference
-    pub fn stats(&self) -> Arc<FloodStats> {
+    pub fn stats(&self) -> Arc<FloodStatsTracker> {
         self.stats.clone()
     }
     
     /// Convert to FloodStats for compatibility
-    pub fn to_flood_stats(&self) -> Arc<FloodStats> {
+    pub fn to_flood_stats(&self) -> Arc<FloodStatsTracker> {
         self.stats.clone()
     }
     
@@ -66,7 +66,7 @@ pub trait LocalStatsExt {
 impl LocalStatsExt for super::LocalStats {
     fn with_lock_free(_stats: Arc<LockFreeStats>, batch_size: usize) -> Self {
         // Create a FloodStats instance for the LocalStats to use
-        let flood_stats = Arc::new(FloodStats::default());
+        let flood_stats = Arc::new(FloodStatsTracker::default());
         
         Self::new(flood_stats, batch_size)
     }
