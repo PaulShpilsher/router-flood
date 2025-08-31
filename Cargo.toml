@@ -37,3 +37,11 @@ tempfile = "3.8"
 criterion = { version = "0.5", features = ["html_reports"] }
 proptest = "1.6"
 
+[[bench]]
+name = "packet_generation"
+harness = false
+
+[[bench]]
+name = "stats_collection"
+harness = false
+
