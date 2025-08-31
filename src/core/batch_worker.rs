@@ -17,7 +17,9 @@ use crate::error::Result;
 
 /// Batch worker with performance optimizations
 pub struct BatchWorker {
+    #[allow(dead_code)]
     id: usize,
+    #[allow(dead_code)]
     stats: Arc<FloodStats>,
     local_stats: LocalStats,
     target: Arc<MultiPortTarget>,

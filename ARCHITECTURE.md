@@ -2,15 +2,15 @@
 
 ## Overview
 
-Router Flood is a high-performance network testing tool built with a modular, extensible architecture. The system follows SOLID principles and modern design patterns to ensure maintainability, testability, and performance.
+Router Flood is a high-performance network testing tool with a streamlined, consolidated architecture. Following successful consolidation efforts, the system now features single, optimized implementations for each core functionality.
 
 ## Core Design Principles
 
-1. **Safety First**: Multiple validation layers ensure safe operation
-2. **Performance**: Zero-copy operations, SIMD optimizations, lock-free data structures
-3. **Extensibility**: Plugin architecture and design patterns for easy extension
-4. **Modularity**: Clean separation of concerns with trait-based abstractions
-5. **Testability**: Comprehensive test coverage with dependency injection
+1. **Single Implementation**: One optimized solution per concept
+2. **Lock-Free Performance**: Atomic operations minimize contention
+3. **Batch Processing**: Amortize costs across multiple operations
+4. **Zero-Copy Operations**: Reuse buffers and avoid allocations
+5. **Safety First**: Private IP validation, rate limiting, audit logging
 
 ## System Architecture
 
