@@ -102,7 +102,7 @@ impl Stats {
     pub async fn export_stats(&self) -> Result<()> {
         if let Some(ref config) = self.export_config {
             let elapsed = self.start_time.elapsed().as_secs_f64();
-            let stats = SessionStats {
+            let _stats = SessionStats {
                 session_id: self.session_id.clone(),
                 timestamp: Utc::now(),
                 packets_sent: self.packets_sent(),
