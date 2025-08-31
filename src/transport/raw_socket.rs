@@ -1,7 +1,7 @@
 //! Raw socket transport implementation
 
 use super::layer::{TransportLayer, ChannelType};
-use crate::error::{NetworkError, Result};
+use crate::error::{RouterFloodError, Result};
 use crate::transport::WorkerChannels;
 use std::net::IpAddr;
 
@@ -20,7 +20,7 @@ impl RawSocketTransport {
 impl TransportLayer for RawSocketTransport {
     fn send_packet(&self, data: &[u8], target: IpAddr, channel_type: ChannelType) -> Result<()> {
         self.channels.send_packet(data, target, channel_type)
-            .map_err(|e| NetworkError::PacketSend(format!("Raw socket send failed: {}", e)).into())
+            .map_err(|e| RouterFloodError::Network(format!("Raw socket send failed: {}", e)).into())
     }
     
     fn is_available(&self) -> bool {

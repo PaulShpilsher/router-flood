@@ -192,12 +192,7 @@ pub fn process_cli_config(matches: &ArgMatches, mut config: Config) -> Result<Co
         }
     }
 
-    // Handle perfect simulation flag
-    let cli_perfect_simulation = matches.get_flag("perfect-simulation");
-    if cli_perfect_simulation {
-        config.safety.perfect_simulation = true;
-        info!("✨ PERFECT SIMULATION MODE ENABLED - 100% success rate in dry-run");
-    }
+    // Perfect simulation removed for simplification
 
     Ok(config)
 }
@@ -218,11 +213,9 @@ pub fn parse_ports(ports_str: &str) -> Result<Vec<u16>> {
         .map(|s| {
             s.trim()
                 .parse::<u16>()
-                .map_err(|_| ConfigError::InvalidValue {
-                    field: "ports".to_string(),
-                    value: s.trim().to_string(),
-                    reason: "must be a valid port number (1-65535)".to_string(),
-                })
+                .map_err(|_| ConfigError::new(
+                    format!("Invalid port value '{}': must be a valid port number (1-65535)", s.trim())
+                ))
         })
         .collect::<std::result::Result<Vec<_>, _>>()
         .map_err(RouterFloodError::from)
@@ -234,18 +227,14 @@ where
     T: FromStr + PartialOrd + Default,
     T::Err: std::fmt::Display,
 {
-    let value = value_str.parse::<T>().map_err(|e| ConfigError::InvalidValue {
-        field: field.to_string(),
-        value: value_str.to_string(),
-        reason: e.to_string(),
-    })?;
+    let value = value_str.parse::<T>().map_err(|e| ConfigError::new(
+        format!("Invalid {} value '{}': {}", field, value_str, e)
+    ))?;
 
     if value <= T::default() {
-        return Err(ConfigError::InvalidValue {
-            field: field.to_string(),
-            value: value_str.to_string(),
-            reason: "must be greater than 0".to_string(),
-        }.into());
+        return Err(ConfigError::new(
+            format!("Invalid {} value '{}': must be greater than 0", field, value_str)
+        ).into());
     }
 
     Ok(value)
@@ -256,12 +245,11 @@ pub fn parse_export_format(format_str: &str) -> Result<ExportFormat> {
     match format_str.to_lowercase().as_str() {
         "json" => Ok(ExportFormat::Json),
         "csv" => Ok(ExportFormat::Csv),
-        "both" => Ok(ExportFormat::Both),
-        _ => Err(ConfigError::InvalidValue {
-            field: "export".to_string(),
-            value: format_str.to_string(),
-            reason: "must be 'json', 'csv', or 'both'".to_string(),
-        }.into()),
+        "yaml" => Ok(ExportFormat::Yaml),
+        "text" => Ok(ExportFormat::Text),
+        _ => Err(ConfigError::new(
+            format!("Invalid export format '{}': must be 'json', 'csv', 'yaml', or 'text'", format_str)
+        ).into()),
     }
 }
 

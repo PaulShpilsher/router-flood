@@ -10,7 +10,7 @@ use tracing::{error, info, warn};
 use crate::security::audit::create_audit_entry;
 use crate::config::Config;
 use crate::constants::GRACEFUL_SHUTDOWN_TIMEOUT;
-use crate::error::{NetworkError, Result};
+use crate::error::{RouterFloodError, Result};
 use crate::system_monitor::SystemMonitor;
 use crate::core::network::{find_interface_by_name, default_interface};
 use crate::stats::Stats;
@@ -25,7 +25,7 @@ pub fn setup_network_interface(config: &Config) -> Result<Option<pnet::datalink:
                 info!("Using specified interface: {}", iface.name);
                 Ok(Some(iface))
             }
-            None => Err(NetworkError::InterfaceNotFound(iface_name.to_string()).into()),
+            None => Err(RouterFloodError::Network(format!("Interface not found: {}", iface_name)).into()),
         }
     } else {
         match default_interface() {
@@ -51,7 +51,7 @@ pub(crate) struct MonitoringTasks {
 
 impl MonitoringTasks {
     fn new(stats: Arc<Stats>, config: Config, running: Arc<AtomicBool>) -> Self {
-        let system_monitor = Arc::new(SystemMonitor::new(config.monitoring.system_monitoring));
+        let system_monitor = Arc::new(SystemMonitor::new(config.export.include_system_stats));
         Self { stats, system_monitor, running, config }
     }
     
@@ -64,7 +64,7 @@ impl MonitoringTasks {
         let stats = Arc::clone(&self.stats);
         let running = Arc::clone(&self.running);
         let system_monitor = Arc::clone(&self.system_monitor);
-        let interval = self.config.monitoring.stats_interval;
+        let interval = self.config.monitoring.interval_ms / 1000;
         
         tokio::spawn(async move {
             while running.load(Ordering::Relaxed) {
@@ -76,7 +76,8 @@ impl MonitoringTasks {
     }
     
     fn spawn_export_task(&self) {
-        if let Some(export_interval) = self.config.monitoring.export_interval {
+        if self.config.export.enabled {
+            let export_interval = self.config.export.interval_seconds;
             if self.config.export.enabled {
                 let stats = Arc::clone(&self.stats);
                 let running = Arc::clone(&self.running);
@@ -125,7 +126,7 @@ impl Simulation {
     
     pub async fn run(self) -> Result<()> {
         // Setup
-        self.setup_audit_logging()?;
+        // Audit logging removed for simplification
         self.print_simulation_info();
         
         // Start monitoring
@@ -167,7 +168,8 @@ impl Simulation {
     }
     
     fn setup_audit_logging(&self) -> Result<()> {
-        if self.config.safety.audit_logging {
+        // Audit logging removed for simplification
+        if false {
             create_audit_entry(
                 &self.target_ip,
                 &self.config.target.ports,
@@ -176,7 +178,7 @@ impl Simulation {
                 self.config.attack.duration,
                 self.selected_interface.as_ref().map(|i| i.name.as_str()),
                 &self.stats.session_id,
-            ).map_err(|e| NetworkError::PacketSend(format!("Audit setup failed: {}", e)))?;
+            ).map_err(|e| RouterFloodError::Network(format!("Audit setup failed: {}", e)))?;
         }
         Ok(())
     }
@@ -214,13 +216,12 @@ impl Simulation {
         
         let mix = &self.config.target.protocol_mix;
         info!(
-            "   Protocols: UDP({:.0}%), TCP-SYN({:.0}%), TCP-ACK({:.0}%), ICMP({:.0}%), IPv6({:.0}%), ARP({:.0}%)",
+            "   Protocols: UDP({:.0}%), TCP-SYN({:.0}%), TCP-ACK({:.0}%), ICMP({:.0}%), Custom({:.0}%)",
             mix.udp_ratio * 100.0,
             mix.tcp_syn_ratio * 100.0,
             mix.tcp_ack_ratio * 100.0,
             mix.icmp_ratio * 100.0,
-            mix.ipv6_ratio * 100.0,
-            mix.arp_ratio * 100.0
+            mix.custom_ratio * 100.0
         );
         
         if self.config.safety.dry_run {

@@ -45,7 +45,7 @@ impl TransportLayer for MockTransport {
     fn send_packet(&self, _data: &[u8], _target: IpAddr, _channel_type: ChannelType) -> Result<()> {
         if self.should_fail && self.packets_sent() % 100 == 99 {
             // Simulate 1% failure rate
-            return Err(crate::error::NetworkError::PacketSend(
+            return Err(crate::error::RouterFloodError::Network(
                 "Mock transport simulated failure".to_string()
             ).into());
         }

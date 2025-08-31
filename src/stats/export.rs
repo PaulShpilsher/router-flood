@@ -38,9 +38,9 @@ impl StatsExporter for DefaultStatsExporter {
         }
 
         // Ensure export directory exists
-        fs::create_dir_all(STATS_EXPORT_DIR)
+        fs::create_dir_all(&config.path)
             .await
-            .map_err(|e| StatsError::ExportFailed(format!("Failed to create export directory: {}", e)))?;
+            .map_err(|e| StatsError::new(format!("Failed to create export directory: {}", e)))?;
 
         match config.format {
             ExportFormat::Json => {
@@ -49,9 +49,13 @@ impl StatsExporter for DefaultStatsExporter {
             ExportFormat::Csv => {
                 self.export_csv(stats, config).await?;
             }
-            ExportFormat::Both => {
-                self.export_json(stats, config).await?;
-                self.export_csv(stats, config).await?;
+            ExportFormat::Yaml => {
+                // TODO: Implement YAML export
+                return Err(StatsError::new("YAML export not yet implemented").into());
+            }
+            ExportFormat::Text => {
+                // TODO: Implement text export
+                return Err(StatsError::new("Text export not yet implemented").into());
             }
         }
         
@@ -63,16 +67,16 @@ impl DefaultStatsExporter {
     async fn export_json(&self, stats: &SessionStats, config: &Export) -> Result<()> {
         let timestamp = Utc::now().format("%Y%m%d_%H%M%S");
         let filename = format!(
-            "{}/{}_stats_{}.json",
-            STATS_EXPORT_DIR, config.filename_pattern, timestamp
+            "{}/router_flood_stats_{}.json",
+            config.path, timestamp
         );
 
         let json = serde_json::to_string_pretty(stats)
-            .map_err(|e| StatsError::SerializationError(format!("Failed to serialize stats: {}", e)))?;
+            .map_err(|e| StatsError::new(format!("Failed to serialize stats: {}", e)))?;
 
         fs::write(&filename, json)
             .await
-            .map_err(|e| StatsError::FileWriteError(format!("Failed to write JSON stats: {}", e)))?;
+            .map_err(|e| StatsError::new(format!("Failed to write JSON stats: {}", e)))?;
 
         info!("Stats exported to {}", filename);
         Ok(())
@@ -81,12 +85,12 @@ impl DefaultStatsExporter {
     async fn export_csv(&self, stats: &SessionStats, config: &Export) -> Result<()> {
         let timestamp = Utc::now().format("%Y%m%d_%H%M%S");
         let filename = format!(
-            "{}/{}_stats_{}.csv",
-            STATS_EXPORT_DIR, config.filename_pattern, timestamp
+            "{}/router_flood_stats_{}.csv",
+            config.path, timestamp
         );
 
         let file = std::fs::File::create(&filename)
-            .map_err(|e| StatsError::FileWriteError(format!("Failed to create CSV file: {}", e)))?;
+            .map_err(|e| StatsError::new(format!("Failed to create CSV file: {}", e)))?;
 
         let mut writer = Writer::from_writer(file);
 
@@ -107,7 +111,7 @@ impl DefaultStatsExporter {
                 "ipv6_packets",
                 "arp_packets",
             ])
-            .map_err(|e| StatsError::FileWriteError(format!("Failed to write CSV header: {}", e)))?;
+            .map_err(|e| StatsError::new(format!("Failed to write CSV header: {}", e)))?;
 
         // Write data - using constants for protocol names
         writer
@@ -126,11 +130,11 @@ impl DefaultStatsExporter {
                 &stats.protocol_breakdown.get(crate::constants::protocols::IPV6).unwrap_or(&0).to_string(),
                 &stats.protocol_breakdown.get(crate::constants::protocols::ARP).unwrap_or(&0).to_string(),
             ])
-            .map_err(|e| StatsError::FileWriteError(format!("Failed to write CSV data: {}", e)))?;
+            .map_err(|e| StatsError::new(format!("Failed to write CSV data: {}", e)))?;
 
         writer
             .flush()
-            .map_err(|e| StatsError::FileWriteError(format!("Failed to flush CSV: {}", e)))?;
+            .map_err(|e| StatsError::new(format!("Failed to flush CSV: {}", e)))?;
         
         info!("Stats exported to {}", filename);
         Ok(())

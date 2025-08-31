@@ -14,7 +14,6 @@ pub mod cli;
 pub mod config;
 pub mod constants;
 pub mod core;
-pub mod error;
 pub mod system_monitor;
 pub mod packet;
 pub mod performance;
@@ -25,6 +24,9 @@ pub mod stats;
 pub mod transport;
 pub mod ui;
 pub mod utils;
+
+// Use the new consolidated error module
+pub mod error;
 
 // Re-export key types for convenience
 pub use config::{Config, Target, LoadConfig, Safety, Monitoring, Export, ExportFormat, ProtocolMix};

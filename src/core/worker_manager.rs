@@ -8,7 +8,7 @@ use std::sync::Arc;
 use tokio::task::JoinHandle;
 
 use crate::config::Config;
-use crate::error::{NetworkError, Result};
+use crate::error::{RouterFloodError, Result};
 use crate::stats::Stats;
 use crate::core::target::MultiPortTarget;
 use crate::core::worker::{Worker, WorkerConfig};
@@ -101,7 +101,7 @@ impl Workers {
     /// Wait for all worker threads to complete
     pub async fn join_all(self) -> Result<()> {
         for handle in self.handles {
-            handle.await.map_err(|e| NetworkError::PacketSend(format!("Worker join error: {}", e)))?;
+            handle.await.map_err(|e| RouterFloodError::Network(format!("Worker join error: {}", e)))?;
         }
         Ok(())
     }

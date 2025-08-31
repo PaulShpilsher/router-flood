@@ -258,10 +258,10 @@ impl AuditLog {
             .append(true)
             .open(&self.log_file)
             .await
-            .map_err(|e| SystemError::ResourceUnavailable(format!("Failed to open audit log: {}", e)))?
+            .map_err(|e| SystemError::resource_unavailable("audit log", format!("Failed to open: {}", e)))?
             .write_all(log_entry.as_bytes())
             .await
-            .map_err(|e| SystemError::ResourceUnavailable(format!("Failed to write audit log: {}", e)))?;
+            .map_err(|e| SystemError::resource_unavailable("audit log", format!("Failed to write: {}", e)))?;
         
         // Update state
         self.previous_hash = current_hash;
@@ -274,7 +274,7 @@ impl AuditLog {
     pub async fn verify_integrity(&self) -> Result<bool> {
         let content = tokio::fs::read_to_string(&self.log_file)
             .await
-            .map_err(|e| SystemError::ResourceUnavailable(format!("Failed to read audit log: {}", e)))?;
+            .map_err(|e| SystemError::resource_unavailable("audit log", format!("Failed to read: {}", e)))?;
         
         // Start with genesis hash
         let mut expected_hash = Self::calculate_hash(format!("GENESIS:{}", self.session_id).as_bytes());
@@ -329,7 +329,7 @@ impl AuditLog {
         );
         
         std::fs::write(&self.log_file, genesis_entry)
-            .map_err(|e| SystemError::ResourceUnavailable(format!("Failed to write genesis entry: {}", e)))?;
+            .map_err(|e| SystemError::resource_unavailable("audit log", format!("Failed to write genesis entry: {}", e)))?;
         
         Ok(())
     }

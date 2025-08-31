@@ -76,8 +76,14 @@ pub mod defaults {
     
     pub const TARGET_IP: &str = "192.168.0.1";
     pub const TARGET_PORT: u16 = 80;
+    pub const DEFAULT_THREADS: usize = 4;
     pub const THREAD_COUNT: usize = 4;
+    pub const DEFAULT_PACKET_RATE: f64 = 100.0;
     pub const PACKET_RATE: u64 = 100;
+    pub const DEFAULT_PAYLOAD_SIZE: usize = 64;
+    pub const DEFAULT_DURATION_SECONDS: u64 = 60;
+    pub const DEFAULT_MAX_BANDWIDTH_MBPS: f64 = 100.0;
+    pub const DEFAULT_STATS_INTERVAL_MS: u64 = 1000;
     pub const STATS_INTERVAL: u64 = DEFAULT_STATS_INTERVAL;
     
     // Protocol mix ratios (must sum to 1.0)

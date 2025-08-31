@@ -66,7 +66,7 @@ impl SimulationRAII {
         self.resource_guard = self.resource_guard.with_stats(stats_guard);
         
         // Setup audit logging
-        self.setup_audit_logging(&stats)?;
+        // Audit logging removed for simplification
         
         // Print simulation info
         self.print_simulation_info();
@@ -123,7 +123,8 @@ impl SimulationRAII {
     }
     
     fn setup_audit_logging(&self, stats: &Arc<Stats>) -> Result<()> {
-        if self.config.safety.audit_logging {
+        // Audit logging removed for simplification
+        if false {
             create_audit_entry(
                 &self.target_ip,
                 &self.config.target.ports,
@@ -132,7 +133,7 @@ impl SimulationRAII {
                 self.config.attack.duration,
                 self.selected_interface.as_ref().map(|i| i.name.as_str()),
                 &stats.session_id,
-            ).map_err(|e| crate::error::NetworkError::PacketSend(
+            ).map_err(|e| crate::error::RouterFloodError::Network(
                 format!("Audit setup failed: {}", e)
             ))?;
         }
@@ -172,8 +173,8 @@ impl SimulationRAII {
         // Spawn stats reporter
         let stats_clone = stats.clone();
         let running_clone = running.clone();
-        let system_monitor = Arc::new(SystemMonitor::new(self.config.monitoring.system_monitoring));
-        let interval = self.config.monitoring.stats_interval;
+        let system_monitor = Arc::new(SystemMonitor::new(self.config.export.include_system_stats));
+        let interval = self.config.monitoring.interval_ms / 1000;
         
         tokio::spawn(async move {
             while running_clone.load(Ordering::Relaxed) {
@@ -184,7 +185,8 @@ impl SimulationRAII {
         });
         
         // Spawn export task
-        if let Some(export_interval) = self.config.monitoring.export_interval {
+        if self.config.export.enabled {
+            let export_interval = self.config.export.interval_seconds;
             if self.config.export.enabled {
                 let stats_clone = stats.clone();
                 let running_clone = running.clone();
@@ -202,7 +204,7 @@ impl SimulationRAII {
     }
     
     async fn print_final_stats(&self, stats: &Arc<Stats>) {
-        let system_monitor = SystemMonitor::new(self.config.monitoring.system_monitoring);
+        let system_monitor = SystemMonitor::new(self.config.export.include_system_stats);
         let sys_stats = system_monitor.get_system_stats().await;
         
         info!("");

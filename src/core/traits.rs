@@ -62,8 +62,6 @@ pub trait WorkerConfig: Send + Sync {
     /// Check if timing should be randomized
     fn randomize_timing(&self) -> bool;
     
-    /// Check if perfect simulation is enabled
-    fn perfect_simulation(&self) -> bool;
     
     /// Check if dry run mode is enabled
     fn dry_run(&self) -> bool;

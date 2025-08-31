@@ -8,7 +8,7 @@ use std::sync::Arc;
 use tokio::task::JoinHandle;
 use tracing::{debug, error};
 
-use crate::error::{NetworkError, Result};
+use crate::error::{RouterFloodError, Result};
 use crate::stats::Stats;
 use crate::utils::terminal::Terminal;
 use crate::transport::WorkerChannels;
@@ -209,7 +209,7 @@ impl TerminalRAIIGuard {
         
         if Terminal::is_tty() {
             controller.disable_ctrl_echo()
-                .map_err(|e| NetworkError::ChannelCreation(format!("Terminal setup failed: {}", e)))?;
+                .map_err(|e| RouterFloodError::Network(format!("Terminal setup failed: {}", e)))?
         }
         
         debug!("TerminalRAIIGuard created");
