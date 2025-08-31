@@ -193,7 +193,7 @@ impl CliRunner {
         let intensity = Self::determine_intensity_from_legacy(legacy);
         
         PresetConfig {
-            target: crate::config::preset::TargetConfig {
+            target: crate::config::preset::Target {
                 ip: legacy.target.ip.clone(),
                 ports: legacy.target.ports.clone(),
                 interface: legacy.target.interface.clone(),
@@ -202,13 +202,13 @@ impl CliRunner {
                 intensity,
                 duration: legacy.attack.duration.unwrap_or(30),
                 protocols: Self::legacy_to_protocol_config(&legacy.target.protocol_mix),
-                export: crate::config::preset::ExportConfig {
+                export: crate::config::preset::Export {
                     enabled: legacy.export.enabled,
                     format: Self::legacy_to_export_format(&legacy.export.format),
                     filename: None,
                 },
             },
-            safety: crate::config::preset::SafetyConfig {
+            safety: crate::config::preset::Safety {
                 dry_run: legacy.safety.dry_run,
                 private_only: legacy.safety.require_private_ranges,
                 audit_log: legacy.safety.audit_logging,

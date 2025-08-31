@@ -117,7 +117,7 @@ async fn buffer_pool_example() -> Result<()> {
 
     // Allocate buffers
     for _ in 0..1000 {
-        let buffer = pool.get_buffer();
+        let buffer = pool.buffer();
         buffers.push(buffer);
     }
 
@@ -376,7 +376,7 @@ async fn performance_benchmark_example() -> Result<()> {
     
     // Allocate buffers
     for _ in 0..10000 {
-        let buffer = pool.get_buffer();
+        let buffer = pool.buffer();
         buffers.push(buffer);
     }
     

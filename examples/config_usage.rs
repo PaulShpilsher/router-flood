@@ -3,12 +3,12 @@
 //! This example shows how to use the configuration system
 //! for building network testing tools.
 
-use router_flood::config::get_default_config;
+use router_flood::config::default_config;
 use router_flood::error::Result;
 
 fn main() -> Result<()> {
     // Load default configuration
-    let config = get_default_config();
+    let config = default_config();
     
     println!("=== Router Flood Configuration Example ===\n");
     

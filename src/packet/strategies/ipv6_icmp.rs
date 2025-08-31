@@ -3,7 +3,7 @@
 use super::PacketStrategy;
 use crate::constants::{IPV6_HEADER_SIZE, ICMP_HEADER_SIZE, icmp};
 use crate::error::{PacketError, Result};
-use crate::packet::Target;
+use crate::packet::PacketTarget;
 use crate::utils::rng::BatchedRng;
 use pnet::packet::icmp::{IcmpTypes, MutableIcmpPacket};
 use pnet::packet::ip::IpNextHeaderProtocols;
@@ -37,7 +37,7 @@ impl Ipv6IcmpStrategy {
 }
 
 impl PacketStrategy for Ipv6IcmpStrategy {
-    fn build_packet(&mut self, target: &Target, buffer: &mut [u8]) -> Result<usize> {
+    fn build_packet(&mut self, target: &PacketTarget, buffer: &mut [u8]) -> Result<usize> {
         let target_ip = match target.ip {
             IpAddr::V6(ip) => ip,
             IpAddr::V4(_) => {

@@ -1,15 +1,15 @@
 //! Common test utilities
 
 use router_flood::config::{
-    Config, TargetConfig, AttackConfig, SafetyConfig, 
-    MonitoringConfig, ExportConfig, ExportFormat, ProtocolMix, BurstPattern
+    Config, Target, LoadConfig, Safety, 
+    Monitoring, Export, ExportFormat, ProtocolMix, BurstPattern
 };
 
 /// Create a standard test configuration
 pub fn create_test_config() -> Config {
     Config {
-        target: TargetConfig {
-            ip: "192.168.1.1".to_string().to_string(),
+        target: Target {
+            ip: "192.168.1.1".to_string(),
             ports: vec![80, 443],
             protocol_mix: ProtocolMix {
                 udp_ratio: 1.0,
@@ -21,7 +21,7 @@ pub fn create_test_config() -> Config {
             },
             interface: None,
         },
-        attack: AttackConfig {
+        attack: LoadConfig {
             threads: 2,
             packet_rate: 100,
             duration: Some(5),
@@ -29,7 +29,7 @@ pub fn create_test_config() -> Config {
             burst_pattern: BurstPattern::Sustained { rate: 100 },
             randomize_timing: false,
         },
-        safety: SafetyConfig {
+        safety: Safety {
             max_threads: 10,
             max_packet_rate: 10000,
             require_private_ranges: false,
@@ -38,36 +38,17 @@ pub fn create_test_config() -> Config {
             dry_run: true,
             perfect_simulation: true,
         },
-        monitoring: MonitoringConfig {
+        monitoring: Monitoring {
             stats_interval: 5,
             system_monitoring: false,
             export_interval: None,
             performance_tracking: false,
         },
-        export: ExportConfig {
+        export: Export {
             enabled: false,
             format: ExportFormat::Json,
             filename_pattern: "test".to_string(),
             include_system_stats: false,
         },
     }
-}
-
-/// Create a minimal test configuration for dry run
-#[allow(dead_code)]
-pub fn create_dry_run_config() -> Config {
-    let mut config = create_test_config();
-    config.safety.dry_run = true;
-    config.safety.perfect_simulation = true;
-    config.attack.threads = 1;
-    config.attack.packet_rate = 10;
-    config
-}
-
-/// Create a configuration for single-threaded testing
-#[allow(dead_code)]
-pub fn create_single_thread_config() -> Config {
-    let mut config = create_test_config();
-    config.attack.threads = 1;
-    config
 }

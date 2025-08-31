@@ -151,7 +151,7 @@ proptest! {
         protocol_mix in protocol_mix_strategy(),
         packet_size_range in packet_size_range_strategy()
     ) {
-        let mut config = get_default_config();
+        let mut config = default_config();
         config.attack.threads = threads;
         config.attack.packet_rate = packet_rate;
         config.target.ip = target_ip.to_string();
@@ -197,7 +197,7 @@ proptest! {
         export_interval in prop::option::of(1u64..=7200),
         packet_size_range in packet_size_range_strategy()
     ) {
-        let mut config = get_default_config();
+        let mut config = default_config();
         config.attack.threads = threads;
         config.attack.packet_rate = packet_rate;
         config.monitoring.stats_interval = stats_interval;

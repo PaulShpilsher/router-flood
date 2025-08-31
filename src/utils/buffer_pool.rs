@@ -45,7 +45,7 @@ impl BufferPool {
     /// Returns a buffer from the pool if available, otherwise allocates a new one.
     /// This operation is lock-free and thread-safe.
     #[inline]
-    pub fn get_buffer(&self) -> Vec<u8> {
+    pub fn buffer(&self) -> Vec<u8> {
         // Try to get a buffer from the pool
         for _ in 0..self.pool_size {
             let index = self.next_index.fetch_add(1, Ordering::Relaxed) % self.pool_size;

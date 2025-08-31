@@ -19,12 +19,12 @@ pub mod prometheus;
 pub mod essential;
 
 
-pub use alerts::{AlertManager, AlertRule};
+pub use alerts::{Alerts, AlertRule};
 pub use dashboard::{Dashboard, DashboardConfig, DashboardBuilder, AlertThresholds, DashboardState, Alert, AlertLevel, SystemInfo};
 pub use export::{MetricsExporter, ExportFormat};
 pub use metrics::{MetricsCollector, MetricValue};
 pub use prometheus::PrometheusExporter;
 pub use essential::{
     Metrics, EssentialMetricsCollector, Display, Exporter,
-    Monitor, MonitoringConfig, MonitoringSystem
+    Monitor, Monitoring, MonitoringSystem
 };

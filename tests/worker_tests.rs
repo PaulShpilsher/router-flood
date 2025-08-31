@@ -24,7 +24,7 @@ fn create_test_protocol_mix() -> ProtocolMix {
 }
 
 fn create_test_config() -> router_flood::config::Config {
-    let mut config = router_flood::config::get_default_config();
+    let mut config = router_flood::config::default_config();
     config.attack.threads = 2; // Small number for testing
     config.attack.packet_rate = 10; // Low rate for testing
     config.safety.dry_run = true; // Always use dry-run in tests

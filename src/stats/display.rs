@@ -211,6 +211,6 @@ pub fn init_display(enabled: bool) -> Arc<StatsDisplay> {
 }
 
 /// Get the global stats display
-pub fn get_display() -> Option<Arc<StatsDisplay>> {
+pub fn display() -> Option<Arc<StatsDisplay>> {
     STATS_DISPLAY.get().cloned()
 }

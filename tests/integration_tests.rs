@@ -5,7 +5,7 @@
 //! These tests verify the integration and interaction between different modules
 //! of the router-flood application, focusing on end-to-end functionality.
 
-use router_flood::config::{get_default_config, load_config};
+use router_flood::config::{default_config, load_config};
 use router_flood::security::validation::{validate_system_requirements, validate_target_ip, validate_comprehensive_security};
 use router_flood::error::RouterFloodError;
 use router_flood::stats::Stats;
@@ -13,7 +13,7 @@ use std::net::{IpAddr, Ipv4Addr};
 
 #[test]
 fn test_config_and_validation_integration() {
-    let config = get_default_config();
+    let config = default_config();
     let target_ip = config.target.ip.parse::<IpAddr>().unwrap();
     
     // Test that default config passes all validations
@@ -104,7 +104,7 @@ fn test_stats_and_protocols_integration() {
 
 #[test]
 fn test_configuration_security_limits() {
-    let mut config = get_default_config();
+    let mut config = default_config();
     
     // Test that safety limits are enforced
     config.attack.threads = 1000; // Exceeds MAX_THREADS
@@ -196,9 +196,9 @@ fn test_protocol_constants_consistency() {
 
 #[tokio::test]
 async fn test_stats_export_dry_run() {
-    use router_flood::config::{ExportConfig, ExportFormat};
+    use router_flood::config::{Export, ExportFormat};
     
-    let export_config = ExportConfig {
+    let export_config = Export {
         enabled: true,
         format: ExportFormat::Json,
         filename_pattern: "test".to_string(),

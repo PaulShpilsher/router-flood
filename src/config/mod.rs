@@ -28,15 +28,15 @@ pub use builder::ConfigBuilder;
 /// Main configuration structure for YAML config file support
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Config {
-    pub target: TargetConfig,
-    pub attack: AttackConfig,
-    pub safety: SafetyConfig,
-    pub monitoring: MonitoringConfig,
-    pub export: ExportConfig,
+    pub target: Target,
+    pub attack: LoadConfig,
+    pub safety: Safety,
+    pub monitoring: Monitoring,
+    pub export: Export,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct TargetConfig {
+pub struct Target {
     pub ip: String,
     pub ports: Vec<u16>,
     pub protocol_mix: ProtocolMix,
@@ -54,7 +54,7 @@ pub struct ProtocolMix {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct AttackConfig {
+pub struct LoadConfig {
     pub threads: usize,
     pub packet_rate: u64,
     pub duration: Option<u64>,
@@ -64,7 +64,7 @@ pub struct AttackConfig {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct SafetyConfig {
+pub struct Safety {
     pub max_threads: usize,
     pub max_packet_rate: u64,
     pub require_private_ranges: bool,
@@ -75,7 +75,7 @@ pub struct SafetyConfig {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct MonitoringConfig {
+pub struct Monitoring {
     pub stats_interval: u64,
     pub system_monitoring: bool,
     pub export_interval: Option<u64>,
@@ -83,7 +83,7 @@ pub struct MonitoringConfig {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ExportConfig {
+pub struct Export {
     pub enabled: bool,
     pub format: ExportFormat,
     pub filename_pattern: String,
@@ -127,7 +127,7 @@ pub fn load_config(config_path: Option<&str>) -> Result<Config> {
 
     if !Path::new(config_file).exists() {
         info!("Config file {} not found, using defaults", config_file);
-        return Ok(get_default_config());
+        return Ok(default_config());
     }
 
     let config_str = std::fs::read_to_string(config_file)
@@ -138,9 +138,9 @@ pub fn load_config(config_path: Option<&str>) -> Result<Config> {
         .map_err(Into::into)
 }
 
-pub fn get_default_config() -> Config {
+pub fn default_config() -> Config {
     Config {
-        target: TargetConfig {
+        target: Target {
             ip: defaults::TARGET_IP.to_string(),
             ports: vec![defaults::TARGET_PORT],
             protocol_mix: ProtocolMix {
@@ -153,7 +153,7 @@ pub fn get_default_config() -> Config {
             },
             interface: None,
         },
-        attack: AttackConfig {
+        attack: LoadConfig {
             threads: defaults::THREAD_COUNT,
             packet_rate: defaults::PACKET_RATE,
             duration: None,
@@ -161,7 +161,7 @@ pub fn get_default_config() -> Config {
             burst_pattern: BurstPattern::Sustained { rate: defaults::PACKET_RATE },
             randomize_timing: true,
         },
-        safety: SafetyConfig {
+        safety: Safety {
             max_threads: MAX_THREADS,
             max_packet_rate: MAX_PACKET_RATE,
             require_private_ranges: true,
@@ -170,13 +170,13 @@ pub fn get_default_config() -> Config {
             dry_run: false,
             perfect_simulation: false,
         },
-        monitoring: MonitoringConfig {
+        monitoring: Monitoring {
             stats_interval: defaults::STATS_INTERVAL,
             system_monitoring: true,
             export_interval: Some(DEFAULT_EXPORT_INTERVAL),
             performance_tracking: true,
         },
-        export: ExportConfig {
+        export: Export {
             enabled: false,
             format: ExportFormat::Json,
             filename_pattern: defaults::FILENAME_PATTERN.to_string(),
@@ -193,7 +193,7 @@ impl ConfigTemplates {
         vec!["basic", "web_server", "dns_server", "high_performance"]
     }
 
-    pub fn get_template(name: &str) -> Option<Config> {
+    pub fn template(name: &str) -> Option<Config> {
         match name {
             "basic" => Some(Self::basic_template()),
             "web_server" => Some(Self::web_server_template()),
@@ -204,7 +204,7 @@ impl ConfigTemplates {
     }
 
     fn basic_template() -> Config {
-        let mut config = get_default_config();
+        let mut config = default_config();
         config.target.ip = "192.168.1.1".to_string();
         config.target.ports = vec![80];
         config.attack.threads = 2;
@@ -215,7 +215,7 @@ impl ConfigTemplates {
     }
 
     fn web_server_template() -> Config {
-        let mut config = get_default_config();
+        let mut config = default_config();
         config.target.ip = "192.168.1.100".to_string();
         config.target.ports = vec![80, 443, 8080, 8443];
         config.attack.threads = 4;
@@ -227,7 +227,7 @@ impl ConfigTemplates {
     }
 
     fn dns_server_template() -> Config {
-        let mut config = get_default_config();
+        let mut config = default_config();
         config.target.ip = "192.168.1.53".to_string();
         config.target.ports = vec![53];
         config.attack.threads = 6;
@@ -238,7 +238,7 @@ impl ConfigTemplates {
     }
 
     fn high_performance_template() -> Config {
-        let mut config = get_default_config();
+        let mut config = default_config();
         config.target.ip = "10.0.0.1".to_string();
         config.target.ports = vec![80, 443, 22, 53, 21, 25];
         config.attack.threads = 8;

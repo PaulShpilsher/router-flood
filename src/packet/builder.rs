@@ -1,6 +1,6 @@
 //! Main packet builder implementation using strategy pattern
 
-use super::{PacketStrategy, PacketType, Target};
+use super::{PacketStrategy, PacketType, PacketTarget};
 use crate::config::ProtocolMix;
 use crate::error::{PacketError, Result};
 use crate::utils::rng::BatchedRng;
@@ -70,7 +70,7 @@ impl PacketBuilder {
         target_ip: IpAddr,
         target_port: u16,
     ) -> Result<(usize, &'static str)> {
-        let target = Target::new(target_ip, target_port);
+        let target = PacketTarget::new(target_ip, target_port);
         
         let strategy = self.strategies.get_mut(&packet_type)
             .ok_or_else(|| PacketError::InvalidParameters(

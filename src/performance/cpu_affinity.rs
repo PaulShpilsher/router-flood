@@ -200,8 +200,8 @@ impl CpuAffinity {
                 let name = entry.file_name();
                 let name_str = name.to_string_lossy();
                 
-                if name_str.starts_with("node") {
-                    if let Ok(node_id) = name_str[4..].parse::<usize>() {
+                if let Some(stripped) = name_str.strip_prefix("node") {
+                    if let Ok(node_id) = stripped.parse::<usize>() {
                         let cpus = Self::get_node_cpus(node_id).unwrap_or_default();
                         let (memory_total, memory_free) = Self::get_node_memory(node_id);
                         

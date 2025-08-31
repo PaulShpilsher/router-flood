@@ -78,7 +78,7 @@ impl Commands {
 
         println!("📝 Generating {} configuration template...", template_name);
 
-        let template = ConfigTemplates::get_template(template_name)
+        let template = ConfigTemplates::template(template_name)
             .ok_or_else(|| ConfigError::InvalidValue {
                 field: "template".to_string(),
                 value: template_name.clone(),
@@ -131,7 +131,7 @@ impl Commands {
         println!("====================================");
 
         for template_name in ConfigTemplates::list_templates() {
-            if let Some(template) = ConfigTemplates::get_template(template_name) {
+            if let Some(template) = ConfigTemplates::template(template_name) {
                 println!();
                 println!("🔧 {}", template_name);
                 println!("   Target: {}:{:?}", template.target.ip, template.target.ports);

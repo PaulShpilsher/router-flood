@@ -4,7 +4,7 @@
 //!
 //! Tests for the main application entry point functions and configuration parsing.
 
-use router_flood::config::get_default_config;
+use router_flood::config::default_config;
 use router_flood::constants::error_messages;
 use router_flood::error::RouterFloodError;
 use std::net::{IpAddr, Ipv4Addr};
@@ -20,7 +20,7 @@ fn parse_target_ip(config: &router_flood::config::Config) -> router_flood::error
 
 #[test]
 fn test_parse_target_ip_valid() {
-    let mut config = get_default_config();
+    let mut config = default_config();
     config.target.ip = "192.168.1.1".to_string();
     
     let result = parse_target_ip(&config);
@@ -33,7 +33,7 @@ fn test_parse_target_ip_valid() {
 
 #[test]
 fn test_parse_target_ip_invalid() {
-    let mut config = get_default_config();
+    let mut config = default_config();
     config.target.ip = "invalid.ip.address".to_string();
     
     let result = parse_target_ip(&config);
@@ -50,7 +50,7 @@ fn test_parse_target_ip_invalid() {
 
 #[test]
 fn test_parse_target_ip_ipv6() {
-    let mut config = get_default_config();
+    let mut config = default_config();
     config.target.ip = "::1".to_string();
     
     let result = parse_target_ip(&config);
@@ -73,7 +73,7 @@ fn test_parse_target_ip_edge_cases() {
     ];
 
     for (ip_str, should_succeed) in test_cases {
-        let mut config = get_default_config();
+        let mut config = default_config();
         config.target.ip = ip_str.to_string();
         
         let result = parse_target_ip(&config);
@@ -101,7 +101,7 @@ async fn test_setup_logging() {
 
 #[test]
 fn test_default_configuration() {
-    let config = get_default_config();
+    let config = default_config();
     
     assert_eq!(config.target.ip, "192.168.0.1");
     assert_eq!(config.target.ports, vec![80]);
@@ -113,7 +113,7 @@ fn test_default_configuration() {
 
 #[test]
 fn test_configuration_validation_requirements() {
-    let config = get_default_config();
+    let config = default_config();
     
     // Verify safety defaults
     assert!(config.safety.require_private_ranges);

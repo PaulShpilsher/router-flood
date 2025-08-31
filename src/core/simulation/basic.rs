@@ -12,7 +12,7 @@ use crate::config::Config;
 use crate::constants::GRACEFUL_SHUTDOWN_TIMEOUT;
 use crate::error::{NetworkError, Result};
 use crate::system_monitor::SystemMonitor;
-use crate::core::network::{find_interface_by_name, get_default_interface};
+use crate::core::network::{find_interface_by_name, default_interface};
 use crate::stats::Stats;
 use crate::core::target::MultiPortTarget;
 use crate::core::worker_manager::Workers;
@@ -28,7 +28,7 @@ pub fn setup_network_interface(config: &Config) -> Result<Option<pnet::datalink:
             None => Err(NetworkError::InterfaceNotFound(iface_name.to_string()).into()),
         }
     } else {
-        match get_default_interface() {
+        match default_interface() {
             Some(iface) => {
                 info!("Using default interface: {}", iface.name);
                 Ok(Some(iface))
@@ -243,7 +243,7 @@ impl Simulation {
         self.stats.print_stats(None);
         
         // Clear the in-place display before showing final messages
-        if let Some(display) = crate::stats::get_display() {
+        if let Some(display) = crate::stats::display() {
             display.clear();
         }
         

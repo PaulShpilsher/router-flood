@@ -15,16 +15,16 @@ use crate::error::{ConfigError, Result};
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct PresetConfig {
     /// Target configuration - what to test
-    pub target: TargetConfig,
+    pub target: Target,
     /// Test configuration - how to test
     pub test: TestConfig,
     /// Safety configuration - safety limits
-    pub safety: SafetyConfig,
+    pub safety: Safety,
 }
 
 /// Target configuration - preset to essential fields
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct TargetConfig {
+pub struct Target {
     /// Target IP address (required)
     pub ip: String,
     /// Target ports (default: [80, 443])
@@ -49,12 +49,12 @@ pub struct TestConfig {
     pub protocols: ProtocolConfig,
     /// Export results (default: false)
     #[serde(default)]
-    pub export: ExportConfig,
+    pub export: Export,
 }
 
 /// Safety configuration - essential safety features
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct SafetyConfig {
+pub struct Safety {
     /// Dry run mode - no actual packets sent (default: false)
     #[serde(default)]
     pub dry_run: bool,
@@ -94,7 +94,7 @@ pub struct ProtocolConfig {
 
 /// Preset export configuration
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ExportConfig {
+pub struct Export {
     /// Enable export (default: false)
     #[serde(default)]
     pub enabled: bool,
@@ -135,7 +135,7 @@ fn default_true() -> bool {
 
 // Default implementation removed - using #[derive(Default)]
 
-impl Default for TargetConfig {
+impl Default for Target {
     fn default() -> Self {
         Self {
             ip: "192.168.1.1".to_string(),
@@ -151,12 +151,12 @@ impl Default for TestConfig {
             intensity: default_load_level(),
             duration: default_duration(),
             protocols: ProtocolConfig::default(),
-            export: ExportConfig::default(),
+            export: Export::default(),
         }
     }
 }
 
-impl Default for SafetyConfig {
+impl Default for Safety {
     fn default() -> Self {
         Self {
             dry_run: false,
@@ -176,7 +176,7 @@ impl Default for ProtocolConfig {
     }
 }
 
-impl Default for ExportConfig {
+impl Default for Export {
     fn default() -> Self {
         Self {
             enabled: false,
@@ -232,7 +232,7 @@ impl PresetConfig {
     /// Create a quick test configuration
     pub fn quick_test(target_ip: &str) -> Self {
         Self {
-            target: TargetConfig {
+            target: Target {
                 ip: target_ip.to_string(),
                 ports: vec![80],
                 interface: None,
@@ -245,9 +245,9 @@ impl PresetConfig {
                     tcp: false,
                     icmp: false,
                 },
-                export: ExportConfig::default(),
+                export: Export::default(),
             },
-            safety: SafetyConfig {
+            safety: Safety {
                 dry_run: true, // Default to safe mode
                 private_only: true,
                 audit_log: true,
@@ -258,7 +258,7 @@ impl PresetConfig {
     /// Create a standard test configuration
     pub fn standard_test(target_ip: &str, ports: Vec<u16>) -> Self {
         Self {
-            target: TargetConfig {
+            target: Target {
                 ip: target_ip.to_string(),
                 ports,
                 interface: None,
@@ -267,9 +267,9 @@ impl PresetConfig {
                 intensity: LoadLevel::Medium,
                 duration: 30,
                 protocols: ProtocolConfig::default(),
-                export: ExportConfig::default(),
+                export: Export::default(),
             },
-            safety: SafetyConfig::default(),
+            safety: Safety::default(),
         }
     }
 

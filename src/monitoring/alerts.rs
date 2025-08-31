@@ -29,8 +29,8 @@ pub enum AlertCondition {
     NotEquals,
 }
 
-/// Alert manager for handling rules and notifications
-pub struct AlertManager {
+/// Alert system for handling rules and notifications
+pub struct Alerts {
     rules: RwLock<HashMap<String, AlertRule>>,
     active_alerts: RwLock<HashMap<String, Alert>>,
     metrics_collector: Arc<MetricsCollector>,
@@ -38,7 +38,7 @@ pub struct AlertManager {
     max_history: usize,
 }
 
-impl AlertManager {
+impl Alerts {
     pub fn new(metrics_collector: Arc<MetricsCollector>) -> Self {
         Self {
             rules: RwLock::new(HashMap::new()),

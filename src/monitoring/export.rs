@@ -22,12 +22,12 @@ pub enum ExportFormat {
 /// Metrics exporter with multiple format support
 pub struct MetricsExporter {
     metrics_collector: Arc<MetricsCollector>,
-    export_config: ExportConfig,
+    export_config: Export,
 }
 
 /// Export configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExportConfig {
+pub struct Export {
     pub enabled: bool,
     pub format: ExportFormat,
     pub output_path: String,
@@ -37,7 +37,7 @@ pub struct ExportConfig {
     pub custom_fields: HashMap<String, String>,
 }
 
-impl Default for ExportConfig {
+impl Default for Export {
     fn default() -> Self {
         Self {
             enabled: true,
@@ -52,7 +52,7 @@ impl Default for ExportConfig {
 }
 
 impl MetricsExporter {
-    pub fn new(metrics_collector: Arc<MetricsCollector>, config: ExportConfig) -> Self {
+    pub fn new(metrics_collector: Arc<MetricsCollector>, config: Export) -> Self {
         Self {
             metrics_collector,
             export_config: config,

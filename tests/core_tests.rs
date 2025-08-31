@@ -1,6 +1,6 @@
 //! Comprehensive tests for core modules
 
-use router_flood::core::network::{list_network_interfaces, find_interface_by_name, get_default_interface};
+use router_flood::core::network::{list_network_interfaces, find_interface_by_name, default_interface};
 use router_flood::core::target::MultiPortTarget;
 use router_flood::core::simulation::{Simulation, setup_network_interface};
 mod common;
@@ -52,7 +52,7 @@ fn test_find_nonexistent_interface() {
 
 #[test]
 fn test_default_interface_selection() {
-    let default = get_default_interface();
+    let default = default_interface();
     
     if let Some(iface) = default {
         // Default should be up and not loopback

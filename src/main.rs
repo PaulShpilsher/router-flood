@@ -30,7 +30,7 @@ use tracing::error;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use router_flood::cli::{handle_pre_execution_commands, parse_arguments, process_cli_config};
-use router_flood::config::{get_default_config, load_config};
+use router_flood::config::{default_config, load_config};
 use router_flood::constants::error_messages;
 use router_flood::error::{Result, display_user_friendly_error};
 use router_flood::core::simulation::{setup_network_interface, Simulation};
@@ -50,7 +50,7 @@ fn initialize_configuration(matches: &clap::ArgMatches) -> Result<router_flood::
     let base_config = if let Some(config_path) = matches.get_one::<String>("config") {
         load_config(Some(config_path))?
     } else {
-        get_default_config()
+        default_config()
     };
 
     process_cli_config(matches, base_config)

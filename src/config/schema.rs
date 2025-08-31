@@ -4,7 +4,7 @@
 //! and pre-built configuration templates for common scenarios.
 
 use crate::error::{ConfigError, Result};
-use super::{Config, TargetConfig, AttackConfig, SafetyConfig, MonitoringConfig, ExportConfig, ProtocolMix, ExportFormat, get_default_config};
+use super::{Config, Target, LoadConfig, Safety, Monitoring, Export, ProtocolMix, ExportFormat, default_config};
 
 /// Configuration schema validator
 pub struct ConfigSchema;
@@ -22,7 +22,7 @@ impl ConfigSchema {
     }
 
     /// Validate target configuration
-    fn validate_target(target: &TargetConfig) -> Result<()> {
+    fn validate_target(target: &Target) -> Result<()> {
         // Validate IP format
         if target.ip.parse::<std::net::IpAddr>().is_err() {
             return Err(ConfigError::InvalidValue {
@@ -55,7 +55,7 @@ impl ConfigSchema {
     }
 
     /// Validate attack configuration
-    fn validate_attack(attack: &AttackConfig) -> Result<()> {
+    fn validate_attack(attack: &LoadConfig) -> Result<()> {
         if attack.threads == 0 {
             return Err(ConfigError::InvalidValue {
                 field: "attack.threads".to_string(),
@@ -138,7 +138,7 @@ impl ConfigSchema {
     }
 
     /// Validate safety configuration
-    fn validate_safety(safety: &SafetyConfig) -> Result<()> {
+    fn validate_safety(safety: &Safety) -> Result<()> {
         if safety.max_threads == 0 {
             return Err(ConfigError::InvalidValue {
                 field: "safety.max_threads".to_string(),
@@ -159,7 +159,7 @@ impl ConfigSchema {
     }
 
     /// Validate export configuration
-    fn validate_export(export: &ExportConfig) -> Result<()> {
+    fn validate_export(export: &Export) -> Result<()> {
         if export.filename_pattern.is_empty() {
             return Err(ConfigError::InvalidValue {
                 field: "export.filename_pattern".to_string(),
@@ -172,7 +172,7 @@ impl ConfigSchema {
     }
 
     /// Validate monitoring configuration
-    fn validate_monitoring(monitoring: &MonitoringConfig) -> Result<()> {
+    fn validate_monitoring(monitoring: &Monitoring) -> Result<()> {
         if monitoring.stats_interval == 0 {
             return Err(ConfigError::InvalidValue {
                 field: "monitoring.stats_interval".to_string(),
@@ -222,7 +222,7 @@ impl ConfigTemplates {
 
     /// Basic testing template
     fn basic_template() -> Config {
-        let mut config = get_default_config();
+        let mut config = default_config();
         config.target.ip = "192.168.1.1".to_string();
         config.target.ports = vec![80];
         config.attack.threads = 2;
@@ -234,7 +234,7 @@ impl ConfigTemplates {
 
     /// Web server stress test template
     fn web_server_template() -> Config {
-        let mut config = get_default_config();
+        let mut config = default_config();
         config.target.ip = "192.168.1.100".to_string();
         config.target.ports = vec![80, 443, 8080, 8443];
         config.attack.threads = 4;
@@ -258,7 +258,7 @@ impl ConfigTemplates {
 
     /// DNS server stress test template
     fn dns_server_template() -> Config {
-        let mut config = get_default_config();
+        let mut config = default_config();
         config.target.ip = "192.168.1.53".to_string();
         config.target.ports = vec![53];
         config.attack.threads = 6;
@@ -281,7 +281,7 @@ impl ConfigTemplates {
 
     /// High performance testing template
     fn high_performance_template() -> Config {
-        let mut config = get_default_config();
+        let mut config = default_config();
         config.target.ip = "10.0.0.1".to_string();
         config.target.ports = vec![80, 443, 22, 53, 21, 25];
         config.attack.threads = 8;

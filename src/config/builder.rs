@@ -17,7 +17,7 @@ impl ConfigBuilder {
     /// Create a new configuration builder with defaults
     pub fn new() -> Self {
         Self {
-            config: crate::config::get_default_config(),
+            config: crate::config::default_config(),
             errors: Vec::new(),
         }
     }

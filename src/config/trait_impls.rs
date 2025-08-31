@@ -3,12 +3,12 @@
 //! This module implements the configuration traits for the existing Config structures,
 //! maintaining backward compatibility while providing interface segregation.
 
-use super::{Config, TargetConfig, AttackConfig, SafetyConfig, MonitoringConfig, ExportConfig, ProtocolMix};
+use super::{Config, Target, LoadConfig, Safety, Monitoring, Export, ProtocolMix};
 use super::traits::*;
 
-// ===== TargetConfig Trait Implementations =====
+// ===== Target Trait Implementations =====
 
-impl TargetConfiguration for TargetConfig {
+impl Targeturation for Target {
     fn target_ip(&self) -> &str {
         &self.ip
     }
@@ -48,9 +48,9 @@ impl ProtocolConfiguration for ProtocolMix {
     }
 }
 
-// ===== AttackConfig Trait Implementations =====
+// ===== LoadConfig Trait Implementations =====
 
-impl PerformanceConfiguration for AttackConfig {
+impl PerformanceConfiguration for LoadConfig {
     fn thread_count(&self) -> usize {
         self.threads
     }
@@ -68,7 +68,7 @@ impl PerformanceConfiguration for AttackConfig {
     }
 }
 
-impl PacketConfiguration for AttackConfig {
+impl PacketConfiguration for LoadConfig {
     fn min_packet_size(&self) -> usize {
         self.packet_size_range.0
     }
@@ -78,9 +78,9 @@ impl PacketConfiguration for AttackConfig {
     }
 }
 
-// ===== SafetyConfig Trait Implementations =====
+// ===== Safety Trait Implementations =====
 
-impl SafetyConfiguration for SafetyConfig {
+impl Safetyuration for Safety {
     fn max_threads(&self) -> usize {
         self.max_threads
     }
@@ -102,7 +102,7 @@ impl SafetyConfiguration for SafetyConfig {
     }
 }
 
-impl SecurityConfiguration for SafetyConfig {
+impl SecurityConfiguration for Safety {
     fn audit_logging_enabled(&self) -> bool {
         self.audit_logging
     }
@@ -112,9 +112,9 @@ impl SecurityConfiguration for SafetyConfig {
     }
 }
 
-// ===== MonitoringConfig Trait Implementations =====
+// ===== Monitoring Trait Implementations =====
 
-impl MonitoringConfiguration for MonitoringConfig {
+impl Monitoringuration for Monitoring {
     fn stats_interval(&self) -> u64 {
         self.stats_interval
     }
@@ -128,9 +128,9 @@ impl MonitoringConfiguration for MonitoringConfig {
     }
 }
 
-// ===== ExportConfig Trait Implementations =====
+// ===== Export Trait Implementations =====
 
-impl ExportConfiguration for ExportConfig {
+impl Exporturation for Export {
     fn export_enabled(&self) -> bool {
         self.enabled
     }
@@ -152,7 +152,7 @@ impl ExportConfiguration for ExportConfig {
     }
 }
 
-impl ExportConfiguration for MonitoringConfig {
+impl Exporturation for Monitoring {
     fn export_enabled(&self) -> bool {
         self.export_interval.is_some()
     }
@@ -176,7 +176,7 @@ impl ExportConfiguration for MonitoringConfig {
 
 // ===== Main Config Trait Implementations =====
 
-impl TargetConfiguration for Config {
+impl Targeturation for Config {
     fn target_ip(&self) -> &str {
         self.target.target_ip()
     }
@@ -244,7 +244,7 @@ impl PacketConfiguration for Config {
     }
 }
 
-impl SafetyConfiguration for Config {
+impl Safetyuration for Config {
     fn max_threads(&self) -> usize {
         self.safety.max_threads()
     }
@@ -276,7 +276,7 @@ impl SecurityConfiguration for Config {
     }
 }
 
-impl MonitoringConfiguration for Config {
+impl Monitoringuration for Config {
     fn stats_interval(&self) -> u64 {
         self.monitoring.stats_interval()
     }
@@ -290,7 +290,7 @@ impl MonitoringConfiguration for Config {
     }
 }
 
-impl ExportConfiguration for Config {
+impl Exporturation for Config {
     fn export_enabled(&self) -> bool {
         self.export.export_enabled()
     }
@@ -325,12 +325,12 @@ pub trait ConfigExt {
     /// Get a target view of the configuration
     fn target_view(&self) -> TargetView<'_, Self>
     where
-        Self: TargetConfiguration + Sized;
+        Self: Targeturation + Sized;
     
     /// Get a safety view of the configuration
     fn safety_view(&self) -> SafetyView<'_, Self>
     where
-        Self: SafetyConfiguration + Sized;
+        Self: Safetyuration + Sized;
     
     /// Validate the entire configuration
     fn validate(&self) -> Result<(), Vec<String>>

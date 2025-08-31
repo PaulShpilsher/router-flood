@@ -84,7 +84,7 @@ impl Worker {
     pub async fn run(&mut self, running: Arc<AtomicBool>) {
         while running.load(Ordering::Relaxed) {
             // Process packet
-            if let Err(_) = self.process_packet_batch().await {
+            if self.process_packet_batch().await.is_err() {
                 self.local_stats.increment_failed();
             }
             

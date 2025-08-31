@@ -30,8 +30,8 @@ fn test_list_network_interfaces() {
 }
 
 #[test]
-fn test_get_default_interface() {
-    let default_iface = get_default_interface();
+fn test_default_interface() {
+    let default_iface = default_interface();
     
     // Depending on the system, we might or might not have a suitable default interface
     // But the function should not panic
@@ -188,7 +188,7 @@ fn test_find_suitable_interfaces() {
 
 #[test]
 fn test_interface_comparison_with_default() {
-    let default_iface = get_default_interface();
+    let default_iface = default_interface();
     let all_interfaces = list_network_interfaces();
     
     if let Some(default) = default_iface {

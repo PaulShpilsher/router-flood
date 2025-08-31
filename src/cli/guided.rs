@@ -268,7 +268,7 @@ A safe, educational tool for testing private networks with built-in safety featu
 
     /// Build configuration based on guidance level with intelligent defaults
     fn build_config_from_mode(matches: &ArgMatches, _mode: &GuidanceLevel) -> Result<Config> {
-        let mut config = crate::config::get_default_config();
+        let mut config = crate::config::default_config();
 
         match matches.subcommand() {
             Some(("quick", sub_matches)) => {

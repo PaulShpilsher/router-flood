@@ -11,17 +11,17 @@ fn test_buffer_pool_basic() {
     let pool = BufferPool::new(1024, 10);
     
     // Test getting and returning buffers
-    let buffer1 = pool.get_buffer();
+    let buffer1 = pool.buffer();
     assert_eq!(buffer1.len(), 1024);
     
-    let buffer2 = pool.get_buffer();
+    let buffer2 = pool.buffer();
     assert_eq!(buffer2.len(), 1024);
     
     pool.return_buffer(buffer1);
     pool.return_buffer(buffer2);
     
     // Should be able to get buffers again
-    let buffer3 = pool.get_buffer();
+    let buffer3 = pool.buffer();
     assert_eq!(buffer3.len(), 1024);
 }
 
@@ -40,7 +40,7 @@ fn test_concurrent_access() {
             
             // Each thread gets and returns 100 buffers
             for _ in 0..100 {
-                let buffer = pool_clone.get_buffer();
+                let buffer = pool_clone.buffer();
                 assert_eq!(buffer.len(), 1024);
                 pool_clone.return_buffer(buffer);
             }
@@ -63,8 +63,8 @@ fn test_buffer_pool_utilization() {
     assert!(initial_utilization > 0.8); // Should be close to 1.0
     
     // Get some buffers
-    let _buffer1 = pool.get_buffer();
-    let _buffer2 = pool.get_buffer();
+    let _buffer1 = pool.buffer();
+    let _buffer2 = pool.buffer();
     
     // Utilization should decrease
     let reduced_utilization = pool.utilization();
@@ -86,7 +86,7 @@ fn test_buffer_pool_always_succeeds() {
     // Even with a small pool, should always get buffers
     let mut buffers = Vec::new();
     for _ in 0..10 {
-        buffers.push(pool.get_buffer());
+        buffers.push(pool.buffer());
     }
     
     // All buffers should be valid

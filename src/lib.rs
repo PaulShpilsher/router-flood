@@ -28,15 +28,30 @@ pub mod ui;
 pub mod utils;
 
 // Re-export key types for convenience
-pub use config::{Config, TargetConfig, AttackConfig, SafetyConfig, MonitoringConfig, ExportConfig, ExportFormat, ProtocolMix};
+pub use config::{Config, Target, LoadConfig, Safety, Monitoring, Export, ExportFormat, ProtocolMix};
 pub use core::simulation::{Simulation, SimulationRAII};
 pub use core::worker_manager::Workers;
 pub use core::target::MultiPortTarget;
 pub use error::{Result, RouterFloodError};
-pub use packet::{PacketBuilder, PacketStrategy, PacketType, Target};
+pub use packet::{PacketBuilder, PacketStrategy, PacketType, PacketTarget};
 pub use stats::Stats;
 pub use utils::buffer_pool::BufferPool;
 pub use utils::terminal::{Terminal, TerminalGuard};
 pub use utils::raii::ResourceGuard;
+
+// Common type aliases for clarity and ergonomics
+use std::sync::Arc;
+
+/// Shared reference to Stats
+pub type StatsRef = Arc<Stats>;
+
+/// Shared reference to Config
+pub type ConfigRef = Arc<Config>;
+
+/// Shared reference to BufferPool
+pub type PoolRef = Arc<BufferPool>;
+
+/// Shared reference to Workers
+pub type WorkersRef = Arc<Workers>;
 
 // Tests moved to tests/ directory

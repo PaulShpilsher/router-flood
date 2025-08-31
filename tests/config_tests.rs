@@ -9,7 +9,7 @@ use std::str::FromStr;
 
 #[test]
 fn test_default_config_values() {
-    let config = get_default_config();
+    let config = default_config();
     
     // Test target defaults
     assert_eq!(config.target.ip, "192.168.0.1");
@@ -51,7 +51,7 @@ fn test_export_format_parsing() {
 
 #[test]
 fn test_protocol_mix_validation() {
-    let mut config = get_default_config();
+    let mut config = default_config();
     
     // Test valid protocol mix
     config.target.protocol_mix = ProtocolMix {
@@ -171,7 +171,7 @@ fn test_nonexistent_config_file() {
 
 #[test]
 fn test_config_builder_pattern() {
-    let mut config = get_default_config();
+    let mut config = default_config();
     
     // Test modifying config through builder-like pattern
     config.target.ip = "172.16.0.1".to_string();
@@ -191,7 +191,7 @@ fn test_config_builder_pattern() {
 
 #[test]
 fn test_config_safety_limits() {
-    let config = get_default_config();
+    let config = default_config();
     
     // Test safety limits are reasonable
     assert!(config.safety.max_threads > 0);
@@ -202,7 +202,7 @@ fn test_config_safety_limits() {
 
 #[test]
 fn test_export_config_combinations() {
-    let mut config = get_default_config();
+    let mut config = default_config();
     
     // Test JSON export
     config.export.enabled = true;
@@ -225,7 +225,7 @@ fn test_export_config_combinations() {
 
 #[test]
 fn test_monitoring_config_validation() {
-    let mut config = get_default_config();
+    let mut config = default_config();
     
     // Test valid monitoring intervals
     config.monitoring.stats_interval = 1;

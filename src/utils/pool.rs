@@ -123,7 +123,7 @@ impl BufferPoolTrait for BufferPool {
     #[inline]
     fn get(&self) -> Option<Self::Buffer> {
         // BufferPool always returns a buffer (allocates if needed)
-        Some(self.get_buffer())
+        Some(self.buffer())
     }
     
     #[inline]
@@ -232,7 +232,7 @@ pub fn create_observable_pool<P: BufferPoolTrait + 'static>(pool: P) -> Observab
 
 // ===== Macro for implementing BufferPoolTrait =====
 
-/// Macro to implement BufferPoolTrait for types with get_buffer/return_buffer methods
+/// Macro to implement BufferPoolTrait for types with buffer/return_buffer methods
 #[macro_export]
 macro_rules! impl_buffer_pool {
     ($type:ty, $buffer:ty) => {
@@ -240,7 +240,7 @@ macro_rules! impl_buffer_pool {
             type Buffer = $buffer;
             
             fn get(&self) -> Option<Self::Buffer> {
-                self.get_buffer()
+                self.buffer()
             }
             
             fn put(&self, buffer: Self::Buffer) {

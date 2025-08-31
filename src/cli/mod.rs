@@ -24,6 +24,6 @@ pub use basic::{
     parse_export_format
 };
 
-pub use enhanced::{InteractiveCli};
+pub use enhanced::{Interactive};
 // Guided CLI exports
 pub use guided::{GuidedCli, GuidanceLevel, validate_target_ip};

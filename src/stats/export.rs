@@ -1,7 +1,7 @@
 //! Statistics export functionality
 
 use super::collector::SessionStats;
-use crate::config::{ExportConfig, ExportFormat};
+use crate::config::{Export, ExportFormat};
 use crate::constants::STATS_EXPORT_DIR;
 use crate::error::{StatsError, Result};
 use chrono::Utc;
@@ -13,7 +13,7 @@ use tracing::info;
 /// Trait for statistics export functionality
 pub trait StatsExporter: Send + Sync {
     /// Export statistics in the configured format
-    fn export_stats(&self, stats: &SessionStats, config: &ExportConfig) -> impl std::future::Future<Output = Result<()>> + Send;
+    fn export_stats(&self, stats: &SessionStats, config: &Export) -> impl std::future::Future<Output = Result<()>> + Send;
 }
 
 /// Default statistics exporter implementation
@@ -32,7 +32,7 @@ impl Default for DefaultStatsExporter {
 }
 
 impl StatsExporter for DefaultStatsExporter {
-    async fn export_stats(&self, stats: &SessionStats, config: &ExportConfig) -> Result<()> {
+    async fn export_stats(&self, stats: &SessionStats, config: &Export) -> Result<()> {
         if !config.enabled {
             return Ok(());
         }
@@ -60,7 +60,7 @@ impl StatsExporter for DefaultStatsExporter {
 }
 
 impl DefaultStatsExporter {
-    async fn export_json(&self, stats: &SessionStats, config: &ExportConfig) -> Result<()> {
+    async fn export_json(&self, stats: &SessionStats, config: &Export) -> Result<()> {
         let timestamp = Utc::now().format("%Y%m%d_%H%M%S");
         let filename = format!(
             "{}/{}_stats_{}.json",
@@ -78,7 +78,7 @@ impl DefaultStatsExporter {
         Ok(())
     }
 
-    async fn export_csv(&self, stats: &SessionStats, config: &ExportConfig) -> Result<()> {
+    async fn export_csv(&self, stats: &SessionStats, config: &Export) -> Result<()> {
         let timestamp = Utc::now().format("%Y%m%d_%H%M%S");
         let filename = format!(
             "{}/{}_stats_{}.csv",

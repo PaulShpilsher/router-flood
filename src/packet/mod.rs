@@ -18,7 +18,7 @@ use std::net::IpAddr;
 /// Core trait for packet building strategies
 pub trait PacketStrategy: Send + Sync {
     /// Build a packet directly into the provided buffer
-    fn build_packet(&mut self, target: &Target, buffer: &mut [u8]) -> Result<usize>;
+    fn build_packet(&mut self, target: &PacketTarget, buffer: &mut [u8]) -> Result<usize>;
     
     /// Get the protocol name for statistics
     fn protocol_name(&self) -> &'static str;
@@ -32,12 +32,12 @@ pub trait PacketStrategy: Send + Sync {
 
 /// Target information for packet building
 #[derive(Debug, Clone)]
-pub struct Target {
+pub struct PacketTarget {
     pub ip: IpAddr,
     pub port: u16,
 }
 
-impl Target {
+impl PacketTarget {
     pub fn new(ip: IpAddr, port: u16) -> Self {
         Self { ip, port }
     }

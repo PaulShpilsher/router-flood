@@ -85,7 +85,7 @@ fn configuration_example() -> Result<()> {
     println!("   Dry run: {}", config1.safety.dry_run);
 
     // Method 2: Using templates
-    let web_config = ConfigTemplates::get_template("web_server")
+    let web_config = ConfigTemplates::template("web_server")
         .ok_or_else(|| router_flood::error::ConfigError::InvalidValue {
             field: "template".to_string(),
             value: "web_server".to_string(),
@@ -162,7 +162,7 @@ fn template_example() -> Result<()> {
 
     // Load and customize each template
     for template_name in templates {
-        if let Some(mut template) = ConfigTemplates::get_template(template_name) {
+        if let Some(mut template) = ConfigTemplates::template(template_name) {
             println!("\n📝 Template: {}", template_name);
             
             // Customize for safe demonstration
@@ -189,7 +189,7 @@ fn template_example() -> Result<()> {
     }
 
     // Example: Convert template to YAML
-    if let Some(template) = ConfigTemplates::get_template("basic") {
+    if let Some(template) = ConfigTemplates::template("basic") {
         match ConfigTemplates::template_to_yaml(&template) {
             Ok(yaml) => {
                 println!("\n📄 Basic template as YAML:");

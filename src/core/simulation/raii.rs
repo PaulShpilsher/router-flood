@@ -210,7 +210,7 @@ impl SimulationRAII {
         stats.print_stats(sys_stats.as_ref());
         
         // Clear the in-place display before showing final messages
-        if let Some(display) = crate::stats::get_display() {
+        if let Some(display) = crate::stats::display() {
             display.clear();
         }
         

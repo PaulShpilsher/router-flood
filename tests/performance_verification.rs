@@ -62,10 +62,10 @@ fn test_lock_free_buffer_pool_performance() {
     let pool = BufferPool::new(1400, 10);
     
     // Test basic operations
-    let buffer1 = pool.get_buffer();
+    let buffer1 = pool.buffer();
     assert_eq!(buffer1.len(), 1400);
     
-    let buffer2 = pool.get_buffer();
+    let buffer2 = pool.buffer();
     assert_eq!(buffer2.len(), 1400);
     
     // Return buffers
@@ -73,7 +73,7 @@ fn test_lock_free_buffer_pool_performance() {
     pool.return_buffer(buffer2);
     
     // Should be able to get buffers again
-    let buffer3 = pool.get_buffer();
+    let buffer3 = pool.buffer();
     assert_eq!(buffer3.len(), 1400);
     
     println!("✅ Performance: Lock-free buffer pool works");
@@ -86,12 +86,12 @@ fn test_shared_buffer_pool_performance() {
     let pool = std::sync::Arc::new(pool);
     let pool_clone = pool.clone();
     
-    let buffer = pool.get_buffer();
+    let buffer = pool.buffer();
     assert_eq!(buffer.len(), 1024);
     
     pool_clone.return_buffer(buffer);
     
-    let buffer2 = pool.get_buffer();
+    let buffer2 = pool.buffer();
     assert_eq!(buffer2.len(), 1024);
     
     println!("✅ Performance: Shared buffer pool works");
@@ -180,7 +180,7 @@ fn test_performance_integration() {
     
     // Generate packets using the buffer pool
     for _ in 0..5 {
-        let mut buffer = pool.get_buffer();
+        let mut buffer = pool.buffer();
         let packet_type = packet_builder.next_packet_type_for_ip(target_ip);
         let result = packet_builder.build_packet_into_buffer(
             &mut buffer,

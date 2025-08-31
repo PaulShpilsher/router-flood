@@ -12,19 +12,19 @@ use tokio::fs;
 use tracing::info;
 use uuid::Uuid;
 
-use crate::config::{ExportConfig, ExportFormat};
+use crate::config::{Export, ExportFormat};
 use crate::constants::{stats as stats_constants, STATS_EXPORT_DIR};
 use crate::error::{Result, StatsError};
 use super::internal_lockfree::{LockFreeStatsCollector, StatsSnapshot};
 use super::collector::{SessionStats, SystemStats};
-use super::display::{get_display};
+use super::display::display;
 
 /// High-performance packet flood statistics tracker using lock-free implementation
 pub struct Stats {
     collector: Arc<LockFreeStatsCollector>,
     pub start_time: Instant,
     pub session_id: String,
-    pub export_config: Option<ExportConfig>,
+    pub export_config: Option<Export>,
 }
 
 impl Default for Stats {
@@ -40,7 +40,7 @@ impl Default for Stats {
 
 impl Stats {
     /// Create a new high-performance stats collector
-    pub fn new(export_config: Option<ExportConfig>) -> Self {
+    pub fn new(export_config: Option<Export>) -> Self {
         Self {
             collector: Arc::new(LockFreeStatsCollector::new()),
             start_time: Instant::now(),
@@ -95,7 +95,7 @@ impl Stats {
         let elapsed = self.start_time.elapsed().as_secs_f64();
         
         // Try to use in-place display if available
-        if let Some(display) = get_display() {
+        if let Some(display) = display() {
             // Convert snapshot to protocol_stats HashMap for compatibility
             use std::sync::atomic::AtomicU64;
             let mut protocol_stats = HashMap::new();
@@ -211,7 +211,7 @@ impl Stats {
     async fn export_json(
         &self,
         stats: &SessionStats,
-        config: &ExportConfig,
+        config: &Export,
     ) -> Result<()> {
         let timestamp = Utc::now().format("%Y%m%d_%H%M%S");
         let filename = format!(
@@ -233,7 +233,7 @@ impl Stats {
     async fn export_csv(
         &self,
         stats: &SessionStats,
-        config: &ExportConfig,
+        config: &Export,
     ) -> Result<()> {
         let timestamp = Utc::now().format("%Y%m%d_%H%M%S");
         let filename = format!(

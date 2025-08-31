@@ -5,7 +5,7 @@
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
 use router_flood::security::validation::{validate_target_ip, validate_comprehensive_security};
-use router_flood::config::{AttackConfig, BurstPattern};
+use router_flood::config::{LoadConfig, BurstPattern};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 /// Benchmark IP validation for different address types
@@ -73,7 +73,7 @@ fn benchmark_batch_validation(c: &mut Criterion) {
 fn benchmark_security_validation(c: &mut Criterion) {
     let mut group = c.benchmark_group("validation/security");
     
-    let config = AttackConfig {
+    let config = LoadConfig {
         threads: 4,
         packet_rate: 1000,
         duration: Some(60),

@@ -78,7 +78,7 @@ fn benchmark_buffer_pools(c: &mut Criterion) {
     
     group.bench_function("buffer_pool_get_return", |b| {
         b.iter(|| {
-            let buffer = black_box(buffer_pool.get_buffer());
+            let buffer = black_box(buffer_pool.buffer());
             buffer_pool.return_buffer(buffer);
         });
     });

@@ -192,14 +192,14 @@ impl Monitor {
 
 /// Configuration for essential monitoring
 #[derive(Debug, Clone)]
-pub struct MonitoringConfig {
+pub struct Monitoring {
     pub display_interval: Duration,
     pub export_enabled: bool,
     pub export_format: ExportFormat,
     pub export_filename: String,
 }
 
-impl Default for MonitoringConfig {
+impl Default for Monitoring {
     fn default() -> Self {
         Self {
             display_interval: Duration::from_secs(5),
@@ -219,11 +219,11 @@ pub enum ExportFormat {
 /// All-in-one essential monitoring system
 pub struct MonitoringSystem {
     collector: Arc<EssentialMetricsCollector>,
-    config: MonitoringConfig,
+    config: Monitoring,
 }
 
 impl MonitoringSystem {
-    pub fn new(config: MonitoringConfig) -> Self {
+    pub fn new(config: Monitoring) -> Self {
         Self {
             collector: Arc::new(EssentialMetricsCollector::new()),
             config,

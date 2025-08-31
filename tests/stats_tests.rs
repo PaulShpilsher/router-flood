@@ -3,10 +3,10 @@
 //! Tests for statistics tracking, reporting, and export functionality.
 
 use router_flood::stats::*;
-use router_flood::config::{ExportConfig, ExportFormat};
+use router_flood::config::{Export, ExportFormat};
 
-fn create_test_export_config() -> ExportConfig {
-    ExportConfig {
+fn create_test_export_config() -> Export {
+    Export {
         enabled: true,
         format: ExportFormat::Json,
         filename_pattern: "test_export".to_string(),

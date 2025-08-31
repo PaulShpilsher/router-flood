@@ -254,7 +254,7 @@ proptest! {
         
         // Get some buffers
         for _ in 0..operations.min(pool_size) {
-            let buffer = pool.get_buffer();
+            let buffer = pool.buffer();
             prop_assert_eq!(buffer.len(), buffer_size);
             buffers.push(buffer);
         }
@@ -266,7 +266,7 @@ proptest! {
         
         // Should be able to get buffers again
         for _ in 0..operations.min(pool_size) {
-            let buffer = pool.get_buffer();
+            let buffer = pool.buffer();
             prop_assert_eq!(buffer.len(), buffer_size);
             pool.return_buffer(buffer);
         }

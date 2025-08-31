@@ -94,7 +94,7 @@ fn test_buffer_pool_performance() {
             
             // Get buffers
             for _ in 0..10 {
-                let buffer = pool_clone.get_buffer();
+                let buffer = pool_clone.buffer();
                 assert_eq!(buffer.len(), 1400, "Buffer size should be correct");
                 local_buffers.push(buffer);
             }
@@ -117,7 +117,7 @@ fn test_buffer_pool_performance() {
     }
     
     // Pool should still be functional
-    let buffer = pool.get_buffer();
+    let buffer = pool.buffer();
     assert_eq!(buffer.len(), 1400);
     pool.return_buffer(buffer);
 }

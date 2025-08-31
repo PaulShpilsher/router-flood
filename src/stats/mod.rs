@@ -15,7 +15,7 @@ pub use collector::{StatsCollector, SessionStats, SystemStats};
 pub use export::StatsExporter;
 pub use batch_accumulator::BatchStats;
 pub use lockfree::{LockFreeStats, LockFreeLocalStats, PerCpuStats, ProtocolId, StatsSnapshot};
-pub use display::{StatsDisplay, init_display, get_display};
+pub use display::{StatsDisplay, init_display, display};
 pub use stats_aggregator::Stats;
 
 // Re-export the internal lock-free implementation for advanced users

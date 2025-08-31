@@ -8,7 +8,7 @@ use std::net::IpAddr;
 // ===== Core Target Configuration =====
 
 /// Configuration for network targeting
-pub trait TargetConfiguration {
+pub trait Targeturation {
     /// Get the target IP address
     fn target_ip(&self) -> &str;
     
@@ -81,7 +81,7 @@ pub trait PacketConfiguration {
 // ===== Safety Configuration =====
 
 /// Configuration for safety limits and constraints
-pub trait SafetyConfiguration {
+pub trait Safetyuration {
     /// Get the maximum allowed threads
     fn max_threads(&self) -> usize;
     
@@ -115,7 +115,7 @@ pub trait SecurityConfiguration {
 // ===== Monitoring Configuration =====
 
 /// Configuration for statistics and monitoring
-pub trait MonitoringConfiguration {
+pub trait Monitoringuration {
     /// Get the statistics update interval in seconds
     fn stats_interval(&self) -> u64;
     
@@ -127,7 +127,7 @@ pub trait MonitoringConfiguration {
 }
 
 /// Configuration for data export
-pub trait ExportConfiguration {
+pub trait Exporturation {
     /// Check if export is enabled
     fn export_enabled(&self) -> bool;
     
@@ -150,14 +150,14 @@ pub trait ExportConfiguration {
 
 /// Full read-only configuration access
 pub trait ReadConfiguration: 
-    TargetConfiguration + 
+    Targeturation + 
     ProtocolConfiguration + 
     PerformanceConfiguration + 
     PacketConfiguration + 
-    SafetyConfiguration + 
+    Safetyuration + 
     SecurityConfiguration + 
-    MonitoringConfiguration + 
-    ExportConfiguration 
+    Monitoringuration + 
+    Exporturation 
 {
     /// Get a description of this configuration
     fn description(&self) -> String {
@@ -173,38 +173,38 @@ pub trait ReadConfiguration:
 
 /// Minimal configuration for basic operations
 pub trait BasicConfiguration: 
-    TargetConfiguration + 
+    Targeturation + 
     PerformanceConfiguration 
 {}
 
 /// Configuration for packet generation
 pub trait PacketGenerationConfiguration: 
-    TargetConfiguration + 
+    Targeturation + 
     ProtocolConfiguration + 
     PacketConfiguration 
 {}
 
 /// Configuration for monitoring and statistics
 pub trait ObservabilityConfiguration: 
-    MonitoringConfiguration + 
-    ExportConfiguration 
+    Monitoringuration + 
+    Exporturation 
 {}
 
 // ===== Configuration Views =====
 
 /// A view that provides read-only access to target configuration
-pub struct TargetView<'a, T: TargetConfiguration> {
+pub struct TargetView<'a, T: Targeturation> {
     config: &'a T,
 }
 
-impl<'a, T: TargetConfiguration> TargetView<'a, T> {
+impl<'a, T: Targeturation> TargetView<'a, T> {
     /// Create a new target view
     pub fn new(config: &'a T) -> Self {
         Self { config }
     }
 }
 
-impl<'a, T: TargetConfiguration> TargetConfiguration for TargetView<'a, T> {
+impl<'a, T: Targeturation> Targeturation for TargetView<'a, T> {
     fn target_ip(&self) -> &str {
         self.config.target_ip()
     }
@@ -219,11 +219,11 @@ impl<'a, T: TargetConfiguration> TargetConfiguration for TargetView<'a, T> {
 }
 
 /// A view that provides read-only access to safety configuration
-pub struct SafetyView<'a, T: SafetyConfiguration> {
+pub struct SafetyView<'a, T: Safetyuration> {
     config: &'a T,
 }
 
-impl<'a, T: SafetyConfiguration> SafetyView<'a, T> {
+impl<'a, T: Safetyuration> SafetyView<'a, T> {
     /// Create a new safety view
     pub fn new(config: &'a T) -> Self {
         Self { config }
@@ -251,7 +251,7 @@ impl<'a, T: SafetyConfiguration> SafetyView<'a, T> {
     }
 }
 
-impl<'a, T: SafetyConfiguration> SafetyConfiguration for SafetyView<'a, T> {
+impl<'a, T: Safetyuration> Safetyuration for SafetyView<'a, T> {
     fn max_threads(&self) -> usize {
         self.config.max_threads()
     }
@@ -288,7 +288,7 @@ pub fn is_private_ip(ip: &str) -> bool {
 }
 
 /// Validate configuration against safety requirements
-pub fn validate_safety<T: SafetyConfiguration + TargetConfiguration>(config: &T) -> Result<(), String> {
+pub fn validate_safety<T: Safetyuration + Targeturation>(config: &T) -> Result<(), String> {
     if config.require_private_ranges() && !is_private_ip(config.target_ip()) {
         return Err(format!(
             "Target IP {} is not in a private range",

@@ -17,13 +17,13 @@ fn benchmark_single_thread_pool(c: &mut Criterion) {
     
     group.bench_function("get_buffer", |b| {
         b.iter(|| {
-            black_box(pool.get_buffer())
+            black_box(pool.buffer())
         })
     });
     
     group.bench_function("get_return_cycle", |b| {
         b.iter(|| {
-            let buffer = pool.get_buffer();
+            let buffer = pool.buffer();
             pool.return_buffer(black_box(buffer));
         })
     });
@@ -33,7 +33,7 @@ fn benchmark_single_thread_pool(c: &mut Criterion) {
             // Get multiple buffers
             let mut buffers = Vec::with_capacity(10);
             for _ in 0..10 {
-                buffers.push(pool.get_buffer());
+                buffers.push(pool.buffer());
             }
             
             // Return them all
@@ -70,7 +70,7 @@ fn benchmark_contended_pool(c: &mut Criterion) {
                                 let pool = Arc::clone(&pool);
                                 thread::spawn(move || {
                                     for _ in 0..100 {
-                                        let buffer = pool.get_buffer();
+                                        let buffer = pool.buffer();
                                         std::hint::black_box(&buffer);
                                         pool.return_buffer(buffer);
                                     }
@@ -103,7 +103,7 @@ fn benchmark_pool_size_impact(c: &mut Criterion) {
                 let pool = BufferPool::new(1500, pool_size);
                 
                 b.iter(|| {
-                    let buffer = pool.get_buffer();
+                    let buffer = pool.buffer();
                     pool.return_buffer(black_box(buffer));
                 })
             },
@@ -125,7 +125,7 @@ fn benchmark_buffer_sizes(c: &mut Criterion) {
                 let pool = BufferPool::new(buffer_size, 100);
                 
                 b.iter(|| {
-                    let buffer = pool.get_buffer();
+                    let buffer = pool.buffer();
                     pool.return_buffer(black_box(buffer));
                 })
             },
@@ -152,7 +152,7 @@ fn benchmark_producer_consumer(c: &mut Criterion) {
                     let pool = Arc::clone(&pool_prod);
                     thread::spawn(move || {
                         for _ in 0..25 {
-                            let buffer = pool.get_buffer();
+                            let buffer = pool.buffer();
                             std::hint::black_box(buffer);
                         }
                     })
@@ -196,7 +196,7 @@ fn benchmark_memory_pressure(c: &mut Criterion) {
             for _ in 0..5 {
                 let mut buffers = Vec::new();
                 for _ in 0..10 {
-                    buffers.push(pool.get_buffer());
+                    buffers.push(pool.buffer());
                 }
                 for buffer in buffers {
                     pool.return_buffer(buffer);
@@ -215,7 +215,7 @@ fn benchmark_memory_pressure(c: &mut Criterion) {
                     let pool = Arc::clone(&pool);
                     thread::spawn(move || {
                         for _ in 0..20 {
-                            let buffer = pool.get_buffer();
+                            let buffer = pool.buffer();
                             std::hint::black_box(&buffer);
                             pool.return_buffer(buffer);
                         }

@@ -3,7 +3,7 @@
 use super::PacketStrategy;
 use crate::constants::{IPV4_HEADER_SIZE, UDP_HEADER_SIZE};
 use crate::error::{PacketError, Result};
-use crate::packet::Target;
+use crate::packet::PacketTarget;
 use crate::utils::rng::BatchedRng;
 use pnet::packet::ip::IpNextHeaderProtocols;
 use pnet::packet::ipv4::MutableIpv4Packet;
@@ -94,7 +94,7 @@ impl UdpStrategy {
 
 impl PacketStrategy for UdpStrategy {
     #[inline]
-    fn build_packet(&mut self, target: &Target, buffer: &mut [u8]) -> Result<usize> {
+    fn build_packet(&mut self, target: &PacketTarget, buffer: &mut [u8]) -> Result<usize> {
         let target_ip = match target.ip {
             IpAddr::V4(ip) => ip,
             IpAddr::V6(_) => {
@@ -141,8 +141,8 @@ impl PacketStrategy for UdpStrategy {
         let payload_slice = udp_packet.payload_mut();
         if payload_slice.len() >= payload_size {
             // Fill payload directly in the buffer
-            for i in 0..payload_size {
-                payload_slice[i] = self.rng.byte();
+            for byte in payload_slice.iter_mut().take(payload_size) {
+                *byte = self.rng.byte();
             }
         }
         udp_packet.set_checksum(pnet::packet::udp::ipv4_checksum(

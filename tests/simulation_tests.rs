@@ -2,13 +2,13 @@
 //!
 //! Tests for the simulation orchestration logic and lifecycle management.
 
-use router_flood::config::get_default_config;
+use router_flood::config::default_config;
 use router_flood::core::simulation::{Simulation, setup_network_interface};
 use std::net::{IpAddr, Ipv4Addr};
 
 #[test]
 fn test_simulation_creation() {
-    let config = get_default_config();
+    let config = default_config();
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
     
     let _simulation = Simulation::new(config, target_ip, None);
@@ -17,7 +17,7 @@ fn test_simulation_creation() {
 
 #[test]
 fn test_simulation_creation_with_interface() {
-    let config = get_default_config();
+    let config = default_config();
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
     
     // Test with None interface (should work fine)
@@ -30,7 +30,7 @@ fn test_simulation_creation_with_interface() {
 #[test]
 fn test_simulation_configuration_scenarios() {
     // Test with various configuration scenarios
-    let mut config = get_default_config();
+    let mut config = default_config();
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
     
     // Test dry-run configuration
@@ -48,7 +48,7 @@ fn test_simulation_configuration_scenarios() {
 
 #[test]
 fn test_simulation_with_different_ips() {
-    let config = get_default_config();
+    let config = default_config();
     
     let test_ips = vec![
         IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)),
@@ -64,7 +64,7 @@ fn test_simulation_with_different_ips() {
 
 #[test]
 fn test_network_interface_setup() {
-    let mut config = get_default_config();
+    let mut config = default_config();
     
     // Test with no interface specified (should try to find default)
     config.target.interface = None;
@@ -80,7 +80,7 @@ fn test_network_interface_setup() {
 
 #[test]
 fn test_configuration_audit_flags() {
-    let mut config = get_default_config();
+    let mut config = default_config();
     config.safety.audit_logging = true;
     config.safety.dry_run = true;
     
@@ -93,7 +93,7 @@ fn test_configuration_audit_flags() {
 
 #[test]
 fn test_export_configuration() {
-    let mut config = get_default_config();
+    let mut config = default_config();
     config.export.enabled = true;
     config.export.format = router_flood::config::ExportFormat::Json;
     
@@ -105,7 +105,7 @@ fn test_export_configuration() {
 
 #[test]
 fn test_monitoring_configuration() {
-    let mut config = get_default_config();
+    let mut config = default_config();
     config.monitoring.system_monitoring = true;
     config.monitoring.stats_interval = 1; // Very frequent for testing
     config.monitoring.export_interval = Some(30);

@@ -3,7 +3,7 @@
 use super::PacketStrategy;
 use crate::constants::{ETHERNET_HEADER_SIZE, ARP_PACKET_SIZE};
 use crate::error::{PacketError, Result};
-use crate::packet::Target;
+use crate::packet::PacketTarget;
 use crate::utils::rng::BatchedRng;
 use pnet::packet::arp::{ArpHardwareTypes, ArpOperations, MutableArpPacket};
 use pnet::packet::ethernet::{EtherTypes, MutableEthernetPacket};
@@ -38,7 +38,7 @@ impl ArpStrategy {
 }
 
 impl PacketStrategy for ArpStrategy {
-    fn build_packet(&mut self, target: &Target, buffer: &mut [u8]) -> Result<usize> {
+    fn build_packet(&mut self, target: &PacketTarget, buffer: &mut [u8]) -> Result<usize> {
         let target_ip = match target.ip {
             IpAddr::V4(ip) => ip,
             IpAddr::V6(_) => {
