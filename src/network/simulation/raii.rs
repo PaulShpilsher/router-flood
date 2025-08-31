@@ -176,7 +176,7 @@ impl SimulationRAII {
                 tokio::spawn(async move {
                     while running_clone.load(Ordering::Relaxed) {
                         time::sleep(Duration::from_secs(export_interval)).await;
-                        if let Err(e) = stats_clone.export_stats(None).await {
+                        if let Err(e) = stats_clone.export_stats().await {
                             error!("Failed to export stats: {}", e);
                         }
                     }
@@ -199,7 +199,7 @@ impl SimulationRAII {
         }
         
         if self.config.export.enabled {
-            if let Err(e) = stats.export_stats(sys_stats.as_ref()).await {
+            if let Err(e) = stats.export_stats().await {
                 error!("Failed to export final stats: {}", e);
             } else {
                 info!("📁 Stats exported successfully");

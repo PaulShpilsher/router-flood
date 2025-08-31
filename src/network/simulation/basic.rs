@@ -85,7 +85,7 @@ impl MonitoringTasks {
                 tokio::spawn(async move {
                     while running.load(Ordering::Relaxed) {
                         time::sleep(Duration::from_secs(export_interval)).await;
-                        if let Err(e) = stats.export_stats(None).await {
+                        if let Err(e) = stats.export_stats().await {
                             error!("Failed to export stats: {}", e);
                         }
                     }
@@ -233,7 +233,7 @@ impl Simulation {
         }
         
         if self.config.export.enabled {
-            if let Err(e) = self.stats.export_stats(None).await {
+            if let Err(e) = self.stats.export_stats().await {
                 error!("Failed to export final stats: {}", e);
             }
         }

@@ -112,3 +112,38 @@ pub fn validate_system_requirements(dry_run: bool) -> Result<()> {
 
     Ok(())
 }
+
+/// Input validator with security focus (simplified from input_validation.rs)
+pub struct InputValidation {
+    config: ValidationConfig,
+}
+
+/// Validation configuration
+#[derive(Debug, Clone)]
+pub struct ValidationConfig {
+    pub max_string_length: usize,
+    pub strict_ip_validation: bool,
+}
+
+impl Default for ValidationConfig {
+    fn default() -> Self {
+        Self {
+            max_string_length: 1024,
+            strict_ip_validation: true,
+        }
+    }
+}
+
+impl InputValidation {
+    pub fn new(config: ValidationConfig) -> Self {
+        Self { config }
+    }
+    
+    pub fn validate_ip(&self, ip: &IpAddr) -> Result<()> {
+        if self.config.strict_ip_validation {
+            validate_target_ip(ip)
+        } else {
+            Ok(())
+        }
+    }
+}

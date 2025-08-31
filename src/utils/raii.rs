@@ -177,7 +177,7 @@ impl StatsGuard {
     /// Export stats explicitly
     pub async fn export(&self) -> Result<()> {
         debug!("Exporting stats for: {}", self.name);
-        self.stats.export_stats(None).await
+        self.stats.export_stats().await
     }
 }
 
@@ -188,7 +188,7 @@ impl Drop for StatsGuard {
         let name = self.name.clone();
         
         tokio::spawn(async move {
-            if let Err(e) = stats.export_stats(None).await {
+            if let Err(e) = stats.export_stats().await {
                 error!("Failed to export stats on drop for {}: {}", name, e);
             }
         });

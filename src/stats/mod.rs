@@ -1,27 +1,18 @@
 //! Statistics collection and export system
 //!
-//! Simplified statistics module with lock-free collection and export capabilities.
+//! Simplified statistics module for tracking packet generation metrics.
 
 pub mod collector;
 pub mod export;
 pub mod display;
-
-// Main stats implementation that combines aggregation and lock-free collection
 pub mod stats_aggregator;
-pub use stats_aggregator::Stats;
+pub mod protocol_breakdown;
 
-// Batch statistics for workers
-pub mod batch_accumulator;
-pub use batch_accumulator::BatchStats;
+// Main stats implementation
+pub use stats_aggregator::{Stats, BatchStats};
 
 // Core types
 pub use collector::{SessionStats, SystemStats};
 pub use export::StatsExporter;
 pub use display::{init_display, display};
-
-// Internal lock-free implementation
-pub mod internal_lockfree;
-
-// Protocol breakdown tracking
-pub mod protocol_breakdown;
 pub use protocol_breakdown::ProtocolBreakdown;

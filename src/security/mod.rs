@@ -14,7 +14,6 @@
 pub mod audit;
 pub mod capabilities;
 pub mod threat_detection;
-pub mod input_validation;
 pub mod validation;
 
 pub use capabilities::{
@@ -32,14 +31,7 @@ pub use threat_detection::{
     ValidationResult as ThreatValidationResult,
     ThreatSummary,
 };
-pub use input_validation::{
+pub use validation::{
     InputValidation,
     ValidationConfig,
-    ValidationResult,
-    SanitizedString,
-    ValidatedIpAddr,
-    IpSecurityLevel,
-    create_input_validator,
-    validate_ip_address,
-    validate_port_list,
 };

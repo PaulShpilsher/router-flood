@@ -3,9 +3,8 @@
 //! This module handles all CLI argument parsing, validation, and help text generation.
 
 pub mod basic;
-pub mod parser;
 
-// Re-export basic CLI functions for backward compatibility
+// Re-export CLI functions
 pub use basic::{
     parse_arguments, 
     process_cli_config, 
