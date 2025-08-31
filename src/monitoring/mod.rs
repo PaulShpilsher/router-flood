@@ -25,6 +25,6 @@ pub use export::{MetricsExporter, ExportFormat};
 pub use metrics::{MetricsCollector, MetricValue};
 pub use prometheus::PrometheusExporter;
 pub use essential::{
-    EssentialMetrics, EssentialMetricsCollector, EssentialDisplay, EssentialExporter,
-    EssentialMonitor, EssentialMonitoringConfig, EssentialMonitoringSystem
+    Metrics, EssentialMetricsCollector, Display, Exporter,
+    Monitor, MonitoringConfig, MonitoringSystem
 };

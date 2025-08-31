@@ -9,7 +9,7 @@ use tokio::task::JoinHandle;
 
 use crate::config::Config;
 use crate::error::{NetworkError, Result};
-use crate::stats::StatsAggregator;
+use crate::stats::Stats;
 use crate::core::target::MultiPortTarget;
 use crate::core::worker::{Worker, WorkerConfig};
 
@@ -23,7 +23,7 @@ impl WorkerManager {
     /// Create a new worker manager and spawn worker threads
     pub fn new(
         config: &Config,
-        stats: Arc<StatsAggregator>,
+        stats: Arc<Stats>,
         multi_port_target: Arc<MultiPortTarget>,
         target_ip: IpAddr,
         interface: Option<&pnet::datalink::NetworkInterface>,
@@ -46,7 +46,7 @@ impl WorkerManager {
     /// Spawn worker threads based on configuration
     fn spawn_workers(
         config: &Config,
-        stats: Arc<StatsAggregator>,
+        stats: Arc<Stats>,
         running: Arc<AtomicBool>,
         multi_port_target: Arc<MultiPortTarget>,
         target_ip: IpAddr,

@@ -12,7 +12,7 @@ pub mod chain;
 pub mod decorator;
 
 pub use builder::PacketBuilder;
-pub use factory::{StrategyFactory, StrategyRegistry, StrategyBuilder, global_registry};
+pub use factory::{StrategyFactory, Registry, Builder, global_registry};
 pub use types::PacketType;
 pub use plugin::{StrategyPlugin, PluginRegistry};
 pub use chain::{PacketHandler, HandlerChain, ChainBuilder, PacketContext, ProcessResult};

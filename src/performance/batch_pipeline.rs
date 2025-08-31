@@ -10,14 +10,14 @@ use std::time::Instant;
 use crate::error::{Result, PacketError};
 use crate::packet::PacketType;
 use crate::performance::{
-    ZeroCopyPacketBuilder, MemoryPoolManager, ManagedMemory,
+    ZeroCopyPacketBuilder, MemoryManager, ManagedMemory,
     InternedString, protocols
 };
 use crate::stats::internal_lockfree::{LockFreeStatsCollector, BatchedStatsCollector};
 
 /// High-performance batch packet processor
 pub struct BatchPacketProcessor {
-    memory_manager: Arc<MemoryPoolManager>,
+    memory_manager: Arc<MemoryManager>,
     stats_collector: Arc<LockFreeStatsCollector>,
     packet_builder: ZeroCopyPacketBuilder,
     protocol_names: ProtocolNameCache,
@@ -27,7 +27,7 @@ impl BatchPacketProcessor {
     /// Create a new batch packet processor
     pub fn new() -> Self {
         Self {
-            memory_manager: Arc::new(MemoryPoolManager::new()),
+            memory_manager: Arc::new(MemoryManager::new()),
             stats_collector: Arc::new(LockFreeStatsCollector::new()),
             packet_builder: ZeroCopyPacketBuilder::new(1500),
             protocol_names: ProtocolNameCache::new(),
@@ -265,7 +265,7 @@ impl BatchPacketProcessor {
     }
     
     /// Get memory manager
-    pub fn memory_manager(&self) -> Arc<MemoryPoolManager> {
+    pub fn memory_manager(&self) -> Arc<MemoryManager> {
         self.memory_manager.clone()
     }
 }

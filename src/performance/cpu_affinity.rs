@@ -27,12 +27,12 @@ pub struct NumaNode {
 }
 
 /// CPU affinity manager for performance optimization
-pub struct CpuAffinityManager {
+pub struct CpuAffinity {
     topology: CpuTopology,
     worker_assignments: HashMap<usize, usize>, // worker_id -> cpu_id
 }
 
-impl CpuAffinityManager {
+impl CpuAffinity {
     /// Create a new CPU affinity manager
     pub fn new() -> Result<Self> {
         let topology = Self::detect_cpu_topology()?;
@@ -367,7 +367,7 @@ pub struct CpuAssignment {
     pub thread_handle: Option<thread::JoinHandle<()>>,
 }
 
-impl Default for CpuAffinityManager {
+impl Default for CpuAffinity {
     fn default() -> Self {
         Self::new().unwrap_or_else(|_| {
             // Fallback if detection fails

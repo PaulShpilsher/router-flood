@@ -296,12 +296,12 @@ impl PoolStats {
 }
 
 /// Multi-size memory pool manager
-pub struct MemoryPoolManager {
+pub struct MemoryManager {
     pools: Vec<Arc<LockFreeMemoryPool>>,
     size_classes: Vec<usize>,
 }
 
-impl MemoryPoolManager {
+impl MemoryManager {
     /// Create a new memory pool manager with standard size classes
     pub fn new() -> Self {
         let size_classes = vec![
@@ -367,7 +367,7 @@ impl MemoryPoolManager {
     }
 }
 
-impl Default for MemoryPoolManager {
+impl Default for MemoryManager {
     fn default() -> Self {
         Self::new()
     }
@@ -422,11 +422,11 @@ impl<'a> ManagedMemory<'a> {
 }
 
 /// Global memory pool manager
-static GLOBAL_POOL_MANAGER: std::sync::OnceLock<MemoryPoolManager> = std::sync::OnceLock::new();
+static GLOBAL_POOL_MANAGER: std::sync::OnceLock<MemoryManager> = std::sync::OnceLock::new();
 
 /// Get the global memory pool manager
-pub fn global_pool_manager() -> &'static MemoryPoolManager {
-    GLOBAL_POOL_MANAGER.get_or_init(MemoryPoolManager::new)
+pub fn global_pool_manager() -> &'static MemoryManager {
+    GLOBAL_POOL_MANAGER.get_or_init(MemoryManager::new)
 }
 
 /// Allocate memory from the global pool
@@ -434,7 +434,7 @@ pub fn allocate(size: usize) -> Option<ManagedMemory<'static>> {
     // This is a bit of a hack to work around lifetime issues
     // In practice, you'd want to use a different approach
     unsafe {
-        let manager = global_pool_manager() as *const MemoryPoolManager;
+        let manager = global_pool_manager() as *const MemoryManager;
         (*manager).allocate(size).map(|memory| std::mem::transmute(memory))
     }
 }

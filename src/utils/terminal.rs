@@ -9,20 +9,20 @@ use termios::{Termios, TCSANOW, tcflag_t};
 // Terminal control flags
 const ECHOCTL: tcflag_t = 0o001000; // Echo control characters as ^X
 
-/// Terminal controller for managing terminal settings
+/// Terminal for managing terminal settings
 #[derive(Debug)]
-pub struct TerminalController {
+pub struct Terminal {
     original_termios: Option<Termios>,
     stdin_fd: i32,
 }
 
-impl Default for TerminalController {
+impl Default for Terminal {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl TerminalController {
+impl Terminal {
     /// Create a new terminal controller
     pub fn new() -> Self {
         Self {
@@ -76,7 +76,7 @@ impl TerminalController {
     }
 }
 
-impl Drop for TerminalController {
+impl Drop for Terminal {
     fn drop(&mut self) {
         // Ensure terminal settings are restored when the controller is dropped
         let _ = self.restore();
@@ -85,16 +85,16 @@ impl Drop for TerminalController {
 
 /// RAII guard for terminal control
 pub struct TerminalGuard {
-    controller: TerminalController,
+    controller: Terminal,
 }
 
 impl TerminalGuard {
     /// Create a new terminal guard and disable control character echo
     pub fn new() -> io::Result<Self> {
-        let mut controller = TerminalController::new();
+        let mut controller = Terminal::new();
         
         // Only modify terminal settings if we're in a TTY
-        if TerminalController::is_tty() {
+        if Terminal::is_tty() {
             controller.disable_ctrl_echo()?;
         }
         

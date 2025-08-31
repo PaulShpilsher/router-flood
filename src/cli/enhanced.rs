@@ -7,7 +7,7 @@
 //! following the Single Responsibility Principle.
 
 use crate::error::Result;
-use crate::security::CapabilityManager;
+use crate::security::Capabilities;
 use clap::{ArgMatches, Command};
 
 // Re-export the specialized modules for backward compatibility
@@ -32,13 +32,13 @@ mod prompts;
 /// to specialized modules internally.
 pub struct InteractiveCli {
     command_executor: CommandExecutor,
-    capability_manager: CapabilityManager,
+    capability_manager: Capabilities,
 }
 
 impl InteractiveCli {
     /// Create a new interactive CLI manager
     pub fn new() -> Result<Self> {
-        let capability_manager = CapabilityManager::new()?;
+        let capability_manager = Capabilities::new()?;
         let command_executor = CommandExecutor::new()?;
         
         Ok(Self {
@@ -93,7 +93,7 @@ impl Default for InteractiveCli {
         Self::new().unwrap_or_else(|_| {
             Self {
                 command_executor: CommandExecutor::default(),
-                capability_manager: CapabilityManager::default(),
+                capability_manager: Capabilities::default(),
             }
         })
     }

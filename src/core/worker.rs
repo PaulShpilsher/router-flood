@@ -9,7 +9,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::time;
 
-use crate::stats::{StatsAggregator, BatchAccumulator};
+use crate::stats::{Stats, BatchStats};
 use crate::core::target::MultiPortTarget;
 use crate::packet::{PacketBuilder, PacketType};
 use crate::config::ProtocolMix;
@@ -30,8 +30,8 @@ pub struct Worker {
     #[allow(dead_code)]
     id: usize,
     #[allow(dead_code)]
-    stats: Arc<StatsAggregator>,
-    local_stats: BatchAccumulator,
+    stats: Arc<Stats>,
+    local_stats: BatchStats,
     target: Arc<MultiPortTarget>,
     target_ip: IpAddr,
     packet_builder: PacketBuilder,
@@ -49,7 +49,7 @@ pub struct Worker {
 impl Worker {
     pub fn new(
         id: usize,
-        stats: Arc<StatsAggregator>,
+        stats: Arc<Stats>,
         target_ip: IpAddr,
         target: Arc<MultiPortTarget>,
         config: WorkerConfig,
@@ -61,7 +61,7 @@ impl Worker {
         let dry_run = config.dry_run;
         let perfect_simulation = config.perfect_simulation;
         // Create local stats with batching (flush every 50 packets)
-        let local_stats = BatchAccumulator::new(stats.clone(), 50);
+        let local_stats = BatchStats::new(stats.clone(), 50);
         let packet_builder = PacketBuilder::new(packet_size_range, protocol_mix.clone());
         let base_delay = Duration::from_nanos(1_000_000_000 / packet_rate.max(1));
         

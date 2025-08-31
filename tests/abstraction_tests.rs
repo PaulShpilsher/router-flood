@@ -1,13 +1,13 @@
 //! Tests demonstrating the value of abstractions
 
-use router_flood::abstractions::{NetworkProvider, SystemProvider};
+use router_flood::abstractions::{Network, System};
 
 /// Mock network provider for testing
-struct MockNetworkProvider {
+struct MockNetwork {
     interfaces: Vec<pnet::datalink::NetworkInterface>,
 }
 
-impl NetworkProvider for MockNetworkProvider {
+impl Network for MockNetwork {
     fn interfaces(&self) -> Vec<pnet::datalink::NetworkInterface> {
         self.interfaces.clone()
     }
@@ -24,12 +24,12 @@ impl NetworkProvider for MockNetworkProvider {
 }
 
 /// Mock system provider for testing
-struct MockSystemProvider {
+struct MockSystem {
     is_root: bool,
     uid: u32,
 }
 
-impl SystemProvider for MockSystemProvider {
+impl System for MockSystem {
     fn is_root(&self) -> bool {
         self.is_root
     }
@@ -51,7 +51,7 @@ impl SystemProvider for MockSystemProvider {
 fn test_network_provider_abstraction() {
     // This test demonstrates how we can mock network interfaces
     // without actual network access
-    let mock = MockNetworkProvider {
+    let mock = MockNetwork {
         interfaces: vec![],
     };
     
@@ -63,7 +63,7 @@ fn test_network_provider_abstraction() {
 #[test]
 fn test_system_provider_abstraction() {
     // Test with non-root user
-    let mock = MockSystemProvider {
+    let mock = MockSystem {
         is_root: false,
         uid: 1000,
     };
@@ -73,7 +73,7 @@ fn test_system_provider_abstraction() {
     assert_eq!(mock.cpu_count(), 4);
     
     // Test with root user
-    let root_mock = MockSystemProvider {
+    let root_mock = MockSystem {
         is_root: true,
         uid: 0,
     };
@@ -87,7 +87,7 @@ fn test_abstraction_allows_testing_without_privileges() {
     // This test demonstrates that we can test privilege-checking code
     // without actually needing root privileges
     
-    fn requires_root<S: SystemProvider>(system: &S) -> Result<(), String> {
+    fn requires_root<S: System>(system: &S) -> Result<(), String> {
         if system.is_root() {
             Ok(())
         } else {
@@ -95,9 +95,9 @@ fn test_abstraction_allows_testing_without_privileges() {
         }
     }
     
-    let non_root = MockSystemProvider { is_root: false, uid: 1000 };
+    let non_root = MockSystem { is_root: false, uid: 1000 };
     assert!(requires_root(&non_root).is_err());
     
-    let root = MockSystemProvider { is_root: true, uid: 0 };
+    let root = MockSystem { is_root: true, uid: 0 };
     assert!(requires_root(&root).is_ok());
 }

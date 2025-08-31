@@ -6,5 +6,5 @@
 pub mod network;
 pub mod system;
 
-pub use network::NetworkProvider;
-pub use system::SystemProvider;
+pub use network::Network;
+pub use system::System;

@@ -19,7 +19,7 @@ use crate::monitoring::{
 };
 use crate::security::{
     ThreatDetector, ThreatDetectionConfig, InputValidator,
-    ValidationConfig, CapabilityManager
+    ValidationConfig, Capabilities
 };
 use crate::error::Result;
 
@@ -28,7 +28,7 @@ pub struct SecurityRunner {
     dashboard: Option<Dashboard>,
     threat_detector: ThreatDetector,
     input_validator: InputValidator,
-    capability_manager: CapabilityManager,
+    capability_manager: Capabilities,
     metrics_collector: Arc<EssentialMetricsCollector>,
     config: MonitoringSecurityConfig,
 }
@@ -121,7 +121,7 @@ impl SecurityRunner {
         let input_validator = InputValidator::new(config.validation_config.clone());
         
         // Initialize capability manager
-        let capability_manager = CapabilityManager::new()?;
+        let capability_manager = Capabilities::new()?;
         
         // Initialize dashboard if enabled
         let dashboard = if config.enable_dashboard {

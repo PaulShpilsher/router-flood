@@ -30,11 +30,11 @@ pub struct SecurityContext {
 
 /// Capability-based security manager
 #[derive(Clone)]
-pub struct CapabilityManager {
+pub struct Capabilities {
     context: SecurityContext,
 }
 
-impl CapabilityManager {
+impl Capabilities {
     /// Create a new capability manager and detect current security context
     pub fn new() -> Result<Self> {
         let context = Self::detect_security_context()?;
@@ -179,7 +179,7 @@ impl CapabilityManager {
     }
 }
 
-impl Default for CapabilityManager {
+impl Default for Capabilities {
     fn default() -> Self {
         Self::new().unwrap_or_else(|_| {
             // Fallback security context if detection fails

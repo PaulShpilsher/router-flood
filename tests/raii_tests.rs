@@ -6,7 +6,7 @@ use router_flood::utils::raii::{
 };
 use router_flood::core::worker_manager::WorkerManager;
 use router_flood::core::target::MultiPortTarget;
-use router_flood::stats::StatsAggregator;
+use router_flood::stats::Stats;
 use router_flood::transport::WorkerChannels;
 mod common;
 use common::create_test_config;
@@ -60,7 +60,7 @@ async fn test_signal_guard_shutdown_flag() {
 
 #[tokio::test]
 async fn test_stats_guard_export_on_drop() {
-    let stats = Arc::new(StatsAggregator::default());
+    let stats = Arc::new(Stats::default());
     
     // Increment some stats
     stats.increment_sent(100, "UDP");
@@ -98,7 +98,7 @@ async fn test_resource_guard_builder_pattern() {
     assert!(guard.is_running());
     
     // Add various guards using builder pattern
-    let stats = Arc::new(StatsAggregator::default());
+    let stats = Arc::new(Stats::default());
     let stats_guard = StatsGuard::new(stats, "test");
     
     let signal_guard = SignalGuard::new().await.unwrap();
@@ -131,7 +131,7 @@ async fn test_resource_guard_shutdown_sequence() {
 #[tokio::test]
 async fn test_worker_guard_stop_on_drop() {
     let config = create_test_config();
-    let stats = Arc::new(StatsAggregator::default());
+    let stats = Arc::new(Stats::default());
     let target = Arc::new(MultiPortTarget::new(vec![80, 443]));
     let target_ip = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
     
@@ -158,7 +158,7 @@ async fn test_worker_guard_stop_on_drop() {
 
 #[tokio::test]
 async fn test_multiple_guards_concurrent_access() {
-    let stats = Arc::new(StatsAggregator::default());
+    let stats = Arc::new(Stats::default());
     let counter = Arc::new(AtomicUsize::new(0));
     
     let mut handles = vec![];
@@ -194,7 +194,7 @@ async fn test_worker_guard_take_ownership() {
     
     // Create a mock manager (simplified for testing)
     let config = create_test_config();
-    let stats = Arc::new(StatsAggregator::default());
+    let stats = Arc::new(Stats::default());
     let target = Arc::new(MultiPortTarget::new(vec![80]));
     let target_ip = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
     
@@ -233,7 +233,7 @@ async fn test_resource_guard_drop_order() {
         let signal_guard = SignalGuard::new().await.unwrap();
         guard = guard.with_signal(signal_guard);
         
-        let stats = Arc::new(StatsAggregator::default());
+        let stats = Arc::new(Stats::default());
         let stats_guard = StatsGuard::new(stats, "test");
         let _ = guard.with_stats(stats_guard);
         

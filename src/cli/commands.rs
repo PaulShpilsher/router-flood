@@ -4,22 +4,22 @@
 
 use crate::config::{ConfigTemplates, ConfigSchema};
 use crate::error::{ConfigError, Result};
-use crate::security::CapabilityManager;
-use crate::performance::CpuAffinityManager;
+use crate::security::Capabilities;
+use crate::performance::CpuAffinity;
 use clap::ArgMatches;
 
 /// Command executor for handling CLI commands
 pub struct CommandExecutor {
-    capability_manager: CapabilityManager,
-    cpu_manager: CpuAffinityManager,
+    capability_manager: Capabilities,
+    cpu_manager: CpuAffinity,
 }
 
 impl CommandExecutor {
     /// Create a new command executor
     pub fn new() -> Result<Self> {
         Ok(Self {
-            capability_manager: CapabilityManager::new()?,
-            cpu_manager: CpuAffinityManager::new()?,
+            capability_manager: Capabilities::new()?,
+            cpu_manager: CpuAffinity::new()?,
         })
     }
 
@@ -218,7 +218,7 @@ impl CommandExecutor {
         }
 
         // Show CPU assignments
-        let mut cpu_manager = CpuAffinityManager::new()?;
+        let mut cpu_manager = CpuAffinity::new()?;
         let assignments = cpu_manager.assign_workers(workers)?;
         
         println!();
@@ -236,8 +236,8 @@ impl Default for CommandExecutor {
     fn default() -> Self {
         Self::new().unwrap_or_else(|_| {
             Self {
-                capability_manager: CapabilityManager::default(),
-                cpu_manager: CpuAffinityManager::default(),
+                capability_manager: Capabilities::default(),
+                cpu_manager: CpuAffinity::default(),
             }
         })
     }

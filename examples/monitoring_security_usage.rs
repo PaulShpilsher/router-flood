@@ -7,10 +7,10 @@
 
 use router_flood::{
     config::ConfigBuilder,
-    performance::{SimdPacketBuilder, CpuAffinityManager},
+    performance::{SimdPacketBuilder, CpuAffinity},
     utils::buffer_pool::BufferPool,
     monitoring::PrometheusExporter,
-    security::{CapabilityManager, TamperProofAuditLog},
+    security::{Capabilities, TamperProofAuditLog},
     error::Result,
 };
 
@@ -144,7 +144,7 @@ async fn cpu_affinity_example() -> Result<()> {
     println!("\n🖥️  Example 3: CPU Affinity and NUMA Optimization");
     println!("------------------------------------------------");
 
-    let cpu_manager = CpuAffinityManager::new()?;
+    let cpu_manager = CpuAffinity::new()?;
     let topology = cpu_manager.topology();
 
     println!("System topology:");
@@ -170,7 +170,7 @@ async fn cpu_affinity_example() -> Result<()> {
     for &workers in &worker_counts {
         if workers <= topology.total_cpus {
             println!("\nWorker assignment for {} workers:", workers);
-            let mut cpu_manager_clone = CpuAffinityManager::new()?;
+            let mut cpu_manager_clone = CpuAffinity::new()?;
             let assignments = cpu_manager_clone.assign_workers(workers)?;
             
             for assignment in assignments {
@@ -282,7 +282,7 @@ async fn security_audit_example() -> Result<()> {
     println!("----------------------------------------");
 
     // Security context analysis
-    let capability_manager = CapabilityManager::new()?;
+    let capability_manager = Capabilities::new()?;
     println!("Security analysis:");
     println!("{}", capability_manager.security_report());
 
@@ -401,7 +401,7 @@ async fn performance_benchmark_example() -> Result<()> {
 
     // System performance summary
     println!("\nSystem performance summary:");
-    let cpu_manager = CpuAffinityManager::new()?;
+    let cpu_manager = CpuAffinity::new()?;
     let topology = cpu_manager.topology();
     
     println!("  CPU cores: {}", topology.total_cpus);

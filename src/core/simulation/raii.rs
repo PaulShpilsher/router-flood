@@ -15,7 +15,7 @@ use crate::error::Result;
 use crate::system_monitor::SystemMonitor;
 use crate::utils::raii::{ResourceGuard, SignalGuard, StatsGuard, TerminalRAIIGuard, WorkerGuard};
 use crate::core::simulation::setup_network_interface;
-use crate::stats::StatsAggregator;
+use crate::stats::Stats;
 use crate::core::target::MultiPortTarget;
 use crate::core::worker_manager::WorkerManager;
 
@@ -59,7 +59,7 @@ impl SimulationRAII {
         self.resource_guard = self.resource_guard.with_signal(signal_guard);
         
         // Create stats with guard (exported on drop)
-        let stats = Arc::new(StatsAggregator::new(
+        let stats = Arc::new(Stats::new(
             self.config.export.enabled.then_some(self.config.export.clone()),
         ));
         let stats_guard = StatsGuard::new(stats.clone(), "simulation");
@@ -122,7 +122,7 @@ impl SimulationRAII {
         }
     }
     
-    fn setup_audit_logging(&self, stats: &Arc<StatsAggregator>) -> Result<()> {
+    fn setup_audit_logging(&self, stats: &Arc<Stats>) -> Result<()> {
         if self.config.safety.audit_logging {
             create_audit_entry(
                 &self.target_ip,
@@ -166,7 +166,7 @@ impl SimulationRAII {
         }
     }
     
-    fn spawn_monitoring_tasks(&self, stats: Arc<StatsAggregator>, running: Arc<std::sync::atomic::AtomicBool>) {
+    fn spawn_monitoring_tasks(&self, stats: Arc<Stats>, running: Arc<std::sync::atomic::AtomicBool>) {
         use std::sync::atomic::Ordering;
         
         // Spawn stats reporter
@@ -201,7 +201,7 @@ impl SimulationRAII {
         }
     }
     
-    async fn print_final_stats(&self, stats: &Arc<StatsAggregator>) {
+    async fn print_final_stats(&self, stats: &Arc<Stats>) {
         let system_monitor = SystemMonitor::new(self.config.monitoring.system_monitoring);
         let sys_stats = system_monitor.get_system_stats().await;
         

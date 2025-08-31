@@ -35,9 +35,9 @@ pub use core::worker_manager::WorkerManager;
 pub use core::target::MultiPortTarget;
 pub use error::{Result, RouterFloodError};
 pub use packet::{PacketBuilder, PacketStrategy, PacketType, Target};
-pub use stats::StatsAggregator;
+pub use stats::Stats;
 pub use utils::buffer_pool::BufferPool;
-pub use utils::terminal::{TerminalController, TerminalGuard};
+pub use utils::terminal::{Terminal, TerminalGuard};
 pub use utils::raii::ResourceGuard;
 
 // Tests moved to tests/ directory

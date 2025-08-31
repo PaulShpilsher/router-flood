@@ -1,7 +1,7 @@
 //! Simple system abstraction for testability
 
 /// Trait for system operations - allows mocking in tests
-pub trait SystemProvider: Send + Sync {
+pub trait System: Send + Sync {
     fn is_root(&self) -> bool;
     fn effective_uid(&self) -> u32;
     fn is_tty(&self) -> bool;
@@ -9,9 +9,9 @@ pub trait SystemProvider: Send + Sync {
 }
 
 /// Default implementation using libc
-pub struct DefaultSystemProvider;
+pub struct DefaultSystem;
 
-impl SystemProvider for DefaultSystemProvider {
+impl System for DefaultSystem {
     fn is_root(&self) -> bool {
         unsafe { libc::geteuid() == 0 }
     }

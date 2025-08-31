@@ -3,17 +3,17 @@
 //! This module handles the interactive configuration mode for Router Flood.
 
 use crate::error::Result;
-use crate::security::CapabilityManager;
+use crate::security::Capabilities;
 use super::prompts::PromptUtils;
 
 /// Interactive mode handler
 pub struct InteractiveMode {
-    capability_manager: CapabilityManager,
+    capability_manager: Capabilities,
 }
 
 impl InteractiveMode {
     /// Create a new interactive mode handler
-    pub fn new(capability_manager: CapabilityManager) -> Self {
+    pub fn new(capability_manager: Capabilities) -> Self {
         Self {
             capability_manager,
         }

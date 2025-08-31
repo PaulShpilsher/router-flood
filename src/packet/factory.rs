@@ -22,9 +22,9 @@ pub trait StrategyFactory: Send + Sync {
 }
 
 /// Factory for UDP packet strategies
-pub struct UdpStrategyFactory;
+pub struct UdpFactory;
 
-impl StrategyFactory for UdpStrategyFactory {
+impl StrategyFactory for UdpFactory {
     fn create(&self) -> Box<dyn PacketStrategy> {
         let mut rng = crate::utils::rng::BatchedRng::new();
         Box::new(UdpStrategy::new((64, 1400), &mut rng))
@@ -40,9 +40,9 @@ impl StrategyFactory for UdpStrategyFactory {
 }
 
 /// Factory for TCP SYN packet strategies
-pub struct TcpSynStrategyFactory;
+pub struct TcpSynFactory;
 
-impl StrategyFactory for TcpSynStrategyFactory {
+impl StrategyFactory for TcpSynFactory {
     fn create(&self) -> Box<dyn PacketStrategy> {
         let mut rng = crate::utils::rng::BatchedRng::new();
         Box::new(TcpStrategy::new_syn(&mut rng))
@@ -58,9 +58,9 @@ impl StrategyFactory for TcpSynStrategyFactory {
 }
 
 /// Factory for TCP ACK packet strategies
-pub struct TcpAckStrategyFactory;
+pub struct TcpAckFactory;
 
-impl StrategyFactory for TcpAckStrategyFactory {
+impl StrategyFactory for TcpAckFactory {
     fn create(&self) -> Box<dyn PacketStrategy> {
         let mut rng = crate::utils::rng::BatchedRng::new();
         Box::new(TcpStrategy::new_ack(&mut rng))
@@ -76,9 +76,9 @@ impl StrategyFactory for TcpAckStrategyFactory {
 }
 
 /// Factory for ICMP packet strategies
-pub struct IcmpStrategyFactory;
+pub struct IcmpFactory;
 
-impl StrategyFactory for IcmpStrategyFactory {
+impl StrategyFactory for IcmpFactory {
     fn create(&self) -> Box<dyn PacketStrategy> {
         let mut rng = crate::utils::rng::BatchedRng::new();
         Box::new(IcmpStrategy::new(&mut rng))
@@ -94,11 +94,11 @@ impl StrategyFactory for IcmpStrategyFactory {
 }
 
 /// Registry for packet strategy factories
-pub struct StrategyRegistry {
+pub struct Registry {
     factories: RwLock<HashMap<PacketType, Arc<dyn StrategyFactory>>>,
 }
 
-impl StrategyRegistry {
+impl Registry {
     /// Create a new strategy registry with default factories
     pub fn new() -> Self {
         let mut registry = Self {
@@ -110,10 +110,10 @@ impl StrategyRegistry {
     
     /// Register default factories
     fn register_defaults(&mut self) {
-        self.register(Arc::new(UdpStrategyFactory));
-        self.register(Arc::new(TcpSynStrategyFactory));
-        self.register(Arc::new(TcpAckStrategyFactory));
-        self.register(Arc::new(IcmpStrategyFactory));
+        self.register(Arc::new(UdpFactory));
+        self.register(Arc::new(TcpSynFactory));
+        self.register(Arc::new(TcpAckFactory));
+        self.register(Arc::new(IcmpFactory));
     }
     
     /// Register a strategy factory
@@ -144,7 +144,7 @@ impl StrategyRegistry {
     }
 }
 
-impl Default for StrategyRegistry {
+impl Default for Registry {
     fn default() -> Self {
         Self::new()
     }
@@ -153,20 +153,20 @@ impl Default for StrategyRegistry {
 use std::sync::OnceLock;
 
 /// Global strategy registry singleton
-static GLOBAL_REGISTRY: OnceLock<StrategyRegistry> = OnceLock::new();
+static GLOBAL_REGISTRY: OnceLock<Registry> = OnceLock::new();
 
 /// Get the global strategy registry
-pub fn global_registry() -> &'static StrategyRegistry {
-    GLOBAL_REGISTRY.get_or_init(StrategyRegistry::new)
+pub fn global_registry() -> &'static Registry {
+    GLOBAL_REGISTRY.get_or_init(Registry::new)
 }
 
 /// Builder for configuring packet strategies
-pub struct StrategyBuilder {
+pub struct Builder {
     packet_type: Option<PacketType>,
     custom_factory: Option<Arc<dyn StrategyFactory>>,
 }
 
-impl StrategyBuilder {
+impl Builder {
     /// Create a new strategy builder
     pub fn new() -> Self {
         Self {
@@ -201,7 +201,7 @@ impl StrategyBuilder {
     }
 }
 
-impl Default for StrategyBuilder {
+impl Default for Builder {
     fn default() -> Self {
         Self::new()
     }

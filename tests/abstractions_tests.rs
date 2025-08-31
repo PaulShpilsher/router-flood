@@ -1,17 +1,17 @@
 //! Comprehensive tests for abstraction layers
 
-use router_flood::abstractions::{NetworkProvider, SystemProvider};
+use router_flood::abstractions::{Network, System};
 use pnet::datalink::NetworkInterface;
 use pnet::ipnetwork::IpNetwork;
 use std::net::{Ipv4Addr, Ipv6Addr};
 
 /// Complete mock network provider for testing
-struct TestNetworkProvider {
+struct TestNetwork {
     interfaces: Vec<NetworkInterface>,
     find_by_name_called: std::sync::Arc<std::sync::atomic::AtomicUsize>,
 }
 
-impl TestNetworkProvider {
+impl TestNetwork {
     fn new() -> Self {
         use std::sync::Arc;
         use std::sync::atomic::AtomicUsize;
@@ -68,7 +68,7 @@ impl TestNetworkProvider {
     }
 }
 
-impl NetworkProvider for TestNetworkProvider {
+impl Network for TestNetwork {
     fn interfaces(&self) -> Vec<NetworkInterface> {
         self.interfaces.clone()
     }
@@ -87,14 +87,14 @@ impl NetworkProvider for TestNetworkProvider {
 }
 
 /// Complete mock system provider for testing
-struct TestSystemProvider {
+struct TestSystem {
     is_root: bool,
     uid: u32,
     is_tty: bool,
     cpu_count: usize,
 }
 
-impl TestSystemProvider {
+impl TestSystem {
     fn new_root() -> Self {
         Self {
             is_root: true,
@@ -114,7 +114,7 @@ impl TestSystemProvider {
     }
 }
 
-impl SystemProvider for TestSystemProvider {
+impl System for TestSystem {
     fn is_root(&self) -> bool {
         self.is_root
     }
@@ -134,7 +134,7 @@ impl SystemProvider for TestSystemProvider {
 
 #[test]
 fn test_network_provider_interfaces_list() {
-    let provider = TestNetworkProvider::new();
+    let provider = TestNetwork::new();
     let interfaces = provider.interfaces();
     
     assert_eq!(interfaces.len(), 3);
@@ -145,7 +145,7 @@ fn test_network_provider_interfaces_list() {
 
 #[test]
 fn test_network_provider_find_by_name() {
-    let provider = TestNetworkProvider::new();
+    let provider = TestNetwork::new();
     
     // Find existing interface
     let eth0 = provider.find_by_name("eth0");
@@ -163,7 +163,7 @@ fn test_network_provider_find_by_name() {
 
 #[test]
 fn test_network_provider_empty_list() {
-    let provider = TestNetworkProvider::with_empty();
+    let provider = TestNetwork::with_empty();
     
     assert!(provider.interfaces().is_empty());
     assert!(provider.find_by_name("any").is_none());
@@ -172,29 +172,29 @@ fn test_network_provider_empty_list() {
 
 #[test]
 fn test_system_provider_root_detection() {
-    let root = TestSystemProvider::new_root();
+    let root = TestSystem::new_root();
     assert!(root.is_root());
     assert_eq!(root.effective_uid(), 0);
     
-    let user = TestSystemProvider::new_user(1000);
+    let user = TestSystem::new_user(1000);
     assert!(!user.is_root());
     assert_eq!(user.effective_uid(), 1000);
 }
 
 #[test]
 fn test_system_provider_environment_info() {
-    let provider = TestSystemProvider::new_root();
+    let provider = TestSystem::new_root();
     assert!(provider.is_tty());
     assert_eq!(provider.cpu_count(), 8);
     
-    let user_provider = TestSystemProvider::new_user(1001);
+    let user_provider = TestSystem::new_user(1001);
     assert!(!user_provider.is_tty());
     assert_eq!(user_provider.cpu_count(), 4);
 }
 
 #[test]
 fn test_privilege_checking_with_mock() {
-    fn check_privileges<S: SystemProvider>(system: &S) -> Result<(), String> {
+    fn check_privileges<S: System>(system: &S) -> Result<(), String> {
         if system.is_root() || system.effective_uid() == 0 {
             Ok(())
         } else {
@@ -202,16 +202,16 @@ fn test_privilege_checking_with_mock() {
         }
     }
     
-    let root = TestSystemProvider::new_root();
+    let root = TestSystem::new_root();
     assert!(check_privileges(&root).is_ok());
     
-    let user = TestSystemProvider::new_user(1000);
+    let user = TestSystem::new_user(1000);
     assert!(check_privileges(&user).is_err());
 }
 
 #[test]
 fn test_network_selection_with_mock() {
-    fn select_network_interface<N: NetworkProvider>(
+    fn select_network_interface<N: Network>(
         network: &N,
         preferred: Option<&str>
     ) -> Option<NetworkInterface> {
@@ -222,7 +222,7 @@ fn test_network_selection_with_mock() {
         }
     }
     
-    let provider = TestNetworkProvider::new();
+    let provider = TestNetwork::new();
     
     // Select specific interface
     let eth0 = select_network_interface(&provider, Some("eth0"));
@@ -236,7 +236,7 @@ fn test_network_selection_with_mock() {
 
 #[test]
 fn test_cpu_affinity_planning_with_mock() {
-    fn plan_worker_distribution<S: SystemProvider>(
+    fn plan_worker_distribution<S: System>(
         system: &S,
         num_workers: usize
     ) -> Vec<usize> {
@@ -246,7 +246,7 @@ fn test_cpu_affinity_planning_with_mock() {
             .collect()
     }
     
-    let system = TestSystemProvider::new_root();
+    let system = TestSystem::new_root();
     let distribution = plan_worker_distribution(&system, 10);
     
     assert_eq!(distribution.len(), 10);
@@ -258,7 +258,7 @@ fn test_cpu_affinity_planning_with_mock() {
 
 #[test]
 fn test_combined_abstraction_usage() {
-    fn setup_environment<N: NetworkProvider, S: SystemProvider>(
+    fn setup_environment<N: Network, S: System>(
         network: &N,
         system: &S,
         interface_name: Option<&str>
@@ -278,8 +278,8 @@ fn test_combined_abstraction_usage() {
         Ok((has_privileges, interface_name))
     }
     
-    let network = TestNetworkProvider::new();
-    let system = TestSystemProvider::new_root();
+    let network = TestNetwork::new();
+    let system = TestSystem::new_root();
     
     let result = setup_environment(&network, &system, Some("eth0"));
     assert!(result.is_ok());
@@ -290,7 +290,7 @@ fn test_combined_abstraction_usage() {
 }
 
 // Extension trait test
-trait NetworkProviderExt: NetworkProvider {
+trait NetworkExt: Network {
     fn count_ipv4_interfaces(&self) -> usize {
         self.interfaces()
             .iter()
@@ -299,10 +299,10 @@ trait NetworkProviderExt: NetworkProvider {
     }
 }
 
-impl<T: NetworkProvider> NetworkProviderExt for T {}
+impl<T: Network> NetworkExt for T {}
 
 #[test]
 fn test_network_provider_extension() {
-    let provider = TestNetworkProvider::new();
+    let provider = TestNetwork::new();
     assert_eq!(provider.count_ipv4_interfaces(), 3);
 }

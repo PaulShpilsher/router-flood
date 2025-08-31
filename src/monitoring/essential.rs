@@ -13,7 +13,7 @@ use crate::utils::shared::{AtomicCounter, format_bytes, format_duration};
 
 /// Essential metrics for monitoring
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EssentialMetrics {
+pub struct Metrics {
     pub packets_sent: u64,
     pub packets_failed: u64,
     pub bytes_sent: u64,
@@ -23,7 +23,7 @@ pub struct EssentialMetrics {
     pub bandwidth_mbps: f64,
 }
 
-impl EssentialMetrics {
+impl Metrics {
     pub fn new(
         packets_sent: u64,
         packets_failed: u64,
@@ -88,13 +88,13 @@ impl EssentialMetricsCollector {
         self.packets_failed.increment();
     }
 
-    pub fn get_metrics(&self) -> EssentialMetrics {
+    pub fn get_metrics(&self) -> Metrics {
         let packets_sent = self.packets_sent.get();
         let packets_failed = self.packets_failed.get();
         let bytes_sent = self.bytes_sent.get();
         let duration = self.start_time.elapsed();
 
-        EssentialMetrics::new(packets_sent, packets_failed, bytes_sent, duration)
+        Metrics::new(packets_sent, packets_failed, bytes_sent, duration)
     }
 
     pub fn reset(&self) {
@@ -111,10 +111,10 @@ impl Default for EssentialMetricsCollector {
 }
 
 /// Essential display for metrics
-pub struct EssentialDisplay;
+pub struct Display;
 
-impl EssentialDisplay {
-    pub fn display_metrics(metrics: &EssentialMetrics) {
+impl Display {
+    pub fn display_metrics(metrics: &Metrics) {
         println!("📊 Network Testing Metrics");
         println!("═══════════════════════════");
         println!("Packets Sent:     {}", metrics.packets_sent);
@@ -126,7 +126,7 @@ impl EssentialDisplay {
         println!("Bandwidth:        {:.2} Mbps", metrics.bandwidth_mbps);
     }
 
-    pub fn display_compact(metrics: &EssentialMetrics) {
+    pub fn display_compact(metrics: &Metrics) {
         println!(
             "📊 Sent: {} | Failed: {} | Rate: {:.1} pps | Success: {:.1}% | Bandwidth: {:.2} Mbps",
             metrics.packets_sent,
@@ -139,17 +139,17 @@ impl EssentialDisplay {
 }
 
 /// Essential export functionality
-pub struct EssentialExporter;
+pub struct Exporter;
 
-impl EssentialExporter {
-    pub async fn export_json(metrics: &EssentialMetrics, filename: &str) -> Result<(), Box<dyn std::error::Error>> {
+impl Exporter {
+    pub async fn export_json(metrics: &Metrics, filename: &str) -> Result<(), Box<dyn std::error::Error>> {
         let json = serde_json::to_string_pretty(metrics)?;
         tokio::fs::write(filename, json).await?;
         println!("📄 Metrics exported to {}", filename);
         Ok(())
     }
 
-    pub async fn export_csv(metrics: &EssentialMetrics, filename: &str) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn export_csv(metrics: &Metrics, filename: &str) -> Result<(), Box<dyn std::error::Error>> {
         let csv_content = format!(
             "packets_sent,packets_failed,bytes_sent,duration_secs,packets_per_second,success_rate,bandwidth_mbps\n{},{},{},{:.3},{:.1},{:.2},{:.3}",
             metrics.packets_sent,
@@ -168,12 +168,12 @@ impl EssentialExporter {
 }
 
 /// Essential monitoring task that periodically displays metrics
-pub struct EssentialMonitor {
+pub struct Monitor {
     collector: Arc<EssentialMetricsCollector>,
     interval: Duration,
 }
 
-impl EssentialMonitor {
+impl Monitor {
     pub fn new(collector: Arc<EssentialMetricsCollector>, interval: Duration) -> Self {
         Self { collector, interval }
     }
@@ -185,21 +185,21 @@ impl EssentialMonitor {
             interval_timer.tick().await;
             
             let metrics = self.collector.get_metrics();
-            EssentialDisplay::display_compact(&metrics);
+            Display::display_compact(&metrics);
         }
     }
 }
 
 /// Configuration for essential monitoring
 #[derive(Debug, Clone)]
-pub struct EssentialMonitoringConfig {
+pub struct MonitoringConfig {
     pub display_interval: Duration,
     pub export_enabled: bool,
     pub export_format: ExportFormat,
     pub export_filename: String,
 }
 
-impl Default for EssentialMonitoringConfig {
+impl Default for MonitoringConfig {
     fn default() -> Self {
         Self {
             display_interval: Duration::from_secs(5),
@@ -217,13 +217,13 @@ pub enum ExportFormat {
 }
 
 /// All-in-one essential monitoring system
-pub struct EssentialMonitoringSystem {
+pub struct MonitoringSystem {
     collector: Arc<EssentialMetricsCollector>,
-    config: EssentialMonitoringConfig,
+    config: MonitoringConfig,
 }
 
-impl EssentialMonitoringSystem {
-    pub fn new(config: EssentialMonitoringConfig) -> Self {
+impl MonitoringSystem {
+    pub fn new(config: MonitoringConfig) -> Self {
         Self {
             collector: Arc::new(EssentialMetricsCollector::new()),
             config,
@@ -235,7 +235,7 @@ impl EssentialMonitoringSystem {
     }
 
     pub async fn run(&self, running: Arc<std::sync::atomic::AtomicBool>) {
-        let monitor = EssentialMonitor::new(
+        let monitor = Monitor::new(
             Arc::clone(&self.collector),
             self.config.display_interval,
         );
@@ -254,11 +254,11 @@ impl EssentialMonitoringSystem {
         match self.config.export_format {
             ExportFormat::Json => {
                 let filename = format!("{}_{}.json", self.config.export_filename, timestamp);
-                EssentialExporter::export_json(&metrics, &filename).await?;
+                Exporter::export_json(&metrics, &filename).await?;
             }
             ExportFormat::Csv => {
                 let filename = format!("{}_{}.csv", self.config.export_filename, timestamp);
-                EssentialExporter::export_csv(&metrics, &filename).await?;
+                Exporter::export_csv(&metrics, &filename).await?;
             }
         }
 
@@ -268,7 +268,7 @@ impl EssentialMonitoringSystem {
     pub fn display_final_summary(&self) {
         let metrics = self.collector.get_metrics();
         println!("\n🎯 Final Summary");
-        EssentialDisplay::display_metrics(&metrics);
+        Display::display_metrics(&metrics);
     }
 }
 

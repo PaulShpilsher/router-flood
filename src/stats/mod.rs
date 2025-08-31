@@ -14,11 +14,11 @@ pub mod internal_lockfree;
 
 pub use collector::{StatsCollector, SessionStats, SystemStats};
 pub use export::StatsExporter;
-pub use batch_accumulator::BatchAccumulator;
+pub use batch_accumulator::BatchStats;
 pub use lockfree::{LockFreeStats, LockFreeLocalStats, PerCpuStats, ProtocolId, StatsSnapshot};
 pub use observer::{StatsObserver, StatsSubject, StatsEvent, ObserverBuilder};
 pub use display::{StatsDisplay, init_display, get_display};
-pub use stats_aggregator::StatsAggregator;
+pub use stats_aggregator::Stats;
 
 // Re-export the internal lock-free implementation for advanced users
 pub use internal_lockfree::LockFreeStatsCollector as InternalLockFreeCollector;

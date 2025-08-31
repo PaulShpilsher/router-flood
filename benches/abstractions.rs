@@ -1,9 +1,9 @@
 //! Benchmarks for abstraction layer performance
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use router_flood::abstractions::{NetworkProvider, SystemProvider};
-use router_flood::abstractions::network::PnetProvider;
-use router_flood::abstractions::system::DefaultSystemProvider;
+use router_flood::abstractions::{Network, System};
+use router_flood::abstractions::network::PnetNetwork;
+use router_flood::abstractions::system::DefaultSystem;
 
 fn benchmark_network_provider(c: &mut Criterion) {
     let mut group = c.benchmark_group("network_provider");
@@ -11,7 +11,7 @@ fn benchmark_network_provider(c: &mut Criterion) {
     group.sample_size(10);
     group.measurement_time(std::time::Duration::from_secs(5));
     
-    let provider = PnetProvider;
+    let provider = PnetNetwork;
     
     // Benchmark interface listing
     group.bench_function("list_interfaces", |b| {
@@ -40,7 +40,7 @@ fn benchmark_network_provider(c: &mut Criterion) {
 fn benchmark_system_provider(c: &mut Criterion) {
     let mut group = c.benchmark_group("system_provider");
     
-    let provider = DefaultSystemProvider;
+    let provider = DefaultSystem;
     
     // Benchmark privilege checking
     group.bench_function("is_root", |b| {
@@ -86,7 +86,7 @@ fn benchmark_abstraction_overhead(c: &mut Criterion) {
     });
     
     // Through abstraction
-    let provider = DefaultSystemProvider;
+    let provider = DefaultSystem;
     group.bench_function("abstracted_uid", |b| {
         b.iter(|| {
             black_box(provider.effective_uid());
@@ -101,7 +101,7 @@ fn benchmark_abstraction_overhead(c: &mut Criterion) {
     });
     
     // Through abstraction
-    let net_provider = PnetProvider;
+    let net_provider = PnetNetwork;
     group.bench_function("abstracted_interfaces", |b| {
         b.iter(|| {
             black_box(net_provider.interfaces());

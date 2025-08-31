@@ -3,11 +3,11 @@
 //! Tests for terminal control functionality including TTY detection,
 //! terminal settings management, and RAII guard behavior.
 
-use router_flood::utils::terminal::{TerminalController, TerminalGuard};
+use router_flood::utils::terminal::{Terminal, TerminalGuard};
 
 #[test]
 fn test_terminal_controller_creation() {
-    let controller = TerminalController::new();
+    let controller = Terminal::new();
     assert!(!controller.has_original_termios());
 }
 
@@ -15,7 +15,7 @@ fn test_terminal_controller_creation() {
 fn test_is_tty() {
     // This test will pass differently depending on how it's run
     // In a terminal: true, in CI/automated: false
-    let _is_tty = TerminalController::is_tty();
+    let _is_tty = Terminal::is_tty();
     // Just ensure the function doesn't panic
 }
 
@@ -24,12 +24,12 @@ fn test_terminal_guard_creation() {
     // This should not panic even if not in a TTY
     let result = TerminalGuard::new();
     // In non-TTY environments, this should still succeed
-    assert!(result.is_ok() || !TerminalController::is_tty());
+    assert!(result.is_ok() || !Terminal::is_tty());
 }
 
 #[test]
 fn test_terminal_controller_new_has_correct_defaults() {
-    let controller = TerminalController::new();
+    let controller = Terminal::new();
     assert!(!controller.has_original_termios());
     assert_eq!(controller.stdin_fd(), libc::STDIN_FILENO);
 }
@@ -39,7 +39,7 @@ fn test_terminal_guard_drop_behavior() {
     // Test that TerminalGuard can be created and dropped without issues
     let guard_result = TerminalGuard::new();
     
-    if TerminalController::is_tty() {
+    if Terminal::is_tty() {
         // In TTY environment, guard should be created successfully
         assert!(guard_result.is_ok());
         let _guard = guard_result.unwrap();
@@ -61,7 +61,7 @@ fn test_multiple_terminal_guards() {
 
 #[test]
 fn test_terminal_controller_restore_without_modification() {
-    let mut controller = TerminalController::new();
+    let mut controller = Terminal::new();
     
     // Calling restore without any modifications should not fail
     let result = controller.restore();
@@ -74,8 +74,8 @@ fn test_terminal_controller_restore_without_modification() {
 
 #[test]
 fn test_terminal_controller_drop_safety() {
-    // Test that TerminalController can be safely dropped
-    let controller = TerminalController::new();
+    // Test that Terminal can be safely dropped
+    let controller = Terminal::new();
     drop(controller);
     // Should not panic or cause issues
 }
@@ -83,8 +83,8 @@ fn test_terminal_controller_drop_safety() {
 #[test]
 fn test_is_tty_consistency() {
     // Test that is_tty() returns consistent results
-    let result1 = TerminalController::is_tty();
-    let result2 = TerminalController::is_tty();
+    let result1 = Terminal::is_tty();
+    let result2 = Terminal::is_tty();
     assert_eq!(result1, result2);
 }
 

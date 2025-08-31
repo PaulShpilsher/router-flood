@@ -7,8 +7,8 @@
 
 use router_flood::{
     config::{ConfigBuilder, ConfigTemplates},
-    security::CapabilityManager,
-    performance::CpuAffinityManager,
+    security::Capabilities,
+    performance::CpuAffinity,
     error::Result,
 };
 use std::net::IpAddr;
@@ -39,7 +39,7 @@ fn security_context_example() -> Result<()> {
     println!("\n🔒 Example 1: Security Context Analysis");
     println!("---------------------------------------");
 
-    let capability_manager = CapabilityManager::new()?;
+    let capability_manager = Capabilities::new()?;
     let context = capability_manager.security_context();
 
     println!("Process ID: {}", context.process_id);
@@ -112,7 +112,7 @@ fn performance_example() -> Result<()> {
     println!("\n⚡ Example 3: Performance Analysis");
     println!("----------------------------------");
 
-    let cpu_manager = CpuAffinityManager::new()?;
+    let cpu_manager = CpuAffinity::new()?;
     let topology = cpu_manager.topology();
 
     println!("CPU Topology:");
@@ -136,7 +136,7 @@ fn performance_example() -> Result<()> {
     }
 
     // Show CPU assignments for 4 workers
-    let mut cpu_manager_mut = CpuAffinityManager::new()?;
+    let mut cpu_manager_mut = CpuAffinity::new()?;
     let assignments = cpu_manager_mut.assign_workers(4)?;
     
     println!("\nProposed CPU Assignments (4 workers):");

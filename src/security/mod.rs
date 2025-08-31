@@ -18,7 +18,7 @@ pub mod input_validation;
 pub mod validation;
 
 pub use capabilities::{
-    CapabilityManager, 
+    Capabilities, 
     SecurityContext, 
     RequiredCapability,
     TamperProofAuditLog

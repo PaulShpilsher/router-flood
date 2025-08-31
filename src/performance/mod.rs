@@ -14,9 +14,9 @@ pub mod string_interning;
 pub mod zero_copy;
 
 // Re-export commonly used types
-pub use cpu_affinity::{CpuAffinityManager, CpuTopology};
+pub use cpu_affinity::{CpuAffinity, CpuTopology};
 pub use memory_pool::{
-    LockFreeMemoryPool, MemoryPoolManager, ManagedMemory, PoolStats as MemoryPoolStats
+    LockFreeMemoryPool, MemoryManager, ManagedMemory, PoolStats as MemoryPoolStats
 };
 pub use batch_pipeline::{
     BatchPacketProcessor, ProcessedPacket, PipelineMetrics

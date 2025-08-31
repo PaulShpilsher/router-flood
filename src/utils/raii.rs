@@ -9,8 +9,8 @@ use tokio::task::JoinHandle;
 use tracing::{debug, error};
 
 use crate::error::{NetworkError, Result};
-use crate::stats::StatsAggregator;
-use crate::utils::terminal::TerminalController;
+use crate::stats::Stats;
+use crate::utils::terminal::Terminal;
 use crate::transport::WorkerChannels;
 use crate::core::worker_manager::WorkerManager;
 
@@ -157,20 +157,20 @@ impl Drop for SignalGuard {
 ///
 /// Ensures stats are exported when the guard is dropped
 pub struct StatsGuard {
-    stats: Arc<StatsAggregator>,
+    stats: Arc<Stats>,
     name: String,
 }
 
 impl StatsGuard {
     /// Create a new stats guard
-    pub fn new(stats: Arc<StatsAggregator>, name: &str) -> Self {
+    pub fn new(stats: Arc<Stats>, name: &str) -> Self {
         let name = name.to_string();
         debug!("StatsGuard created for: {}", name);
         Self { stats, name }
     }
     
     /// Get reference to stats
-    pub fn stats(&self) -> &Arc<StatsAggregator> {
+    pub fn stats(&self) -> &Arc<Stats> {
         &self.stats
     }
     
@@ -199,15 +199,15 @@ impl Drop for StatsGuard {
 ///
 /// Ensures terminal is restored to original state
 pub struct TerminalRAIIGuard {
-    controller: Option<TerminalController>,
+    controller: Option<Terminal>,
 }
 
 impl TerminalRAIIGuard {
     /// Create a new terminal guard
     pub fn new() -> Result<Self> {
-        let mut controller = TerminalController::new();
+        let mut controller = Terminal::new();
         
-        if TerminalController::is_tty() {
+        if Terminal::is_tty() {
             controller.disable_ctrl_echo()
                 .map_err(|e| NetworkError::ChannelCreation(format!("Terminal setup failed: {}", e)))?;
         }

@@ -9,7 +9,7 @@ use std::time::{Duration, Instant};
 use tokio::time;
 use serde::{Deserialize, Serialize};
 
-use crate::monitoring::essential::{EssentialMetrics, EssentialMetricsCollector};
+use crate::monitoring::essential::{Metrics, EssentialMetricsCollector};
 use crate::utils::shared::{format_bytes, format_duration};
 
 /// Lightweight dashboard
@@ -44,7 +44,7 @@ pub struct AlertThresholds {
 pub struct DashboardState {
     pub timestamp: String,
     pub uptime: String,
-    pub metrics: EssentialMetrics,
+    pub metrics: Metrics,
     pub alerts: Vec<Alert>,
     pub system_info: Option<SystemInfo>,
 }
@@ -169,7 +169,7 @@ impl Dashboard {
     }
 
     /// Check for alerts based on current metrics
-    fn check_alerts(&self, metrics: &EssentialMetrics) -> Vec<Alert> {
+    fn check_alerts(&self, metrics: &Metrics) -> Vec<Alert> {
         let mut alerts = Vec::new();
         let now = chrono::Utc::now().format("%H:%M:%S").to_string();
         
@@ -306,7 +306,7 @@ impl Dashboard {
     }
 
     /// Display a simple progress bar
-    fn display_progress_bar(&self, metrics: &EssentialMetrics) {
+    fn display_progress_bar(&self, metrics: &Metrics) {
         let width = 40;
         let success_ratio = metrics.success_rate / 100.0;
         let filled = (width as f64 * success_ratio) as usize;
