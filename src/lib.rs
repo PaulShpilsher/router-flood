@@ -36,7 +36,7 @@ pub use network::target::MultiPortTarget;
 pub use error::{Result, RouterFloodError};
 pub use packet::{PacketBuilder, PacketStrategy, PacketType, PacketTarget};
 pub use stats::Stats;
-pub use utils::buffer_pool::BufferPool;
+// BufferPool removed - use performance::memory_pool instead
 pub use utils::terminal::{Terminal, TerminalGuard};
 pub use utils::raii::ResourceGuard;
 
@@ -49,8 +49,7 @@ pub type StatsRef = Arc<Stats>;
 /// Shared reference to Config
 pub type ConfigRef = Arc<Config>;
 
-/// Shared reference to BufferPool
-pub type PoolRef = Arc<BufferPool>;
+// Memory pooling available via performance::memory_pool
 
 /// Shared reference to Workers
 pub type WorkersRef = Arc<Workers>;

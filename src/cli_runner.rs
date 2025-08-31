@@ -6,7 +6,7 @@ use clap::ArgMatches;
 use tracing::info;
 
 use crate::config::Config;
-use crate::error::{Result, RouterFloodError};
+use crate::error::Result;
 
 /// Simplified CLI application runner
 pub struct CliRunner {

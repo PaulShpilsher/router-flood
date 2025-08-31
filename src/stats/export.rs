@@ -2,7 +2,7 @@
 
 use super::collector::SessionStats;
 use crate::config::{Export, ExportFormat};
-use crate::constants::STATS_EXPORT_DIR;
+// STATS_EXPORT_DIR removed - now using config values directly
 use crate::error::{StatsError, Result};
 use chrono::Utc;
 use csv::Writer;

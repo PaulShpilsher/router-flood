@@ -6,7 +6,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::time;
-use tracing::{info, warn, error};
+use tracing::{info, warn};
 
 use crate::security::{
     ThreatDetection, ThreatDetectionConfig, InputValidation,

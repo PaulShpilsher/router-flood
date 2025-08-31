@@ -1,22 +1,26 @@
-//! Worker thread management
+//! Worker thread management with CPU affinity support
 //!
-//! Manages worker threads for optimized packet generation with batch processing.
+//! Manages worker threads for optimized packet generation with batch processing
+//! and optional CPU affinity for improved performance.
 
 use std::net::IpAddr;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use tokio::task::JoinHandle;
+use tracing::{info, warn};
 
 use crate::config::Config;
 use crate::error::{RouterFloodError, Result};
 use crate::stats::Stats;
 use crate::network::target::MultiPortTarget;
 use crate::network::worker::{Worker, WorkerConfig};
+use crate::performance::cpu_affinity::CpuAffinity;
 
-/// Manages the lifecycle of worker threads
+/// Manages the lifecycle of worker threads with optional CPU affinity
 pub struct Workers {
     handles: Vec<JoinHandle<()>>,
     running: Arc<AtomicBool>,
+    cpu_affinity: Option<Arc<CpuAffinity>>,
 }
 
 impl Workers {
@@ -30,6 +34,24 @@ impl Workers {
         dry_run: bool,
     ) -> Result<Self> {
         let running = Arc::new(AtomicBool::new(true));
+        
+        // Initialize CPU affinity if not in dry-run mode
+        let cpu_affinity = if !dry_run && config.attack.threads > 1 {
+            match CpuAffinity::new() {
+                Ok(affinity) => {
+                    info!("CPU affinity initialized: {} CPUs available", 
+                          affinity.topology().total_cpus);
+                    Some(Arc::new(affinity))
+                }
+                Err(e) => {
+                    warn!("Failed to initialize CPU affinity: {}", e);
+                    None
+                }
+            }
+        } else {
+            None
+        };
+        
         let handles = Self::spawn_workers(
             config,
             stats,
@@ -38,12 +60,13 @@ impl Workers {
             target_ip,
             interface,
             dry_run,
+            cpu_affinity.clone(),
         )?;
 
-        Ok(Self { handles, running })
+        Ok(Self { handles, running, cpu_affinity })
     }
 
-    /// Spawn worker threads based on configuration
+    /// Spawn worker threads based on configuration with optional CPU pinning
     fn spawn_workers(
         config: &Config,
         stats: Arc<Stats>,
@@ -52,12 +75,13 @@ impl Workers {
         target_ip: IpAddr,
         _interface: Option<&pnet::datalink::NetworkInterface>,
         _dry_run: bool,
+        cpu_affinity: Option<Arc<CpuAffinity>>,
     ) -> Result<Vec<JoinHandle<()>>> {
         let mut handles = Vec::with_capacity(config.attack.threads);
         
         let per_worker_rate = (config.attack.packet_rate / config.attack.threads as f64) as u64;
         
-        for _task_id in 0..config.attack.threads {
+        for task_id in 0..config.attack.threads {
             let running = running.clone();
             let stats = stats.clone();
             let target = multi_port_target.clone();
@@ -80,8 +104,20 @@ impl Workers {
                 target,
                 worker_config,
             );
-
+            
+            let affinity = cpu_affinity.clone();
+            let worker_id = task_id;
+            
             let handle = tokio::spawn(async move {
+                // Set CPU affinity for this worker if available
+                if let Some(ref affinity) = affinity {
+                    if let Err(e) = affinity.set_thread_affinity(worker_id) {
+                        warn!("Failed to pin worker {} to CPU: {}", worker_id, e);
+                    } else {
+                        info!("Worker {} pinned to CPU {}", worker_id, worker_id);
+                    }
+                }
+                
                 worker.run(running).await;
             });
 
@@ -107,5 +143,10 @@ impl Workers {
     /// Check if workers are still running
     pub fn is_running(&self) -> bool {
         self.running.load(Ordering::Relaxed)
+    }
+    
+    /// Get CPU affinity information if available
+    pub fn cpu_affinity(&self) -> Option<&CpuAffinity> {
+        self.cpu_affinity.as_deref()
     }
 }
