@@ -45,3 +45,7 @@ harness = false
 name = "stats_collection"
 harness = false
 
+[[bench]]
+name = "throughput"
+harness = false
+
