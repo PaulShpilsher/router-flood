@@ -7,7 +7,6 @@ pub mod collector;
 pub mod export;
 pub mod batch_accumulator;
 pub mod lockfree;
-pub mod observer;
 pub mod display;
 pub mod stats_aggregator;
 pub mod internal_lockfree;
@@ -16,7 +15,6 @@ pub use collector::{StatsCollector, SessionStats, SystemStats};
 pub use export::StatsExporter;
 pub use batch_accumulator::BatchStats;
 pub use lockfree::{LockFreeStats, LockFreeLocalStats, PerCpuStats, ProtocolId, StatsSnapshot};
-pub use observer::{StatsObserver, StatsSubject, StatsEvent, ObserverBuilder};
 pub use display::{StatsDisplay, init_display, get_display};
 pub use stats_aggregator::Stats;
 

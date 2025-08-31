@@ -27,10 +27,6 @@ pub struct WorkerConfig {
 
 /// Worker with performance optimizations and batch processing
 pub struct Worker {
-    #[allow(dead_code)]
-    id: usize,
-    #[allow(dead_code)]
-    stats: Arc<Stats>,
     local_stats: BatchStats,
     target: Arc<MultiPortTarget>,
     target_ip: IpAddr,
@@ -48,7 +44,6 @@ pub struct Worker {
 
 impl Worker {
     pub fn new(
-        id: usize,
         stats: Arc<Stats>,
         target_ip: IpAddr,
         target: Arc<MultiPortTarget>,
@@ -72,8 +67,6 @@ impl Worker {
         let buffer = vec![0u8; packet_size_range.1];
         
         Self {
-            id,
-            stats,
             local_stats,
             target,
             target_ip,

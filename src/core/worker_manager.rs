@@ -57,7 +57,7 @@ impl WorkerManager {
         
         let per_worker_rate = config.attack.packet_rate / config.attack.threads as u64;
         
-        for task_id in 0..config.attack.threads {
+        for _task_id in 0..config.attack.threads {
             let running = running.clone();
             let stats = stats.clone();
             let target = multi_port_target.clone();
@@ -77,7 +77,6 @@ impl WorkerManager {
             };
             
             let mut worker = Worker::new(
-                task_id,
                 stats,
                 target_ip,
                 target,

@@ -14,8 +14,6 @@ use std::collections::HashMap;
 mod ansi {
     pub const CLEAR_LINE: &str = "\x1b[2K";     // Clear entire line
     pub const CURSOR_UP: &str = "\x1b[A";       // Move cursor up one line
-    #[allow(dead_code)]
-    pub const CURSOR_DOWN: &str = "\x1b[B";     // Move cursor down one line
     pub const HIDE_CURSOR: &str = "\x1b[?25l";  // Hide cursor
     pub const SHOW_CURSOR: &str = "\x1b[?25h";  // Show cursor
     pub const RESET: &str = "\x1b[0m";          // Reset all attributes

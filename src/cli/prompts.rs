@@ -51,7 +51,6 @@ impl PromptUtils {
     }
 
     /// Prompt for a choice from a list of options
-    #[allow(dead_code)]
     pub fn prompt_choice(prompt: &str, options: &[&str], default: Option<usize>) -> Result<String> {
         println!("{}", prompt);
         for (i, option) in options.iter().enumerate() {
@@ -96,14 +95,5 @@ impl PromptUtils {
     /// Display a separator line
     pub fn display_separator() {
         println!("==========================================");
-    }
-
-    /// Display a section header
-    #[allow(dead_code)]
-    pub fn display_section(title: &str) {
-        println!();
-        println!("🎯 {}", title);
-        Self::display_separator();
-        println!();
     }
 }

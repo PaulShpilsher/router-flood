@@ -63,9 +63,6 @@ harness = false
 name = "raii_guards"
 harness = false
 
-[[bench]]
-name = "abstractions"
-harness = false
 
 [[bench]]
 name = "transport"

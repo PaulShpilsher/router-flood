@@ -10,7 +10,6 @@
 //! - Streamlined configuration system (40% complexity reduction)
 //! - Enhanced user-friendly error messages with actionable guidance
 
-pub mod abstractions;
 pub mod cli;
 pub mod config;
 pub mod constants;
