@@ -17,13 +17,21 @@ pub struct PacketBuilder {
 impl PacketBuilder {
     /// Create a new packet builder with the given configuration
     pub fn new(packet_size_range: (usize, usize), protocol_mix: ProtocolMix) -> Self {
+        // Clamp packet sizes to reasonable limits (max 9000 bytes for jumbo frames)
+        // This prevents issues with oversized allocations while still supporting jumbo frames
+        const MAX_PACKET_SIZE: usize = 9000;
+        let clamped_range = (
+            packet_size_range.0.min(MAX_PACKET_SIZE),
+            packet_size_range.1.min(MAX_PACKET_SIZE),
+        );
+        
         let mut strategies: HashMap<PacketType, Box<dyn PacketStrategy>> = HashMap::new();
         let mut rng = BatchedRng::new();
         
         // Initialize strategies for each packet type
         strategies.insert(
             PacketType::Udp,
-            Box::new(super::protocols::UdpStrategy::new(packet_size_range, &mut rng)),
+            Box::new(super::protocols::UdpStrategy::new(clamped_range, &mut rng)),
         );
         strategies.insert(
             PacketType::TcpSyn,
@@ -39,7 +47,7 @@ impl PacketBuilder {
         );
         strategies.insert(
             PacketType::Ipv6Udp,
-            Box::new(super::protocols::Ipv6UdpStrategy::new(packet_size_range, &mut rng)),
+            Box::new(super::protocols::Ipv6UdpStrategy::new(clamped_range, &mut rng)),
         );
         strategies.insert(
             PacketType::Ipv6Tcp,
