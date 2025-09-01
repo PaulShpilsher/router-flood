@@ -13,10 +13,12 @@
 //!
 //! ```no_run
 //! use router_flood::{Config, Simulation};
+//! use std::net::IpAddr;
 //!
 //! # async fn example() -> router_flood::Result<()> {
 //! let config = Config::default();
-//! let mut simulation = Simulation::new(config)?;
+//! let target_ip: IpAddr = "192.168.1.1".parse().unwrap();
+//! let mut simulation = Simulation::new(config, target_ip, None);
 //! simulation.run().await?;
 //! # Ok(())
 //! # }
