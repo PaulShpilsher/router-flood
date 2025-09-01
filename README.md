@@ -52,6 +52,8 @@ router-flood --config stress-test.yaml
 
 ## Usage
 
+See [USAGE.md](USAGE.md) for comprehensive usage documentation with examples.
+
 ### Command-line options
 
 ```
@@ -71,61 +73,20 @@ OPTIONS:
     --list-interfaces           List available network interfaces
 ```
 
-### Configuration file
+### Common examples
 
-Create a YAML configuration file for complex test scenarios:
-
-```yaml
-# stress-test.yaml
-target:
-  ip: "192.168.1.1"
-  ports: [80, 443, 8080]
-  protocol_mix:
-    udp_ratio: 0.4
-    tcp_syn_ratio: 0.3
-    tcp_ack_ratio: 0.2
-    icmp_ratio: 0.1
-
-attack:
-  threads: 8
-  packet_rate: 500
-  duration: 300
-  packet_size_range: [64, 1400]
-
-safety:
-  dry_run: false
-  rate_limit: 10000
-
-monitoring:
-  export_format: json
-  export_path: "./results/"
-```
-
-### Examples
-
-#### Testing web server resilience
 ```bash
-router-flood --target 192.168.1.100 --ports 80,443 --threads 8 --rate 1000
-```
+# Test web server
+router-flood --target 192.168.1.100 --ports 80,443 --threads 4 --rate 500
 
-#### DNS server stress test
-```bash
+# DNS server stress test
 router-flood --target 10.0.0.53 --ports 53 --threads 4 --rate 2000 --duration 120
-```
 
-#### Multi-port scanning simulation
-```bash
-router-flood --target 172.16.0.1 --ports 22,80,443,3306,5432 --threads 2 --rate 50
-```
-
-#### Validating configuration
-```bash
-# List network interfaces
-router-flood --list-interfaces
-
-# Test with perfect simulation (no packet loss)
+# Safe configuration testing
 router-flood --target 192.168.1.1 --ports 80 --dry-run --perfect-simulation
 ```
+
+For configuration files, advanced usage, and more examples, see [USAGE.md](USAGE.md).
 
 ## Building from source
 
