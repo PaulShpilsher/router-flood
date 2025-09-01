@@ -2,8 +2,7 @@
 
 ## Overview
 
-Router Flood is a high-performance network stress testing tool with a simplified architecture following the KISS principle. The codebase has been restructured from 92 source files (~10,000 LOC) to 51 files (~6,700 LOC) while preserving critical performance optimizations.
-
+Router Flood is a high-performance network stress testing tool with a simplified architecture following the KISS principle.
 ## Core Design Principles
 
 1. **KISS Principle**: Keep It Simple, Stupid - avoid over-engineering
@@ -77,7 +76,7 @@ Router Flood is a high-performance network stress testing tool with a simplified
 - **ipv6.rs**: IPv6 packet construction
 - **tcp.rs**: TCP segment generation
 - **udp.rs**: UDP datagram generation
-- **icmp.rs**: ICMP packet generation
+- **icmp.rs**: ICMP packet generationbd13968c8687322ecd896ab613531c2b2b47f865
 
 #### Statistics (`src/stats/`) - 3 files
 - **stats_aggregator.rs**: Atomic statistics with batching
@@ -258,7 +257,3 @@ sudo setcap cap_net_raw+ep ./target/release/router-flood
 - Multi-node coordination
 - Distributed statistics aggregation
 - Cloud-native deployment
-
-## Conclusion
-
-The restructured Router Flood architecture achieves simplicity through consolidation while preserving critical performance optimizations. The KISS principle guides the design, resulting in a maintainable codebase that delivers high performance for network stress testing.
