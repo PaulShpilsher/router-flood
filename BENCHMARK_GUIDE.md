@@ -102,34 +102,22 @@ udp_packet_generation   time:   [784.23 ns 789.45 ns 795.12 ns]
 #### 1. Packet Generation (packet_generation.rs)
 - **Target**: < 1μs per packet
 - **Measures**: Time to construct various packet types
-- **Key Metrics**:
-  - UDP packet: ~800ns
-  - TCP SYN packet: ~900ns
-  - Packet size scaling: Linear with size
+- **Metrics**: UDP, TCP SYN/ACK, ICMP packet creation times
 
 #### 2. Statistics Collection (stats_collection.rs)
 - **Target**: > 10M updates/sec
 - **Measures**: Atomic counter performance
-- **Key Metrics**:
-  - Single update: ~50ns
-  - Concurrent updates: ~200ns per thread
-  - Snapshot generation: ~100ns
+- **Metrics**: Single updates, concurrent updates, snapshot generation
 
 #### 3. Memory Pool (memory_pool.rs)
 - **Target**: > 1M allocations/sec
 - **Measures**: Memory allocation efficiency
-- **Key Metrics**:
-  - Pool allocation: ~100ns
-  - Heap allocation: ~1000ns
-  - 10x improvement over heap
+- **Metrics**: Pool vs heap allocation, concurrent access
 
 #### 4. Throughput (throughput.rs)
 - **Target**: > 1 Gbps simulated
 - **Measures**: Overall system throughput
-- **Key Metrics**:
-  - Packet throughput: 100k packets/sec
-  - Mixed protocols: 80k packets/sec
-  - With statistics: 5% overhead
+- **Metrics**: Packet throughput, mixed protocols, statistics overhead
 
 ## Regression Detection
 
@@ -164,17 +152,17 @@ for bench in baseline:
 
 ## Performance Targets
 
-### Current Baselines (as of latest run)
+### Baseline Targets
 
-| Benchmark | Target | Current | Status |
-|-----------|--------|---------|--------|
-| UDP packet generation | < 1μs | 789ns | ✅ Pass |
-| TCP packet generation | < 1μs | 892ns | ✅ Pass |
-| Stats single update | < 100ns | 52ns | ✅ Pass |
-| Stats concurrent (4 threads) | < 500ns | 213ns | ✅ Pass |
-| Memory pool allocation | < 200ns | 95ns | ✅ Pass |
-| Packet throughput (1000) | > 100k/s | 126k/s | ✅ Pass |
-| Mixed protocol throughput | > 80k/s | 94k/s | ✅ Pass |
+| Benchmark | Target | Description |
+|-----------|--------|-------------|
+| UDP packet generation | < 1μs | Single packet creation time |
+| TCP packet generation | < 1μs | Single packet with flags |
+| Stats single update | < 100ns | Atomic counter increment |
+| Stats concurrent | < 500ns/thread | Concurrent counter updates |
+| Memory pool allocation | < 200ns | Pool allocation time |
+| Packet throughput | > 100k/s | Packets per second |
+| Mixed protocol throughput | > 80k/s | Mixed packet types |
 
 ### Performance Goals
 

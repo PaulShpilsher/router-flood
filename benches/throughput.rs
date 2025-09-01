@@ -141,7 +141,7 @@ fn bench_burst_patterns(c: &mut Criterion) {
     
     group.bench_function("burst_pattern", |b| {
         b.iter(|| {
-            for burst in 0..10 {
+            for _burst in 0..10 {
                 // Burst of 100 packets
                 for _ in 0..100 {
                     if let Ok((packet, _)) = builder.build_packet(
