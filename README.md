@@ -9,10 +9,13 @@ A high-performance network stress testing tool for authorized testing of network
 ## Features
 
 * **Safety-first design** - Enforces private IP ranges (RFC 1918), includes rate limiting and dry-run mode
-* **High performance** - SIMD operations, lock-free memory pools, CPU affinity for optimal throughput
-* **Multi-protocol support** - TCP (SYN/ACK), UDP, ICMP with configurable protocol mix
-* **Real-time monitoring** - Live statistics with JSON/CSV export capabilities
-* **Flexible configuration** - Command-line arguments or YAML configuration files
+* **High performance** - SIMD-accelerated packet generation (3-5x speedup), lock-free memory pools, CPU affinity
+* **Multi-protocol support** - TCP (SYN/ACK/FIN/RST), UDP, ICMP, IPv6 with configurable protocol mix
+* **Zero-allocation hot paths** - Pre-allocated buffers, batched RNG, and Treiber stack memory management
+* **Real-time monitoring** - Live statistics with JSON/CSV export and Prometheus metrics support
+* **Capability-based security** - Runs with CAP_NET_RAW only (no root required), tamper-proof audit logging
+* **Advanced packet control** - Multi-port targeting, configurable payload sizes, intelligent rate limiting
+* **Production ready** - Graceful shutdown, signal handling, comprehensive error messages with guidance
 
 ## Installation
 
