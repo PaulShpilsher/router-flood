@@ -1,4 +1,7 @@
-//! Router Flood - Educational Network Stress Testing Tool
+//! Command-line interface for router-flood network stress testing tool.
+//!
+//! This binary provides the CLI for authorized network infrastructure testing.
+//! See the library documentation for API usage.
 
 // Allow clippy warnings for format strings and other style issues
 #![allow(clippy::uninlined_format_args)]
@@ -18,11 +21,6 @@
 #![allow(clippy::useless_vec)]
 #![allow(clippy::unit_arg)]
 #![allow(clippy::unnecessary_cast)]
-//!
-//! # Disclaimer
-//!
-//! - The software is for educational and authorized testing purposes only.
-//! - Unauthorized use (especially against systems you don't own or lack explicit permission to test) is strictly prohibited and may be illegal.
 
 use std::net::IpAddr;
 use std::process;

@@ -1,14 +1,26 @@
-//! Router Flood - Educational Network Stress Testing Tool
+//! High-performance network stress testing library for authorized testing.
 //!
-//! A comprehensive, safety-first network testing tool designed for educational purposes
-//! and authorized network testing scenarios.
+//! router-flood provides a safe, capability-based framework for testing network
+//! infrastructure resilience. The library enforces strict safety controls including
+//! private IP validation and rate limiting.
 //!
-//! ## Enhanced User Experience
+//! # Safety
 //!
-//! This version includes user experience improvements:
-//! - Guided CLI with progressive disclosure
-//! - Streamlined configuration system (40% complexity reduction)
-//! - Enhanced user-friendly error messages with actionable guidance
+//! This library enforces RFC 1918 private IP ranges and requires appropriate
+//! network capabilities (CAP_NET_RAW) for operation.
+//!
+//! # Example
+//!
+//! ```no_run
+//! use router_flood::{Config, Simulation};
+//!
+//! # async fn example() -> router_flood::Result<()> {
+//! let config = Config::default();
+//! let mut simulation = Simulation::new(config)?;
+//! simulation.run().await?;
+//! # Ok(())
+//! # }
+//! ```
 
 pub mod cli;
 pub mod config;
@@ -25,10 +37,9 @@ pub mod transport;
 pub mod ui;
 pub mod utils;
 
-// Use the new consolidated error module
 pub mod error;
 
-// Re-export key types for convenience
+// Re-export key types
 pub use config::{Config, Target, LoadConfig, Safety, Monitoring, Export, ExportFormat, ProtocolMix};
 pub use network::simulation::Simulation;
 pub use network::worker_manager::Workers;
@@ -36,22 +47,16 @@ pub use network::target::MultiPortTarget;
 pub use error::{Result, RouterFloodError};
 pub use packet::{PacketBuilder, PacketStrategy, PacketType, PacketTarget};
 pub use stats::Stats;
-// BufferPool removed - use performance::memory_pool instead
 pub use utils::terminal::{Terminal, TerminalGuard};
 pub use utils::raii::ResourceGuard;
 
-// Common type aliases for clarity and ergonomics
 use std::sync::Arc;
 
-/// Shared reference to Stats
+/// Shared reference to statistics collector
 pub type StatsRef = Arc<Stats>;
 
-/// Shared reference to Config
+/// Shared reference to configuration
 pub type ConfigRef = Arc<Config>;
 
-// Memory pooling available via performance::memory_pool
-
-/// Shared reference to Workers
+/// Shared reference to worker manager
 pub type WorkersRef = Arc<Workers>;
-
-// Tests moved to tests/ directory
