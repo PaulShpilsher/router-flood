@@ -2,7 +2,7 @@
 
 [![Build Status](https://github.com/paulspilsher/router-flood/actions/workflows/rust.yml/badge.svg)](https://github.com/paulspilsher/router-flood/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Rust](https://img.shields.io/badge/rust-1.70%2B-blue.svg)](https://www.rust-lang.org)
+[![Rust](https://img.shields.io/badge/rust-1.85%2B-blue.svg)](https://www.rust-lang.org)
 [![Platform](https://img.shields.io/badge/platform-linux-lightgrey.svg)](https://www.kernel.org/)
 [![Safety](https://img.shields.io/badge/safety-enforced-green.svg)](SECURITY.md)
 
@@ -40,7 +40,7 @@ sudo setcap cap_net_raw+ep ./target/release/router-flood
 ### Prerequisites
 
 * Linux system with kernel 3.10+
-* Rust 1.70+ (install via [rustup](https://rustup.rs/))
+* Rust 1.85+ (install via [rustup](https://rustup.rs/))
 * Network interface with raw socket support
 
 ## Quick start
