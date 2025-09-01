@@ -2,7 +2,6 @@
 
 use router_flood::config::{Config, load_config, validate_config};
 use router_flood::security::validation::validate_target_ip;
-use std::fs;
 use std::net::IpAddr;
 use tempfile::NamedTempFile;
 use std::io::Write;
