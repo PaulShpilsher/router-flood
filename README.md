@@ -1,6 +1,6 @@
 # router-flood
 
-[![Main](https://github.com/PaulShpilsher/router-flood/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/PaulShpilsher/router-flood/actions/workflows/rust.yml)
+[![Main](https://github.com/PaulShpilsher/router-flood/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/PaulShpilsher/router-flood/actions/workflows/main.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-1.85%2B-blue.svg)](https://www.rust-lang.org)
 [![Platform](https://img.shields.io/badge/platform-linux-lightgrey.svg)](https://www.kernel.org/)
