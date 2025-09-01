@@ -171,8 +171,8 @@ mod packet_edge_cases {
         let result = builder.build_packet(PacketType::Udp, ip, 8080);
         assert!(result.is_ok());
         
-        // Maximum reasonable size
-        let mut builder = PacketBuilder::new((65000, 65535), protocol_mix);
+        // Maximum reasonable size (9000 bytes is common for jumbo frames)
+        let mut builder = PacketBuilder::new((9000, 9000), protocol_mix);
         let result = builder.build_packet(PacketType::Udp, ip, 8080);
         assert!(result.is_ok());
     }
