@@ -2,7 +2,7 @@
 name = "router-flood"
 version = "0.0.1"
 edition = "2024"
-description = "Educational DDoS simulation tool for local network stress testing"
+description = "High-performance network stress testing tool for authorized infrastructure testing"
 license = "MIT"
 keywords = ["packet-generator", "network-testing", "stress-testing", "load-testing", "performance"]
 categories = ["network-programming", "testing", "command-line-utilities"]
