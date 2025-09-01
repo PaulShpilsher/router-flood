@@ -18,7 +18,7 @@ git clone https://github.com/YOUR_USERNAME/router-flood.git
 cd router-flood
 
 # Add upstream remote
-git remote add upstream https://github.com/paulspilsher/router-flood.git
+git remote add upstream https://github.com/PaulShpilsher/router-flood.git
 
 # Create a feature branch
 git checkout -b feature/your-feature-name

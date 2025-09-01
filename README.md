@@ -1,6 +1,6 @@
 # router-flood
 
-[![Build Status](https://github.com/paulspilsher/router-flood/actions/workflows/rust.yml/badge.svg)](https://github.com/paulspilsher/router-flood/actions)
+[![Build Status](https://github.com/PaulShpilsher/router-flood/actions/workflows/rust.yml/badge.svg)](https://github.com/PaulShpilsher/router-flood/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-1.85%2B-blue.svg)](https://www.rust-lang.org)
 [![Platform](https://img.shields.io/badge/platform-linux-lightgrey.svg)](https://www.kernel.org/)
@@ -29,7 +29,7 @@ A high-performance network stress testing tool for authorized testing of network
 
 ```bash
 # Clone and build
-git clone https://github.com/paulspilsher/router-flood.git
+git clone https://github.com/PaulShpilsher/router-flood.git
 cd router-flood
 cargo build --release
 
