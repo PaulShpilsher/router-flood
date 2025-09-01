@@ -129,14 +129,12 @@ impl Capabilities {
     /// Parse capability from /proc/self/status
     pub fn parse_capability(status: &str, cap_type: &str, cap_number: u8) -> bool {
         for line in status.lines() {
-            if line.starts_with(cap_type) {
-                if let Some(hex_caps) = line.split_whitespace().nth(1) {
-                    if let Ok(caps) = u64::from_str_radix(hex_caps, 16) {
+            if line.starts_with(cap_type)
+                && let Some(hex_caps) = line.split_whitespace().nth(1)
+                    && let Ok(caps) = u64::from_str_radix(hex_caps, 16) {
                         let cap_bit = 1u64 << cap_number;
                         return (caps & cap_bit) != 0;
                     }
-                }
-            }
         }
         false
     }
@@ -233,13 +231,13 @@ impl AuditLog {
     pub async fn write_entry(&mut self, event_type: &str, details: &str) -> Result<()> {
         let timestamp = chrono::Utc::now();
         let entry_data = format!(
-            "{}|{}|{}|{}|{}|{}",
+            "{}|{}|{}|{}|{}|{:x?}",
             self.entry_count + 1,
             timestamp.to_rfc3339(),
             event_type,
             details,
             self.session_id,
-            format!("{:x?}", self.previous_hash) // hex::encode(self.previous_hash)
+            self.previous_hash // hex::encode(self.previous_hash)
         );
         
         // Calculate hash of this entry
@@ -247,10 +245,10 @@ impl AuditLog {
         
         // Create the full log entry
         let log_entry = format!(
-            "{}\n  Hash: {}\n  PrevHash: {}\n",
+            "{}\n  Hash: {:x?}\n  PrevHash: {:x?}\n",
             entry_data,
-            format!("{:x?}", current_hash), // hex::encode(current_hash)
-            format!("{:x?}", self.previous_hash) // hex::encode(self.previous_hash)
+            current_hash, // hex::encode(current_hash)
+            self.previous_hash // hex::encode(self.previous_hash)
         );
         
         // Write to file
@@ -322,11 +320,11 @@ impl AuditLog {
     /// Write the genesis entry
     fn write_genesis_entry(&mut self) -> Result<()> {
         let genesis_entry = format!(
-            "0|{}|GENESIS|Session started|{}|{}\n  Hash: {}\n  PrevHash: 0000000000000000000000000000000000000000000000000000000000000000\n",
+            "0|{}|GENESIS|Session started|{}|{:x?}\n  Hash: {:x?}\n  PrevHash: 0000000000000000000000000000000000000000000000000000000000000000\n",
             chrono::Utc::now().to_rfc3339(),
             self.session_id,
-            format!("{:x?}", self.previous_hash), // hex::encode(self.previous_hash)
-            format!("{:x?}", self.previous_hash) // hex::encode(self.previous_hash)
+            self.previous_hash, // hex::encode(self.previous_hash)
+            self.previous_hash // hex::encode(self.previous_hash)
         );
         
         std::fs::write(&self.log_file, genesis_entry)

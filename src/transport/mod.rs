@@ -80,8 +80,8 @@ impl WorkerChannels {
         if let Some(iface) = interface {
             match channel(iface, Default::default()) {
                 Ok(Channel::Ethernet(tx, _)) => Ok(Some(tx)),
-                Ok(_) => Err(RouterFloodError::Network("Unknown L2 channel type".to_string()).into()),
-                Err(e) => Err(RouterFloodError::Network(format!("L2 channel: {}", e)).into()),
+                Ok(_) => Err(RouterFloodError::Network("Unknown L2 channel type".to_string())),
+                Err(e) => Err(RouterFloodError::Network(format!("L2 channel: {}", e))),
             }
         } else {
             Ok(None)
@@ -126,8 +126,8 @@ impl WorkerChannels {
         if let Some(ref mut tx) = self.l2_sender {
             match tx.send_to(packet_data, None) {
                 Some(Ok(())) => {}
-                Some(Err(e)) => return Err(RouterFloodError::Network(format!("Failed to send L2 packet: {}", e)).into()),
-                None => return Err(RouterFloodError::Network("L2 send returned None".to_string()).into()),
+                Some(Err(e)) => return Err(RouterFloodError::Network(format!("Failed to send L2 packet: {}", e))),
+                None => return Err(RouterFloodError::Network("L2 send returned None".to_string())),
             }
         }
         Ok(())

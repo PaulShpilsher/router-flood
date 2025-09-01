@@ -115,8 +115,8 @@ impl LockFreeMemoryPool {
         }
         
         // No free blocks, try to allocate a new one
-        if self.allocated_count.load(Ordering::Relaxed) < self.max_blocks {
-            if let Some(block) = MemoryBlock::new(self.block_size) {
+        if self.allocated_count.load(Ordering::Relaxed) < self.max_blocks
+            && let Some(block) = MemoryBlock::new(self.block_size) {
                 let block_ptr = Box::into_raw(Box::new(block));
                 self.allocated_count.fetch_add(1, Ordering::Relaxed);
                 return Some(PooledMemory {
@@ -126,7 +126,6 @@ impl LockFreeMemoryPool {
                     block: NonNull::new(block_ptr)?,
                 });
             }
-        }
         
         None
     }

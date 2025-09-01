@@ -200,8 +200,8 @@ impl CpuAffinity {
                 let name = entry.file_name();
                 let name_str = name.to_string_lossy();
                 
-                if let Some(stripped) = name_str.strip_prefix("node") {
-                    if let Ok(node_id) = stripped.parse::<usize>() {
+                if let Some(stripped) = name_str.strip_prefix("node")
+                    && let Ok(node_id) = stripped.parse::<usize>() {
                         let cpus = Self::get_node_cpus(node_id).unwrap_or_default();
                         let (memory_total, memory_free) = Self::get_node_memory(node_id);
                         
@@ -212,7 +212,6 @@ impl CpuAffinity {
                             memory_free,
                         });
                     }
-                }
             }
         }
         
@@ -280,11 +279,10 @@ impl CpuAffinity {
     /// Parse memory line from meminfo
     fn parse_memory_line(line: &str) -> Option<u64> {
         let parts: Vec<&str> = line.split_whitespace().collect();
-        if parts.len() >= 2 {
-            if let Ok(kb) = parts[1].parse::<u64>() {
+        if parts.len() >= 2
+            && let Ok(kb) = parts[1].parse::<u64>() {
                 return Some(kb * 1024); // Convert KB to bytes
             }
-        }
         None
     }
 
@@ -312,13 +310,11 @@ impl CpuAffinity {
         for line in cpuinfo.lines() {
             if line.starts_with("processor") {
                 logical_cores += 1;
-            } else if line.starts_with("core id") {
-                if let Some(core_id) = line.split(':').nth(1) {
-                    if let Ok(id) = core_id.trim().parse::<usize>() {
+            } else if line.starts_with("core id")
+                && let Some(core_id) = line.split(':').nth(1)
+                    && let Ok(id) = core_id.trim().parse::<usize>() {
                         physical_cores.insert(id);
                     }
-                }
-            }
         }
         
         Ok(logical_cores > physical_cores.len())

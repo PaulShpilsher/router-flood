@@ -48,7 +48,7 @@ impl MockTransport {
             // Simulate 1% failure rate
             return Err(crate::error::RouterFloodError::Network(
                 "Mock transport simulated failure".to_string()
-            ).into());
+            ));
         }
         
         self.packets_sent.fetch_add(1, Ordering::Relaxed);

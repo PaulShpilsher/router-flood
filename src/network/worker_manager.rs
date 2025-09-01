@@ -30,13 +30,13 @@ impl Workers {
         stats: Arc<Stats>,
         multi_port_target: Arc<MultiPortTarget>,
         target_ip: IpAddr,
-        interface: Option<&pnet::datalink::NetworkInterface>,
-        dry_run: bool,
+        _interface: Option<&pnet::datalink::NetworkInterface>,
+        _dry_run: bool,
     ) -> Result<Self> {
         let running = Arc::new(AtomicBool::new(true));
         
         // Initialize CPU affinity if not in dry-run mode
-        let cpu_affinity = if !dry_run && config.attack.threads > 1 {
+        let cpu_affinity = if !_dry_run && config.attack.threads > 1 {
             match CpuAffinity::new() {
                 Ok(affinity) => {
                     info!("CPU affinity initialized: {} CPUs available", 
@@ -58,8 +58,6 @@ impl Workers {
             running.clone(),
             multi_port_target,
             target_ip,
-            interface,
-            dry_run,
             cpu_affinity.clone(),
         )?;
 
@@ -73,8 +71,6 @@ impl Workers {
         running: Arc<AtomicBool>,
         multi_port_target: Arc<MultiPortTarget>,
         target_ip: IpAddr,
-        _interface: Option<&pnet::datalink::NetworkInterface>,
-        _dry_run: bool,
         cpu_affinity: Option<Arc<CpuAffinity>>,
     ) -> Result<Vec<JoinHandle<()>>> {
         let mut handles = Vec::with_capacity(config.attack.threads);

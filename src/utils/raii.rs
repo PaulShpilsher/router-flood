@@ -12,6 +12,12 @@ pub struct ResourceGuard {
     cleanup_fn: Option<Box<dyn FnOnce() + Send>>,
 }
 
+impl Default for ResourceGuard {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ResourceGuard {
     pub fn new() -> Self {
         Self {
@@ -69,6 +75,12 @@ impl StatsGuard {
 
 impl WorkerGuard {
     pub fn new(_: &str) -> Self { Self }
+}
+
+impl Default for TerminalRAIIGuard {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl TerminalRAIIGuard {

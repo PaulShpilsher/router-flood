@@ -270,7 +270,7 @@ proptest! {
         thread_count in 1..=20usize,
         packets_per_thread in 1..=100usize
     ) {
-        use std::sync::Arc;
+        
         use std::thread;
         
         let handles: Vec<_> = (0..thread_count)

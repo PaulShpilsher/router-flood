@@ -25,7 +25,7 @@ pub fn setup_network_interface(config: &Config) -> Result<Option<pnet::datalink:
                 info!("Using specified interface: {}", iface.name);
                 Ok(Some(iface))
             }
-            None => Err(RouterFloodError::Network(format!("Interface not found: {}", iface_name)).into()),
+            None => Err(RouterFloodError::Network(format!("Interface not found: {}", iface_name))),
         }
     } else {
         match default_interface() {
@@ -235,11 +235,10 @@ impl Simulation {
             display.clear();
         }
         
-        if self.config.export.enabled {
-            if let Err(e) = self.stats.export_stats().await {
+        if self.config.export.enabled
+            && let Err(e) = self.stats.export_stats().await {
                 error!("Failed to export final stats: {}", e);
             }
-        }
         
         if self.config.safety.dry_run {
             info!("✅ Simulation completed successfully (NO PACKETS SENT)");
