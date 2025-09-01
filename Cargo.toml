@@ -46,6 +46,10 @@ name = "stats_collection"
 harness = false
 
 [[bench]]
+name = "memory_pool"
+harness = false
+
+[[bench]]
 name = "throughput"
 harness = false
 

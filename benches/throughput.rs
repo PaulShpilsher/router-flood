@@ -25,12 +25,13 @@ fn bench_packet_throughput(c: &mut Criterion) {
             |b, &count| {
                 b.iter(|| {
                     for _ in 0..count {
-                        let packet = builder.build_packet(
+                        if let Ok((packet, _)) = builder.build_packet(
                             black_box(PacketType::Udp),
                             black_box(target_ip),
                             black_box(8080)
-                        );
-                        black_box(packet);
+                        ) {
+                            black_box(packet);
+                        }
                     }
                 })
             }
@@ -63,12 +64,13 @@ fn bench_mixed_protocol_throughput(c: &mut Criterion) {
                     _ => PacketType::Icmp,
                 };
                 
-                let packet = builder.build_packet(
+                if let Ok((packet, _)) = builder.build_packet(
                     black_box(packet_type),
                     black_box(target_ip),
                     black_box(8080)
-                );
-                black_box(packet);
+                ) {
+                    black_box(packet);
+                }
             }
         })
     });
@@ -86,13 +88,14 @@ fn bench_stats_overhead(c: &mut Criterion) {
     group.bench_function("with_stats", |b| {
         b.iter(|| {
             for _ in 0..100 {
-                let packet = builder.build_packet(
+                if let Ok((packet, _)) = builder.build_packet(
                     black_box(PacketType::Udp),
                     black_box(target_ip),
                     black_box(8080)
-                );
-                stats.increment_sent(packet.len() as u64, "udp");
-                black_box(packet);
+                ) {
+                    stats.increment_sent(packet.len() as u64, "udp");
+                    black_box(packet);
+                }
             }
         })
     });
@@ -100,12 +103,13 @@ fn bench_stats_overhead(c: &mut Criterion) {
     group.bench_function("without_stats", |b| {
         b.iter(|| {
             for _ in 0..100 {
-                let packet = builder.build_packet(
+                if let Ok((packet, _)) = builder.build_packet(
                     black_box(PacketType::Udp),
                     black_box(target_ip),
                     black_box(8080)
-                );
-                black_box(packet);
+                ) {
+                    black_box(packet);
+                }
             }
         })
     });
@@ -122,12 +126,13 @@ fn bench_burst_patterns(c: &mut Criterion) {
     group.bench_function("steady_rate", |b| {
         b.iter(|| {
             for _ in 0..1000 {
-                let packet = builder.build_packet(
+                if let Ok((packet, _)) = builder.build_packet(
                     black_box(PacketType::Udp),
                     black_box(target_ip),
                     black_box(8080)
-                );
-                black_box(packet);
+                ) {
+                    black_box(packet);
+                }
                 // Simulate steady rate with minimal delay
                 std::hint::spin_loop();
             }
@@ -139,12 +144,13 @@ fn bench_burst_patterns(c: &mut Criterion) {
             for burst in 0..10 {
                 // Burst of 100 packets
                 for _ in 0..100 {
-                    let packet = builder.build_packet(
+                    if let Ok((packet, _)) = builder.build_packet(
                         black_box(PacketType::Udp),
                         black_box(target_ip),
                         black_box(8080)
-                    );
-                    black_box(packet);
+                    ) {
+                        black_box(packet);
+                    }
                 }
                 // Simulate burst delay
                 for _ in 0..1000 {
