@@ -92,6 +92,7 @@ impl Workers {
                 protocol_mix,
                 randomize_timing,
                 dry_run,
+                perfect_simulation: config.safety.perfect_simulation,
             };
             
             let mut worker = Worker::new(

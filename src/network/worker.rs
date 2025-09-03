@@ -22,6 +22,7 @@ pub struct WorkerConfig {
     pub protocol_mix: ProtocolMix,
     pub randomize_timing: bool,
     pub dry_run: bool,
+    pub perfect_simulation: bool,
 }
 
 /// Worker with performance optimizations
@@ -38,6 +39,7 @@ pub struct Worker {
     base_delay: Duration,
     randomize_timing: bool,
     dry_run: bool,
+    perfect_simulation: bool,
 }
 
 impl Worker {
@@ -52,6 +54,7 @@ impl Worker {
         let protocol_mix = config.protocol_mix;
         let randomize_timing = config.randomize_timing;
         let dry_run = config.dry_run;
+        let perfect_simulation = config.perfect_simulation;
         // Create local stats with batching (flush every 50 packets)
         let local_stats = BatchStats::new(stats.clone(), 50);
         let packet_builder = PacketBuilder::new(packet_size_range, protocol_mix.clone());
@@ -74,6 +77,7 @@ impl Worker {
             base_delay,
             randomize_timing,
             dry_run,
+            perfect_simulation,
         }
     }
     
@@ -125,8 +129,12 @@ impl Worker {
     
     fn simulate_or_send(&mut self, size: usize, protocol: &str) {
         if self.dry_run {
-            // Use 98% success rate in simulation
-            let success = self.packet_builder.rng_gen_bool(0.98);
+            // Use 100% success rate if perfect_simulation, otherwise 98%
+            let success = if self.perfect_simulation {
+                true
+            } else {
+                self.packet_builder.rng_gen_bool(0.98)
+            };
             
             if success {
                 self.local_stats.increment_sent(size as u64, protocol);

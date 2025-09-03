@@ -97,6 +97,7 @@ proptest! {
             },
             safety: Safety {
                 dry_run,
+                perfect_simulation: false,
                 rate_limit,
                 max_bandwidth_mbps: max_bandwidth,
                 allow_localhost,

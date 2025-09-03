@@ -76,6 +76,7 @@ pub struct BurstPattern {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Safety {
     pub dry_run: bool,
+    pub perfect_simulation: bool,
     pub rate_limit: bool,
     pub max_bandwidth_mbps: Option<f64>,
     pub allow_localhost: bool,
@@ -155,6 +156,7 @@ pub fn default_config() -> Config {
         },
         safety: Safety {
             dry_run: false,
+            perfect_simulation: false,
             rate_limit: true,
             max_bandwidth_mbps: Some(defaults::DEFAULT_MAX_BANDWIDTH_MBPS),
             allow_localhost: false,

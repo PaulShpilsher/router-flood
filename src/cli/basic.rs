@@ -192,7 +192,11 @@ pub fn process_cli_config(matches: &ArgMatches, mut config: Config) -> Result<Co
         }
     }
 
-    // Perfect simulation removed for simplification
+    // Handle perfect simulation flag
+    if matches.get_flag("perfect-simulation") {
+        config.safety.perfect_simulation = true;
+        info!("✨ PERFECT SIMULATION MODE - 100% success rate in dry-run");
+    }
 
     Ok(config)
 }
