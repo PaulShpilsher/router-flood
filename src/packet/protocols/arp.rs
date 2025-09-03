@@ -1,7 +1,7 @@
 //! ARP packet building strategy
 
 use super::PacketStrategy;
-use crate::constants::{ETHERNET_HEADER_SIZE, ARP_PACKET_SIZE};
+use crate::constants::ARP_FRAME_SIZE;
 use crate::error::{PacketError, Result};
 use crate::packet::PacketTarget;
 use crate::utils::rng::BatchedRng;
@@ -46,13 +46,10 @@ impl PacketStrategy for ArpStrategy {
             }
         };
 
-        let total_len = ETHERNET_HEADER_SIZE + ARP_PACKET_SIZE;
-        
+        let total_len = ARP_FRAME_SIZE;
         if buffer.len() < total_len {
             return Err(PacketError::build_failed("Packet", "Buffer too small").into());
         }
-
-        // Zero out the buffer area we'll use
         buffer[..total_len].fill(0);
 
         // Build Ethernet header
@@ -85,7 +82,7 @@ impl PacketStrategy for ArpStrategy {
     }
 
     fn max_packet_size(&self) -> usize {
-        ETHERNET_HEADER_SIZE + ARP_PACKET_SIZE
+        ARP_FRAME_SIZE
     }
 
     fn is_compatible_with(&self, target_ip: IpAddr) -> bool {

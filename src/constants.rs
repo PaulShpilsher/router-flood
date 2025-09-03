@@ -24,6 +24,15 @@ pub const TCP_HEADER_SIZE: usize = 20;
 pub const UDP_HEADER_SIZE: usize = 8;
 pub const ICMP_HEADER_SIZE: usize = 8;
 pub const ARP_PACKET_SIZE: usize = 28;
+pub const ARP_FRAME_SIZE: usize = ETHERNET_HEADER_SIZE + ARP_PACKET_SIZE;
+
+// Common frame size constants
+pub const IPV4_TCP_HEADER_SIZE: usize = IPV4_HEADER_SIZE + TCP_HEADER_SIZE;
+pub const IPV4_UDP_HEADER_SIZE: usize = IPV4_HEADER_SIZE + UDP_HEADER_SIZE;
+pub const IPV4_ICMP_HEADER_SIZE: usize = IPV4_HEADER_SIZE + ICMP_HEADER_SIZE;
+pub const IPV6_TCP_HEADER_SIZE: usize = IPV6_HEADER_SIZE + TCP_HEADER_SIZE;
+pub const IPV6_UDP_HEADER_SIZE: usize = IPV6_HEADER_SIZE + UDP_HEADER_SIZE;
+pub const IPV6_ICMP_HEADER_SIZE: usize = IPV6_HEADER_SIZE + ICMP_HEADER_SIZE;
 
 // Network buffer sizes
 pub const TRANSPORT_BUFFER_SIZE: usize = 4096;
