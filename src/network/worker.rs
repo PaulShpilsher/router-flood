@@ -13,12 +13,13 @@ use crate::stats::{Stats, BatchStats};
 use crate::network::target::MultiPortTarget;
 use crate::packet::{PacketBuilder, PacketType};
 use crate::config::ProtocolMix;
+use crate::packet::PacketSizeRange;
 use crate::error::Result;
 
 /// Configuration for Worker
 pub struct WorkerConfig {
     pub packet_rate: u64,
-    pub packet_size_range: (usize, usize),
+    pub packet_size_range: PacketSizeRange,
     pub protocol_mix: ProtocolMix,
     pub randomize_timing: bool,
     pub dry_run: bool,
@@ -64,7 +65,7 @@ impl Worker {
         let packet_types = Self::generate_packet_types(&protocol_mix);
         
         // Pre-allocate buffer for zero-copy operations
-        let buffer = vec![0u8; packet_size_range.1];
+        let buffer = vec![0u8; packet_size_range.max];
         
         Self {
             local_stats,

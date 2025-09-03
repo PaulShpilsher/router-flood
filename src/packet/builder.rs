@@ -1,6 +1,7 @@
 //! Main packet builder implementation using strategy pattern
 
 use super::{PacketStrategy, PacketType, PacketTarget};
+use crate::packet::PacketSizeRange;
 use crate::config::ProtocolMix;
 use crate::error::{PacketError, Result};
 use crate::utils::rng::BatchedRng;
@@ -16,13 +17,13 @@ pub struct PacketBuilder {
 
 impl PacketBuilder {
     /// Create a new packet builder with the given configuration
-    pub fn new(packet_size_range: (usize, usize), protocol_mix: ProtocolMix) -> Self {
+    pub fn new(packet_size_range: PacketSizeRange, protocol_mix: ProtocolMix) -> Self {
         // Clamp packet sizes to reasonable limits (max 9000 bytes for jumbo frames)
         // This prevents issues with oversized allocations while still supporting jumbo frames
         const MAX_PACKET_SIZE: usize = 9000;
-        let clamped_range = (
-            packet_size_range.0.min(MAX_PACKET_SIZE),
-            packet_size_range.1.min(MAX_PACKET_SIZE),
+        let clamped_range = PacketSizeRange::new(
+            packet_size_range.min.min(MAX_PACKET_SIZE),
+            packet_size_range.max.min(MAX_PACKET_SIZE),
         );
         
         let mut strategies: HashMap<PacketType, Box<dyn PacketStrategy>> = HashMap::new();

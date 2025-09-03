@@ -27,7 +27,7 @@ fuzz_target!(|input: FuzzInput| {
     // Ensure packet size range is valid
     let min_size = (input.packet_size_min as usize).max(20).min(1400);
     let max_size = (input.packet_size_max as usize).max(min_size + 1).min(1500);
-    let packet_size_range = (min_size, max_size);
+    let packet_size_range = PacketSizeRange::new(min_size, max_size);
     
     // Create normalized protocol mix
     let total: u32 = input.protocol_ratios.iter().map(|&x| x as u32).sum();

@@ -14,6 +14,7 @@ use crate::error::{RouterFloodError, Result};
 use crate::stats::Stats;
 use crate::network::target::MultiPortTarget;
 use crate::network::worker::{Worker, WorkerConfig};
+use crate::packet::PacketSizeRange;
 use crate::performance::cpu_affinity::CpuAffinity;
 
 /// Manages the lifecycle of worker threads with optional CPU affinity
@@ -81,7 +82,7 @@ impl Workers {
             let running = running.clone();
             let stats = stats.clone();
             let target = multi_port_target.clone();
-            let packet_size_range = (config.attack.payload_size, config.attack.payload_size);
+            let packet_size_range = PacketSizeRange::new(config.attack.payload_size, config.attack.payload_size);
             let protocol_mix = config.target.protocol_mix.clone();
             let randomize_timing = false;  // Simplified for now
             let dry_run = config.safety.dry_run;

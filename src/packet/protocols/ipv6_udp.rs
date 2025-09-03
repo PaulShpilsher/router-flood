@@ -1,6 +1,7 @@
 //! IPv6 UDP packet building strategy
 
 use super::PacketStrategy;
+use crate::packet::PacketSizeRange;
 use crate::constants::{IPV6_HEADER_SIZE, UDP_HEADER_SIZE, IPV6_UDP_HEADER_SIZE};
 use crate::error::{PacketError, Result};
 use crate::packet::PacketTarget;
@@ -13,12 +14,12 @@ use std::net::{IpAddr, Ipv6Addr};
 
 pub struct Ipv6UdpStrategy {
     source_ipv6: Ipv6Addr,
-    packet_size_range: (usize, usize),
+    packet_size_range: PacketSizeRange,
     rng: BatchedRng,
 }
 
 impl Ipv6UdpStrategy {
-    pub fn new(packet_size_range: (usize, usize), rng: &mut BatchedRng) -> Self {
+    pub fn new(packet_size_range: PacketSizeRange, rng: &mut BatchedRng) -> Self {
         let source_ipv6 = Ipv6Addr::new(
             0xfe80,
             0,
@@ -39,8 +40,8 @@ impl Ipv6UdpStrategy {
 
     fn random_payload_size(&mut self) -> usize {
         // More realistic payload size distribution
-        let min_size = self.packet_size_range.0;
-        let max_size = self.packet_size_range.1;
+        let min_size = self.packet_size_range.min;
+        let max_size = self.packet_size_range.max;
         
         // Ensure we don't create empty ranges
         match self.rng.range(0, 100) {
@@ -134,7 +135,7 @@ impl PacketStrategy for Ipv6UdpStrategy {
     }
 
     fn max_packet_size(&self) -> usize {
-        IPV6_UDP_HEADER_SIZE + self.packet_size_range.1
+        IPV6_UDP_HEADER_SIZE + self.packet_size_range.max
     }
 
     fn is_compatible_with(&self, target_ip: IpAddr) -> bool {

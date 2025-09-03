@@ -1,6 +1,7 @@
 //! UDP packet building strategy
 
 use super::PacketStrategy;
+use crate::packet::PacketSizeRange;
 use crate::constants::{IPV4_HEADER_SIZE, UDP_HEADER_SIZE, IPV4_UDP_HEADER_SIZE};
 use crate::error::{PacketError, Result};
 use crate::packet::PacketTarget;
@@ -13,12 +14,12 @@ use std::net::{IpAddr, Ipv4Addr};
 
 pub struct UdpStrategy {
     source_ip: Ipv4Addr,
-    packet_size_range: (usize, usize),
+    packet_size_range: PacketSizeRange,
     rng: BatchedRng,
 }
 
 impl UdpStrategy {
-    pub fn new(packet_size_range: (usize, usize), rng: &mut BatchedRng) -> Self {
+    pub fn new(packet_size_range: PacketSizeRange, rng: &mut BatchedRng) -> Self {
         let source_ip = Ipv4Addr::new(192, 168, 1, rng.range(2, 254) as u8);
         
         Self {
@@ -31,8 +32,8 @@ impl UdpStrategy {
     #[inline]
     fn random_payload_size(&mut self) -> usize {
         // More realistic payload size distribution
-        let min_size = self.packet_size_range.0;
-        let max_size = self.packet_size_range.1;
+        let min_size = self.packet_size_range.min;
+        let max_size = self.packet_size_range.max;
         
         // Ensure we don't create empty ranges
         match self.rng.range(0, 100) {
@@ -165,7 +166,7 @@ impl PacketStrategy for UdpStrategy {
 
     #[inline(always)]
     fn max_packet_size(&self) -> usize {
-        IPV4_UDP_HEADER_SIZE + self.packet_size_range.1
+        IPV4_UDP_HEADER_SIZE + self.packet_size_range.max
     }
 
     #[inline(always)]

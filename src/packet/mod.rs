@@ -9,6 +9,7 @@ pub mod types;
 pub use builder::PacketBuilder;
 pub use types::PacketType;
 
+
 use crate::error::Result;
 use std::net::IpAddr;
 
@@ -37,5 +38,18 @@ pub struct PacketTarget {
 impl PacketTarget {
     pub fn new(ip: IpAddr, port: u16) -> Self {
         Self { ip, port }
+    }
+}
+
+/// Packet size range with named fields for better readability
+#[derive(Debug, Clone, Copy)]
+pub struct PacketSizeRange {
+    pub min: usize,
+    pub max: usize,
+}
+
+impl PacketSizeRange {
+    pub fn new(min: usize, max: usize) -> Self {
+        Self { min, max }
     }
 }
