@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **Perfect simulation mode**: `--perfect-simulation` flag for 100% success rate in dry-run mode, useful for pure configuration validation without simulated failures
 
+### Changed
+- **PacketSizeRange refactor**: Replaced tuple-based packet size ranges with named struct fields (`PacketSizeRange::new(min, max)` instead of `(min, max)`) for better code readability
+
 ## [0.0.1] - 2025-09-01
 
 ### 🚀 Major Architectural Restructuring
