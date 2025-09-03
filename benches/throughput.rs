@@ -1,7 +1,7 @@
 //! Network throughput performance benchmarks
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId, Throughput};
-use router_flood::packet::{PacketBuilder, PacketType};
+use router_flood::packet::{PacketBuilder, PacketType, PacketSizeRange};
 use router_flood::config::ProtocolMix;
 use router_flood::stats::stats_aggregator::Stats;
 use std::net::{IpAddr, Ipv4Addr};
@@ -16,7 +16,7 @@ fn bench_packet_throughput(c: &mut Criterion) {
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
     
     for packet_count in &[100, 1000, 10000] {
-        let mut builder = PacketBuilder::new((64, 1400), protocol_mix.clone());
+        let mut builder = PacketBuilder::new(PacketSizeRange::new(64, 1400), protocol_mix.clone());
         
         group.throughput(Throughput::Elements(*packet_count as u64));
         group.bench_with_input(
@@ -50,7 +50,7 @@ fn bench_mixed_protocol_throughput(c: &mut Criterion) {
         custom_ratio: 0.0,
     };
     
-    let mut builder = PacketBuilder::new((64, 1400), protocol_mix);
+    let mut builder = PacketBuilder::new(PacketSizeRange::new(64, 1400), protocol_mix);
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
     
     group.throughput(Throughput::Elements(1000));
@@ -82,7 +82,7 @@ fn bench_stats_overhead(c: &mut Criterion) {
     let mut group = c.benchmark_group("stats_collection_overhead");
     let stats = Arc::new(Stats::new(None));
     let protocol_mix = ProtocolMix::default();
-    let mut builder = PacketBuilder::new((64, 1400), protocol_mix);
+    let mut builder = PacketBuilder::new(PacketSizeRange::new(64, 1400), protocol_mix);
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
     
     group.bench_function("with_stats", |b| {
@@ -120,7 +120,7 @@ fn bench_stats_overhead(c: &mut Criterion) {
 fn bench_burst_patterns(c: &mut Criterion) {
     let mut group = c.benchmark_group("burst_patterns");
     let protocol_mix = ProtocolMix::default();
-    let mut builder = PacketBuilder::new((64, 1400), protocol_mix);
+    let mut builder = PacketBuilder::new(PacketSizeRange::new(64, 1400), protocol_mix);
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
     
     group.bench_function("steady_rate", |b| {

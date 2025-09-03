@@ -1,6 +1,6 @@
 //! Packet module unit tests
 
-use router_flood::packet::{PacketBuilder, PacketTarget, PacketType};
+use router_flood::packet::{PacketBuilder, PacketTarget, PacketType, PacketSizeRange};
 use router_flood::config::ProtocolMix;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
@@ -26,13 +26,13 @@ fn test_packet_builder_creation() {
         custom_ratio: 0.0,
     };
     
-    let _builder = PacketBuilder::new((64, 1400), protocol_mix);
+    let _builder = PacketBuilder::new(PacketSizeRange::new(64, 1400), protocol_mix);
 }
 
 #[test]
 fn test_build_udp_packet() {
     let protocol_mix = ProtocolMix::default();
-    let mut builder = PacketBuilder::new((64, 128), protocol_mix);
+    let mut builder = PacketBuilder::new(PacketSizeRange::new(64, 128), protocol_mix);
     
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
     let target_port = 8080;
@@ -48,7 +48,7 @@ fn test_build_udp_packet() {
 #[test]
 fn test_build_tcp_syn_packet() {
     let protocol_mix = ProtocolMix::default();
-    let mut builder = PacketBuilder::new((64, 128), protocol_mix);
+    let mut builder = PacketBuilder::new(PacketSizeRange::new(64, 128), protocol_mix);
     
     let target_ip = IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1));
     let target_port = 443;
@@ -64,7 +64,7 @@ fn test_build_tcp_syn_packet() {
 #[test]
 fn test_build_icmp_packet() {
     let protocol_mix = ProtocolMix::default();
-    let mut builder = PacketBuilder::new((64, 128), protocol_mix);
+    let mut builder = PacketBuilder::new(PacketSizeRange::new(64, 128), protocol_mix);
     
     let target_ip = IpAddr::V4(Ipv4Addr::new(172, 16, 0, 1));
     let target_port = 0; // ICMP doesn't use ports
@@ -80,7 +80,7 @@ fn test_build_icmp_packet() {
 #[test]
 fn test_build_packet_into_buffer() {
     let protocol_mix = ProtocolMix::default();
-    let mut builder = PacketBuilder::new((64, 128), protocol_mix);
+    let mut builder = PacketBuilder::new(PacketSizeRange::new(64, 128), protocol_mix);
     
     let mut buffer = vec![0u8; 1500];
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
@@ -103,7 +103,7 @@ fn test_build_packet_into_buffer() {
 #[test]
 fn test_ipv6_packet_building() {
     let protocol_mix = ProtocolMix::default();
-    let mut builder = PacketBuilder::new((64, 128), protocol_mix);
+    let mut builder = PacketBuilder::new(PacketSizeRange::new(64, 128), protocol_mix);
     
     let target_ip = IpAddr::V6(Ipv6Addr::new(0xfe80, 0, 0, 0, 0, 0, 0, 1));
     let target_port = 443;
@@ -134,7 +134,7 @@ fn test_ipv6_packet_building() {
 fn test_packet_size_constraints() {
     // Test small packets
     let protocol_mix = ProtocolMix::default();
-    let mut builder = PacketBuilder::new((20, 64), protocol_mix);
+    let mut builder = PacketBuilder::new(PacketSizeRange::new(20, 64), protocol_mix);
     
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
     let result = builder.build_packet(PacketType::Udp, target_ip, 8080);
@@ -146,7 +146,7 @@ fn test_packet_size_constraints() {
     
     // Test large packets
     let protocol_mix = ProtocolMix::default();
-    let mut builder = PacketBuilder::new((1000, 1400), protocol_mix);
+    let mut builder = PacketBuilder::new(PacketSizeRange::new(1000, 1400), protocol_mix);
     let result = builder.build_packet(PacketType::Udp, target_ip, 8080);
     assert!(result.is_ok());
     
@@ -158,7 +158,7 @@ fn test_packet_size_constraints() {
 #[test]
 fn test_incompatible_protocol_ip_version() {
     let protocol_mix = ProtocolMix::default();
-    let mut builder = PacketBuilder::new((64, 128), protocol_mix);
+    let mut builder = PacketBuilder::new(PacketSizeRange::new(64, 128), protocol_mix);
     
     // Try to build IPv4 packet type with IPv6 address
     let ipv6_target = IpAddr::V6(Ipv6Addr::new(0xfe80, 0, 0, 0, 0, 0, 0, 1));
@@ -174,7 +174,7 @@ fn test_incompatible_protocol_ip_version() {
 #[test]
 fn test_multiple_packet_types() {
     let protocol_mix = ProtocolMix::default();
-    let mut builder = PacketBuilder::new((64, 256), protocol_mix);
+    let mut builder = PacketBuilder::new(PacketSizeRange::new(64, 256), protocol_mix);
     
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
     

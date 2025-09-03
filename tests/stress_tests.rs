@@ -1,6 +1,6 @@
 //! Stress testing scenarios for router-flood
 
-use router_flood::packet::{PacketBuilder, PacketType};
+use router_flood::packet::{PacketBuilder, PacketType, PacketSizeRange};
 use router_flood::config::{Config, ProtocolMix};
 use router_flood::Stats;
 use std::sync::{Arc, Barrier};
@@ -23,7 +23,7 @@ fn stress_test_concurrent_packet_generation() {
             
             thread::spawn(move || {
                 let protocol_mix = ProtocolMix::default();
-                let mut builder = PacketBuilder::new((64, 1400), protocol_mix);
+                let mut builder = PacketBuilder::new(PacketSizeRange::new(64, 1400), protocol_mix);
                 let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, thread_id as u8));
                 
                 // Wait for all threads to be ready
@@ -143,7 +143,7 @@ fn stress_test_rapid_config_changes() {
 #[ignore]
 fn stress_test_packet_size_variations() {
     let protocol_mix = ProtocolMix::default();
-    let mut builder = PacketBuilder::new((20, 9000), protocol_mix); // Large range
+    let mut builder = PacketBuilder::new(PacketSizeRange::new(20, 9000), protocol_mix); // Large range
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
     
     let mut size_distribution = std::collections::HashMap::new();
@@ -173,7 +173,7 @@ fn stress_test_sustained_high_throughput() {
     let duration = Duration::from_secs(10);
     let stats = Arc::new(Stats::new(None));
     let protocol_mix = ProtocolMix::default();
-    let mut builder = PacketBuilder::new((64, 1400), protocol_mix);
+    let mut builder = PacketBuilder::new(PacketSizeRange::new(64, 1400), protocol_mix);
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
     
     let start = Instant::now();

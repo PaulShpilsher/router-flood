@@ -1,13 +1,13 @@
 //! Packet building workflow integration tests
 
-use router_flood::packet::{PacketBuilder, PacketType, PacketTarget};
+use router_flood::packet::{PacketBuilder, PacketType, PacketTarget, PacketSizeRange};
 use router_flood::config::ProtocolMix;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 #[test]
 fn test_complete_packet_workflow() {
     let protocol_mix = ProtocolMix::default();
-    let mut builder = PacketBuilder::new((64, 1400), protocol_mix);
+    let mut builder = PacketBuilder::new(PacketSizeRange::new(64, 1400), protocol_mix);
     
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
     let target_port = 8080;
@@ -33,7 +33,7 @@ fn test_complete_packet_workflow() {
 #[test]
 fn test_ipv4_to_ipv6_transition() {
     let protocol_mix = ProtocolMix::default();
-    let mut builder = PacketBuilder::new((100, 200), protocol_mix);
+    let mut builder = PacketBuilder::new(PacketSizeRange::new(100, 200), protocol_mix);
     
     // Build IPv4 packets
     let ipv4_target = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
@@ -56,7 +56,7 @@ fn test_packet_size_consistency() {
     let target_ip = IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1));
     
     // Test with fixed size range
-    let mut builder = PacketBuilder::new((100, 100), protocol_mix.clone());
+    let mut builder = PacketBuilder::new(PacketSizeRange::new(100, 100), protocol_mix.clone());
     
     for _ in 0..10 {
         let result = builder.build_packet(PacketType::Udp, target_ip, 8080);
@@ -68,7 +68,7 @@ fn test_packet_size_consistency() {
     }
     
     // Test with variable size range
-    let mut builder = PacketBuilder::new((100, 1000), protocol_mix);
+    let mut builder = PacketBuilder::new(PacketSizeRange::new(100, 1000), protocol_mix);
     
     for _ in 0..10 {
         let result = builder.build_packet(PacketType::Udp, target_ip, 8080);
@@ -96,7 +96,7 @@ fn test_packet_target_workflow() {
 #[test]
 fn test_zero_copy_vs_allocation() {
     let protocol_mix = ProtocolMix::default();
-    let mut builder = PacketBuilder::new((100, 200), protocol_mix);
+    let mut builder = PacketBuilder::new(PacketSizeRange::new(100, 200), protocol_mix);
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
     
     // Test allocation method
@@ -124,7 +124,7 @@ fn test_zero_copy_vs_allocation() {
 #[test]
 fn test_multiple_ports_workflow() {
     let protocol_mix = ProtocolMix::default();
-    let mut builder = PacketBuilder::new((64, 128), protocol_mix);
+    let mut builder = PacketBuilder::new(PacketSizeRange::new(64, 128), protocol_mix);
     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
     
     let ports = vec![80, 443, 8080, 8443, 3000, 5000];

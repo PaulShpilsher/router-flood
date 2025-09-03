@@ -2,7 +2,7 @@
 
 use router_flood::security::validation::{validate_target_ip, validate_comprehensive_security};
 use router_flood::stats::Stats;
-use router_flood::packet::{PacketBuilder, PacketType};
+use router_flood::packet::{PacketBuilder, PacketType, PacketSizeRange};
 use router_flood::config::ProtocolMix;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
@@ -166,13 +166,13 @@ mod packet_edge_cases {
         let protocol_mix = ProtocolMix::default();
         
         // Minimum size packet
-        let mut builder = PacketBuilder::new((1, 1), protocol_mix.clone());
+        let mut builder = PacketBuilder::new(PacketSizeRange::new(1, 1), protocol_mix.clone());
         let ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
         let result = builder.build_packet(PacketType::Udp, ip, 8080);
         assert!(result.is_ok());
         
         // Maximum extreme size - should be clamped internally
-        let mut builder = PacketBuilder::new((65000, 65535), protocol_mix);
+        let mut builder = PacketBuilder::new(PacketSizeRange::new(65000, 65535), protocol_mix);
         let result = builder.build_packet(PacketType::Udp, ip, 8080);
         assert!(result.is_ok());
     }
@@ -182,7 +182,7 @@ mod packet_edge_cases {
         let protocol_mix = ProtocolMix::default();
         
         // Equal min and max - should use that exact size
-        let mut builder = PacketBuilder::new((100, 100), protocol_mix);
+        let mut builder = PacketBuilder::new(PacketSizeRange::new(100, 100), protocol_mix);
         let ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
         
         let result = builder.build_packet(PacketType::Udp, ip, 8080);
@@ -195,7 +195,7 @@ mod packet_edge_cases {
     #[test]
     fn test_packet_builder_buffer_boundaries() {
         let protocol_mix = ProtocolMix::default();
-        let mut builder = PacketBuilder::new((100, 200), protocol_mix);
+        let mut builder = PacketBuilder::new(PacketSizeRange::new(100, 200), protocol_mix);
         let ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
         
         // Test with large buffer
@@ -221,7 +221,7 @@ mod packet_edge_cases {
         mix.custom_ratio = 10.0;
         
         // Should handle this without panicking
-        let builder = PacketBuilder::new((100, 200), mix);
+        let builder = PacketBuilder::new(PacketSizeRange::new(100, 200), mix);
         assert!(true); // If we get here, it didn't panic
     }
 }

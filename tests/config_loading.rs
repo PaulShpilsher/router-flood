@@ -90,6 +90,7 @@ attack:
   burst_mode: false
 safety:
   dry_run: true
+  perfect_simulation: false
   rate_limit: true
   max_bandwidth_mbps: 100.0
   allow_localhost: false

@@ -1,6 +1,6 @@
 //! Fuzzing tests for packet generation and parsing
 
-use router_flood::packet::{PacketBuilder, PacketType};
+use router_flood::packet::{PacketBuilder, PacketType, PacketSizeRange};
 use router_flood::config::{Config, ProtocolMix, LoadConfig, Safety};
 use router_flood::security::validation::validate_target_ip;
 use proptest::prelude::*;
@@ -36,7 +36,7 @@ proptest! {
             (max_size, min_size)
         };
         
-        let mut builder = PacketBuilder::new(size_range, protocol_mix);
+        let mut builder = PacketBuilder::new(PacketSizeRange::new(size_range.0, size_range.1), protocol_mix);
         let target_ip = IpAddr::V4(Ipv4Addr::new(ip_octets[0], ip_octets[1], ip_octets[2], ip_octets[3]));
         
         let packet_type = match packet_type_num % 8 {
@@ -177,7 +177,7 @@ proptest! {
     ) {
         let protocol_mix = ProtocolMix::default();
         let size_range = (size.min(9000), size.min(9000));
-        let mut builder = PacketBuilder::new(size_range, protocol_mix);
+        let mut builder = PacketBuilder::new(PacketSizeRange::new(size_range.0, size_range.1), protocol_mix);
         let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
         
         // Should handle extreme values gracefully
@@ -205,7 +205,7 @@ proptest! {
         };
         
         // Create builder - normalization should handle any input
-        let mut builder = PacketBuilder::new((64, 1400), protocol_mix);
+        let mut builder = PacketBuilder::new(PacketSizeRange::new(64, 1400), protocol_mix);
         let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
         
         // Should produce valid packets regardless of ratios
@@ -225,7 +225,7 @@ proptest! {
         port in 1u16..=65535
     ) {
         let protocol_mix = ProtocolMix::default();
-        let mut builder = PacketBuilder::new((64, 1400), protocol_mix);
+        let mut builder = PacketBuilder::new(PacketSizeRange::new(64, 1400), protocol_mix);
         
         let target_ip = IpAddr::V6(Ipv6Addr::new(
             segments[0], segments[1], segments[2], segments[3],
@@ -279,7 +279,7 @@ proptest! {
                 let packets = packets_per_thread;
                 thread::spawn(move || {
                     let protocol_mix = ProtocolMix::default();
-                    let mut builder = PacketBuilder::new((64, 1400), protocol_mix);
+                    let mut builder = PacketBuilder::new(PacketSizeRange::new(64, 1400), protocol_mix);
                     let target_ip = IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1));
                     
                     for _ in 0..packets {
