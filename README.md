@@ -46,8 +46,11 @@ sudo setcap cap_net_raw+ep ./target/release/router-flood
 ## Quick start
 
 ```bash
-# Test configuration without sending packets
+# Test configuration without sending packets (simulates 98% success rate)
 router-flood --target 192.168.1.1 --ports 80,443 --dry-run
+
+# Perfect simulation - 100% success rate for pure configuration validation
+router-flood --target 192.168.1.1 --ports 80,443 --dry-run --perfect-simulation
 
 # Basic stress test with 4 threads
 router-flood --target 192.168.1.1 --ports 80 --threads 4 --rate 100
@@ -127,7 +130,8 @@ For optimal performance:
 * **IP validation**: Only accepts RFC 1918 private addresses
 * **Rate limiting**: Built-in limits prevent accidental network saturation
 * **Resource limits**: Enforces reasonable thread and memory constraints
-* **Dry-run mode**: Test configurations without network impact
+* **Dry-run mode**: Test configurations without network impact (98% success rate by default)
+* **Perfect simulation**: Optional 100% success rate in dry-run for pure config validation
 * **Capability-based security**: Runs with minimal privileges (CAP_NET_RAW)
 
 ## Contributing

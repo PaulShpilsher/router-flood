@@ -113,8 +113,8 @@ router-flood --target 192.168.1.1 --ports 80 --threads 8 --rate 2000
 
 | Option | Description | Example |
 |--------|-------------|---------|
-| `--dry-run` | Test without sending packets | `--dry-run` |
-| `--perfect-simulation` | 100% success rate in dry-run | `--dry-run --perfect-simulation` |
+| `--dry-run` | Test without sending packets (98% success rate) | `--dry-run` |
+| `--perfect-simulation` | 100% success rate in dry-run mode | `--dry-run --perfect-simulation` |
 
 ### Output options
 
@@ -168,6 +168,7 @@ attack:
 
 safety:
   dry_run: false
+  perfect_simulation: false  # Only applies when dry_run is true
   rate_limit: 10000
   max_bandwidth_mbps: 100
 
@@ -335,14 +336,21 @@ router-flood \
 
 ### Validation and testing
 
+#### Dry-run modes
+
+The dry-run feature allows safe testing without sending actual network packets:
+
+- **Standard dry-run**: Simulates realistic network conditions with ~98% success rate
+- **Perfect simulation**: 100% success rate for pure configuration validation
+
 ```bash
-# Validate configuration without running
+# Standard dry-run - simulates realistic packet loss (98% success rate)
 router-flood \
   --target 192.168.1.1 \
   --ports 80 \
   --dry-run
 
-# Perfect simulation (no packet loss)
+# Perfect simulation - no simulated failures (100% success rate)
 router-flood \
   --target 192.168.1.1 \
   --ports 80 \

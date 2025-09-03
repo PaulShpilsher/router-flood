@@ -5,6 +5,11 @@ All notable changes to Router Flood will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Perfect simulation mode**: `--perfect-simulation` flag for 100% success rate in dry-run mode, useful for pure configuration validation without simulated failures
+
 ## [0.0.1] - 2025-09-01
 
 ### 🚀 Major Architectural Restructuring
