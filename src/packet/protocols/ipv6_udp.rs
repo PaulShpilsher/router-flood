@@ -1,7 +1,7 @@
 //! IPv6 UDP packet building strategy
 
 use super::PacketStrategy;
-use crate::constants::{IPV6_HEADER_SIZE, UDP_HEADER_SIZE};
+use crate::constants::{IPV6_HEADER_SIZE, UDP_HEADER_SIZE, IPV6_UDP_HEADER_SIZE};
 use crate::error::{PacketError, Result};
 use crate::packet::PacketTarget;
 use crate::utils::rng::BatchedRng;
@@ -134,7 +134,7 @@ impl PacketStrategy for Ipv6UdpStrategy {
     }
 
     fn max_packet_size(&self) -> usize {
-        IPV6_HEADER_SIZE + UDP_HEADER_SIZE + self.packet_size_range.1
+        IPV6_UDP_HEADER_SIZE + self.packet_size_range.1
     }
 
     fn is_compatible_with(&self, target_ip: IpAddr) -> bool {
