@@ -1,7 +1,7 @@
 //! ICMP packet building strategy
 
 use super::PacketStrategy;
-use crate::constants::{IPV4_HEADER_SIZE, ICMP_HEADER_SIZE, icmp};
+use crate::constants::{IPV4_HEADER_SIZE, ICMP_HEADER_SIZE, IPV4_ICMP_HEADER_SIZE, icmp};
 use crate::error::{PacketError, Result};
 use crate::packet::PacketTarget;
 use crate::utils::rng::BatchedRng;
@@ -100,7 +100,7 @@ impl PacketStrategy for IcmpStrategy {
     }
 
     fn max_packet_size(&self) -> usize {
-        IPV4_HEADER_SIZE + ICMP_HEADER_SIZE + icmp::MAX_PING_SIZE
+        IPV4_ICMP_HEADER_SIZE + icmp::MAX_PING_SIZE
     }
 
     fn is_compatible_with(&self, target_ip: IpAddr) -> bool {
