@@ -1,7 +1,7 @@
 //! IPv6 TCP packet building strategy
 
 use super::PacketStrategy;
-use crate::constants::{IPV6_HEADER_SIZE, TCP_HEADER_SIZE};
+use crate::constants::{IPV6_TCP_HEADER_SIZE, TCP_HEADER_SIZE};
 use crate::error::{PacketError, Result};
 use crate::packet::PacketTarget;
 use crate::utils::rng::BatchedRng;
@@ -45,17 +45,15 @@ impl PacketStrategy for Ipv6TcpStrategy {
             }
         };
 
-        let total_len = IPV6_HEADER_SIZE + TCP_HEADER_SIZE;
-        
-        if buffer.len() < total_len {
+        if buffer.len() < IPV6_TCP_HEADER_SIZE {
             return Err(PacketError::build_failed("Packet", "Buffer too small").into());
         }
 
         // Zero out the buffer area we'll use
-        buffer[..total_len].fill(0);
+        buffer[..IPV6_TCP_HEADER_SIZE].fill(0);
 
         // Build IPv6 header
-        let mut ip_packet = MutableIpv6Packet::new(&mut buffer[..total_len])
+        let mut ip_packet = MutableIpv6Packet::new(&mut buffer[..IPV6_TCP_HEADER_SIZE])
             .ok_or_else(|| PacketError::build_failed("IPv6-TCP", "Failed to create IPv6 packet"))?;
         
         ip_packet.set_version(6);
@@ -85,7 +83,7 @@ impl PacketStrategy for Ipv6TcpStrategy {
             &target_ip,
         ));
 
-        Ok(total_len)
+        Ok(IPV6_TCP_HEADER_SIZE)
     }
 
     fn protocol_name(&self) -> &'static str {
@@ -93,7 +91,7 @@ impl PacketStrategy for Ipv6TcpStrategy {
     }
 
     fn max_packet_size(&self) -> usize {
-        IPV6_HEADER_SIZE + TCP_HEADER_SIZE
+        IPV6_TCP_HEADER_SIZE
     }
 
     fn is_compatible_with(&self, target_ip: IpAddr) -> bool {

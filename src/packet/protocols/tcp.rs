@@ -1,7 +1,7 @@
 //! TCP packet building strategy
 
 use super::PacketStrategy;
-use crate::constants::{IPV4_HEADER_SIZE, TCP_HEADER_SIZE};
+use crate::constants::IPV4_TCP_HEADER_SIZE;
 use crate::error::{PacketError, Result};
 use crate::packet::PacketTarget;
 use crate::utils::rng::BatchedRng;
@@ -69,20 +69,18 @@ impl PacketStrategy for TcpStrategy {
             }
         };
 
-        let total_len = IPV4_HEADER_SIZE + TCP_HEADER_SIZE; // No payload for SYN/ACK
-        
-        if buffer.len() < total_len {
+        if buffer.len() < IPV4_TCP_HEADER_SIZE {
             return Err(PacketError::build_failed("Packet", "Buffer too small").into());
         }
 
         // Zero out the buffer area we'll use
-        buffer[..total_len].fill(0);
+        buffer[..IPV4_TCP_HEADER_SIZE].fill(0);
 
         // Build IP header
-        let mut ip_packet = MutableIpv4Packet::new(&mut buffer[..total_len])
+        let mut ip_packet = MutableIpv4Packet::new(&mut buffer[..IPV4_TCP_HEADER_SIZE])
             .ok_or_else(|| PacketError::build_failed("TCP", "Failed to create IPv4 packet"))?;
         
-        self.setup_ip_header(&mut ip_packet, total_len, target_ip);
+        self.setup_ip_header(&mut ip_packet, IPV4_TCP_HEADER_SIZE, target_ip);
 
         // Build TCP packet
         let mut tcp_packet = MutableTcpPacket::new(ip_packet.payload_mut())
@@ -109,7 +107,7 @@ impl PacketStrategy for TcpStrategy {
         // Set IP checksum last
         ip_packet.set_checksum(pnet::packet::ipv4::checksum(&ip_packet.to_immutable()));
         
-        Ok(total_len)
+        Ok(IPV4_TCP_HEADER_SIZE)
     }
 
     fn protocol_name(&self) -> &'static str {
@@ -117,7 +115,7 @@ impl PacketStrategy for TcpStrategy {
     }
 
     fn max_packet_size(&self) -> usize {
-        IPV4_HEADER_SIZE + TCP_HEADER_SIZE
+        IPV4_TCP_HEADER_SIZE
     }
 
     fn is_compatible_with(&self, target_ip: IpAddr) -> bool {
