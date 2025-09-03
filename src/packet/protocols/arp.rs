@@ -46,14 +46,13 @@ impl PacketStrategy for ArpStrategy {
             }
         };
 
-        let total_len = ARP_FRAME_SIZE;
-        if buffer.len() < total_len {
+        if buffer.len() < ARP_FRAME_SIZE {
             return Err(PacketError::build_failed("Packet", "Buffer too small").into());
         }
-        buffer[..total_len].fill(0);
+        buffer[..ARP_FRAME_SIZE].fill(0);
 
         // Build Ethernet header
-        let mut ethernet_packet = MutableEthernetPacket::new(&mut buffer[..total_len])
+        let mut ethernet_packet = MutableEthernetPacket::new(&mut buffer[..ARP_FRAME_SIZE])
             .ok_or_else(|| PacketError::build_failed("ARP", "Failed to create Ethernet packet"))?;
         
         ethernet_packet.set_destination(MacAddr::broadcast());
@@ -74,7 +73,7 @@ impl PacketStrategy for ArpStrategy {
         arp_packet.set_target_hw_addr(MacAddr::zero());
         arp_packet.set_target_proto_addr(target_ip);
 
-        Ok(total_len)
+        Ok(ARP_FRAME_SIZE)
     }
 
     fn protocol_name(&self) -> &'static str {
