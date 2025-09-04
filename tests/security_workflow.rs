@@ -1,7 +1,6 @@
 //! End-to-end security workflow integration tests
 
 use router_flood::security::validation::{validate_target_ip, validate_comprehensive_security, validate_system_requirements};
-use router_flood::config::{Config, Safety};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 #[test]

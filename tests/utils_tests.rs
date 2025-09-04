@@ -49,7 +49,6 @@ mod rng_tests {
         // Test port generation
         let port = rng.port();
         assert!(port > 0);
-        assert!(port <= 65535);
     }
 
     #[test]
@@ -71,7 +70,6 @@ mod rng_tests {
         
         let ttl = rng.ttl();
         assert!(ttl > 0);
-        assert!(ttl <= 255);
     }
 
     #[test]
@@ -149,7 +147,6 @@ mod rng_tests {
         assert_eq!(ports.len(), 10);
         for port in ports {
             assert!(port > 0);
-            assert!(port <= 65535);
         }
         
         // Generate multiple TTLs
@@ -157,7 +154,6 @@ mod rng_tests {
         assert_eq!(ttls.len(), 10);
         for ttl in ttls {
             assert!(ttl > 0);
-            assert!(ttl <= 255);
         }
     }
 
@@ -168,7 +164,6 @@ mod rng_tests {
         let window = rng.window_size();
         // Common window sizes
         assert!(window >= 1024);
-        assert!(window <= 65535);
     }
 
     #[test]
@@ -192,7 +187,7 @@ mod rng_tests {
     fn test_batched_rng_byte() {
         let mut rng = BatchedRng::new();
         
-        let byte = rng.byte();
-        assert!(byte <= 255);
+        let _byte = rng.byte();
+        // byte is u8, so always <= 255
     }
 }

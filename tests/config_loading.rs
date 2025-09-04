@@ -105,7 +105,10 @@ export:
   format: "Json"
   path: "./stats"
   interval_seconds: 60
-  include_system_stats: false"#).unwrap();
+  include_system_stats: false
+audit:
+  enabled: false
+  log_file: "/tmp/test_audit.log""#).unwrap();
     
     // Flush the file to ensure data is written
     temp_file.flush().unwrap();

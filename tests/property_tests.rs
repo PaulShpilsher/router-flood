@@ -21,7 +21,7 @@ fn private_ipv4_strategy() -> impl Strategy<Value = Ipv4Addr> {
 fn public_ipv4_strategy() -> impl Strategy<Value = Ipv4Addr> {
     (1u8..=254, 1u8..=254, 1u8..=254, 1u8..=254)
         .prop_filter("not private range", |(a, b, c, d)| {
-            let ip = Ipv4Addr::new(*a, *b, *c, *d);
+            let _ip = Ipv4Addr::new(*a, *b, *c, *d);
             // Exclude private ranges
             !(*a == 192 && *b == 168) &&
             !(*a == 10) &&

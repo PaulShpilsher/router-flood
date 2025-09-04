@@ -221,7 +221,7 @@ mod packet_edge_cases {
         mix.custom_ratio = 10.0;
         
         // Should handle this without panicking
-        let builder = PacketBuilder::new(PacketSizeRange::new(100, 200), mix);
+        let _builder = PacketBuilder::new(PacketSizeRange::new(100, 200), mix);
         assert!(true); // If we get here, it didn't panic
     }
 }
