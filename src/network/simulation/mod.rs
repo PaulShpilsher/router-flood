@@ -1,5 +1,5 @@
 //! Simulation orchestration module
 
-mod basic;
+mod runner;
 
-pub use basic::{Simulation, setup_network_interface};
+pub use runner::{Simulation, setup_network_interface};
