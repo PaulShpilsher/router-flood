@@ -28,8 +28,10 @@ struct MemoryBlock {
 }
 
 impl MemoryBlock {
+
     /// Create a new memory block
     fn new(size: usize) -> Option<Self> {
+
         let layout = Layout::from_size_align(size, 8).ok()?;
         let data = NonNull::new(unsafe { alloc(layout) })?;
         
@@ -49,6 +51,7 @@ impl MemoryBlock {
 }
 
 impl Drop for MemoryBlock {
+
     fn drop(&mut self) {
         unsafe {
             let layout = Layout::from_size_align_unchecked(self.size, 8);
@@ -56,6 +59,7 @@ impl Drop for MemoryBlock {
         }
     }
 }
+
 
 /// Lock-free memory pool using a stack-based free list
 pub struct LockFreeMemoryPool {
@@ -65,9 +69,13 @@ pub struct LockFreeMemoryPool {
     max_blocks: usize,
 }
 
+
+///////////////////////
 impl LockFreeMemoryPool {
+
     /// Create a new lock-free memory pool
     pub fn new(block_size: usize, initial_blocks: usize, max_blocks: usize) -> Self {
+        
         let pool = Self {
             free_list: AtomicPtr::new(ptr::null_mut()),
             block_size,
@@ -85,9 +93,11 @@ impl LockFreeMemoryPool {
         pool
     }
     
+
     /// Allocate a memory block from the pool
     #[inline]
     pub fn allocate(&self) -> Option<PooledMemory<'_>> {
+
         // Try to get a block from the free list
         loop {
             let head = self.free_list.load(Ordering::Acquire);
@@ -104,6 +114,7 @@ impl LockFreeMemoryPool {
                 Ordering::Release,
                 Ordering::Relaxed,
             ).is_ok() {
+
                 self.allocated_count.fetch_add(1, Ordering::Relaxed);
                 return Some(PooledMemory {
                     data: block.as_ptr(),
@@ -117,8 +128,10 @@ impl LockFreeMemoryPool {
         // No free blocks, try to allocate a new one
         if self.allocated_count.load(Ordering::Relaxed) < self.max_blocks
             && let Some(block) = MemoryBlock::new(self.block_size) {
+       
                 let block_ptr = Box::into_raw(Box::new(block));
                 self.allocated_count.fetch_add(1, Ordering::Relaxed);
+              
                 return Some(PooledMemory {
                     data: unsafe { (*block_ptr).as_ptr() },
                     size: self.block_size,
@@ -130,6 +143,7 @@ impl LockFreeMemoryPool {
         None
     }
     
+
     /// Add a block to the free list (used during initialization)
     fn add_block_to_free_list(&self, block: *mut MemoryBlock) {
         unsafe {
@@ -150,9 +164,11 @@ impl LockFreeMemoryPool {
         // Don't decrement allocated_count during initialization
     }
     
+
     /// Return a block to the pool (performance-optimized with safety)
     #[inline]
     fn return_block(&self, block: *mut MemoryBlock) {
+    
         self.add_block_to_free_list(block);
         
         // Performance-optimized defensive approach:
@@ -161,6 +177,7 @@ impl LockFreeMemoryPool {
         
         // Unlikely branch: handle underflow case
         if unlikely(old_count == 0) {
+          
             // Restore count to prevent negative values
             self.allocated_count.store(0, Ordering::Relaxed);
             self.handle_underflow_error();
@@ -170,6 +187,7 @@ impl LockFreeMemoryPool {
         debug_assert!(old_count > 0, "Memory pool double-free detected");
     }
     
+
     /// Handle underflow error (cold path)
     #[cold]
     #[inline(never)]
@@ -206,6 +224,7 @@ impl LockFreeMemoryPool {
         }
     }
 }
+
 
 impl Drop for LockFreeMemoryPool {
     fn drop(&mut self) {
@@ -258,6 +277,7 @@ impl<'a> PooledMemory<'a> {
     }
 }
 
+
 impl<'a> Drop for PooledMemory<'a> {
     fn drop(&mut self) {
         self.pool.return_block(self.block.as_ptr());
@@ -295,12 +315,36 @@ impl PoolStats {
 }
 
 /// Multi-size memory pool manager
+///
+/// The `Memory` struct manages a collection of memory pools with different size classes,
+/// providing efficient memory allocation for various packet sizes without fragmentation.
+///
+/// ## Key Features:
+/// - **Size Classes**: Predefined bucket sizes (64B to 4KB) to minimize internal fragmentation
+/// - **Best-Fit Allocation**: Automatically selects the smallest pool that fits the request
+/// - **Lock-Free Pools**: Each size class has its own lock-free pool for concurrent access
+/// - **Zero-Copy**: Returns direct pointers to pre-allocated memory blocks
+/// - **Cache Optimization**: Frequently used sizes stay hot in CPU cache
+///
+/// ## Size Class Strategy:
+/// The default size classes are optimized for network packet processing:
+/// - 64B, 128B: Small control packets (ACKs, ICMP)
+/// - 256B, 512B: Medium-sized packets
+/// - 1500B: Standard Ethernet MTU
+/// - 4096B: Page-aligned buffers for DMA operations
+///
+/// ## Performance Benefits:
+/// - Eliminates allocation/deallocation overhead in hot paths
+/// - Reduces memory fragmentation compared to general-purpose allocators
+/// - Better cache locality by grouping similar-sized allocations
+/// - Thread-safe without global locks (each pool is lock-free)
 pub struct Memory {
     pools: Vec<Arc<LockFreeMemoryPool>>,
     size_classes: Vec<usize>,
 }
 
 impl Memory {
+
     /// Create a new memory pool manager with standard size classes
     pub fn new() -> Self {
         let size_classes = vec![
@@ -366,6 +410,7 @@ impl Memory {
     }
 }
 
+
 impl Default for Memory {
     fn default() -> Self {
         Self::new()
@@ -419,6 +464,9 @@ impl<'a> ManagedMemory<'a> {
         matches!(self.inner, MemoryType::Pooled(_))
     }
 }
+
+
+///////////////////////////////////////////////////
 
 /// Global memory pool manager
 static GLOBAL_POOL_MANAGER: std::sync::OnceLock<Memory> = std::sync::OnceLock::new();
