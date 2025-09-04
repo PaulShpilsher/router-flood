@@ -49,7 +49,7 @@ sudo setcap cap_net_raw+ep ./target/release/router-flood
 # Test configuration without sending packets (simulates 98% success rate)
 router-flood --target 192.168.1.1 --ports 80,443 --dry-run
 
-# Perfect simulation - 100% success rate for pure configuration validation
+# Perfect dry-run - 100% success rate for pure configuration validation
 router-flood --target 192.168.1.1 --ports 80,443 --dry-run --perfect-simulation
 
 # Basic stress test with 4 threads
@@ -82,6 +82,7 @@ OPTIONS:
     --export <FORMAT>           Export statistics (json, csv, both)
     --dry-run                   Test configuration without sending packets
     --perfect-simulation        Use 100% success rate in dry-run mode
+    --audit-log <FILE>          Custom audit log file path
     --list-interfaces           List available network interfaces
 ```
 

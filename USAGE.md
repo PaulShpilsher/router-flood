@@ -116,12 +116,13 @@ router-flood --target 192.168.1.1 --ports 80 --threads 8 --rate 2000
 | `--dry-run` | Test without sending packets (98% success rate) | `--dry-run` |
 | `--perfect-simulation` | 100% success rate in dry-run mode | `--dry-run --perfect-simulation` |
 
-### Output options
+### Output and logging options
 
 | Option | Description | Example |
 |--------|-------------|---------|
 | `--export` | Export format (json, csv, both) | `--export json` |
 | `--config`, `-c` | Load settings from YAML file | `--config test.yaml` |
+| `--audit-log` | Custom audit log file path | `--audit-log /var/log/audit.log` |
 | `--list-interfaces` | List available network interfaces | `--list-interfaces` |
 
 ## Configuration Files
@@ -176,6 +177,10 @@ monitoring:
   export_format: json
   export_path: "./results/"
   stats_interval: 5
+
+audit:
+  enabled: true
+  log_file: "/var/log/router-flood/audit.log"
 ```
 
 ### Protocol mix configuration

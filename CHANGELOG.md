@@ -9,9 +9,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Perfect simulation mode**: `--perfect-simulation` flag for 100% success rate in dry-run mode, useful for pure configuration validation without simulated failures
+- **Audit logging system**: Configurable audit logging with `--audit-log` CLI option
+  - Encapsulated `AuditLogger` struct with typed event system
+  - EventType enum for Start, Stop, Error, ConfigChange, SecurityViolation, RateLimitExceeded
+  - Optimized to fetch user information once at initialization
+  - Configurable via CLI or YAML configuration
+- **Enhanced code documentation**: Added comprehensive comments for CPU affinity, NUMA, and libc-related code
+- **Performance hints**: Added `#[inline]` attributes to performance-critical functions
 
 ### Changed
 - **PacketSizeRange refactor**: Replaced tuple-based packet size ranges with named struct fields (`PacketSizeRange::new(min, max)` instead of `(min, max)`) for better code readability
+- **Module renaming**: Major architectural refactoring for clarity
+  - Renamed `Simulation` to `Engine` throughout codebase (better reflects dual dry-run/actual operation)
+  - Renamed directory from `/network/simulation/` to `/network/engine/`
+  - Renamed `MultiPortTarget` to `PortTarget` for simplicity
+  - Renamed `basic.rs` to `runner.rs` in network engine module
+- **Code cleanup**: 
+  - Removed unused `src/config/validation.rs` module (100+ lines of dead code)
+  - Consolidated validation logic in `src/config/mod.rs` and `src/security/validation.rs`
+  - Fixed misleading "Orchestration" references
+- **Test improvements**:
+  - Fixed all test warnings and compilation errors
+  - Updated doc tests for new Engine API
+  - Added missing `audit` field to test configurations
+  - Removed unnecessary type limit comparisons for u8/u16
+
+### Fixed
+- **Test failures**: Fixed missing audit configuration in YAML test files
+- **Documentation tests**: Updated examples to use Engine instead of deprecated Simulation
+- **Compilation warnings**: Resolved unused imports, variables, and useless comparisons
 
 ## [0.0.1] - 2025-09-01
 
