@@ -22,10 +22,11 @@ impl PacketBuilder {
         // This prevents issues with oversized allocations while still supporting jumbo frames
         // Note: This is the payload size only; actual packet will include protocol headers
         const MAX_PAYLOAD_SIZE: usize = 9000;
-        let clamped_range = PacketSizeRange::new(
-            packet_size_range.min.min(MAX_PAYLOAD_SIZE),
-            packet_size_range.max.min(MAX_PAYLOAD_SIZE),
-        );
+        
+        // Ensure both min and max don't exceed the maximum allowed payload size
+        let clamped_min = packet_size_range.min.min(MAX_PAYLOAD_SIZE);
+        let clamped_max = packet_size_range.max.min(MAX_PAYLOAD_SIZE);
+        let clamped_range = PacketSizeRange::new(clamped_min, clamped_max);
         
         let mut strategies: HashMap<PacketType, Box<dyn PacketStrategy>> = HashMap::new();
         let mut rng = BatchedRng::new();
