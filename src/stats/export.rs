@@ -2,11 +2,11 @@
 
 use super::collector::SessionStats;
 use crate::config::{Export, ExportFormat};
-// STATS_EXPORT_DIR removed - now using config values directly
 use crate::error::{StatsError, Result};
 use chrono::Utc;
 use csv::Writer;
-
+use serde_yaml;
+use std::fmt::Write;
 use tokio::fs;
 use tracing::info;
 
@@ -50,12 +50,10 @@ impl StatsExporter for DefaultStatsExporter {
                 self.export_csv(stats, config).await?;
             }
             ExportFormat::Yaml => {
-                // TODO: Implement YAML export
-                return Err(StatsError::new("YAML export not yet implemented").into());
+                self.export_yaml(stats, config).await?;
             }
             ExportFormat::Text => {
-                // TODO: Implement text export
-                return Err(StatsError::new("Text export not yet implemented").into());
+                self.export_text(stats, config).await?;
             }
         }
         
@@ -136,6 +134,72 @@ impl DefaultStatsExporter {
             .flush()
             .map_err(|e| StatsError::new(format!("Failed to flush CSV: {}", e)))?;
         
+        info!("Stats exported to {}", filename);
+        Ok(())
+    }
+
+    async fn export_yaml(&self, stats: &SessionStats, config: &Export) -> Result<()> {
+        let timestamp = Utc::now().format("%Y%m%d_%H%M%S");
+        let filename = format!(
+            "{}/router_flood_stats_{}.yaml",
+            config.path, timestamp
+        );
+
+        let yaml = serde_yaml::to_string(stats)
+            .map_err(|e| StatsError::new(format!("Failed to serialize stats to YAML: {}", e)))?;
+
+        fs::write(&filename, yaml)
+            .await
+            .map_err(|e| StatsError::new(format!("Failed to write YAML stats: {}", e)))?;
+
+        info!("Stats exported to {}", filename);
+        Ok(())
+    }
+
+    async fn export_text(&self, stats: &SessionStats, config: &Export) -> Result<()> {
+        let timestamp = Utc::now().format("%Y%m%d_%H%M%S");
+        let filename = format!(
+            "{}/router_flood_stats_{}.txt",
+            config.path, timestamp
+        );
+
+        // Create human-readable text format
+        let mut text = String::new();
+        writeln!(&mut text, "=== Router Flood Statistics Report ===").unwrap();
+        writeln!(&mut text, "Session ID:          {}", stats.session_id).unwrap();
+        writeln!(&mut text, "Timestamp:           {}", stats.timestamp.to_rfc3339()).unwrap();
+        writeln!(&mut text, "Duration:            {:.2} seconds", stats.duration_secs).unwrap();
+        writeln!(&mut text).unwrap();
+        
+        writeln!(&mut text, "=== Performance Metrics ===").unwrap();
+        writeln!(&mut text, "Packets Sent:        {:>12}", stats.packets_sent).unwrap();
+        writeln!(&mut text, "Packets Failed:      {:>12}", stats.packets_failed).unwrap();
+        writeln!(&mut text, "Bytes Sent:          {:>12}", stats.bytes_sent).unwrap();
+        writeln!(&mut text, "Packets/Second:      {:>12.2}", stats.packets_per_second).unwrap();
+        writeln!(&mut text, "Megabits/Second:     {:>12.2}", stats.megabits_per_second).unwrap();
+        writeln!(&mut text).unwrap();
+        
+        if !stats.protocol_breakdown.is_empty() {
+            writeln!(&mut text, "=== Protocol Breakdown ===").unwrap();
+            for (protocol, count) in &stats.protocol_breakdown {
+                writeln!(&mut text, "{:<20} {:>12}", protocol, count).unwrap();
+            }
+            writeln!(&mut text).unwrap();
+        }
+        
+        if let Some(ref system_stats) = stats.system_stats {
+            writeln!(&mut text, "=== System Resources ===").unwrap();
+            writeln!(&mut text, "CPU Usage:           {:>11.1}%", system_stats.cpu_usage).unwrap();
+            writeln!(&mut text, "Memory Usage:        {:>12} bytes", system_stats.memory_usage).unwrap();
+            writeln!(&mut text, "Memory Total:        {:>12} bytes", system_stats.memory_total).unwrap();
+            writeln!(&mut text, "Network Sent:        {:>12} bytes", system_stats.network_sent).unwrap();
+            writeln!(&mut text, "Network Received:    {:>12} bytes", system_stats.network_received).unwrap();
+        }
+
+        fs::write(&filename, text)
+            .await
+            .map_err(|e| StatsError::new(format!("Failed to write text stats: {}", e)))?;
+
         info!("Stats exported to {}", filename);
         Ok(())
     }

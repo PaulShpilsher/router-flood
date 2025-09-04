@@ -23,8 +23,8 @@ pub enum EventType {
 impl EventType {
     pub fn as_str(&self) -> &'static str {
         match self {
-            Self::Start => "engine_start",
-            Self::Stop => "engine_stop",
+            Self::Start => "start",
+            Self::Stop => "stop",
             Self::Error => "error",
             Self::ConfigChange => "config_change",
             Self::SecurityViolation => "security_violation",

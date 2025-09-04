@@ -120,7 +120,7 @@ router-flood --target 192.168.1.1 --ports 80 --threads 8 --rate 2000
 
 | Option | Description | Example |
 |--------|-------------|---------|
-| `--export` | Export format (json, csv, both) | `--export json` |
+| `--export` | Export format (json, csv, yaml, text) | `--export json` |
 | `--config`, `-c` | Load settings from YAML file | `--config test.yaml` |
 | `--audit-log` | Custom audit log file path | `--audit-log /var/log/audit.log` |
 | `--list-interfaces` | List available network interfaces | `--list-interfaces` |
@@ -331,12 +331,12 @@ router-flood \
   --duration 60 \
   --export csv
 
-# Export both formats
+# Export to YAML format
 router-flood \
   --target 192.168.1.1 \
   --ports 80 \
   --duration 60 \
-  --export both
+  --export yaml
 ```
 
 ### Validation and testing
@@ -551,5 +551,5 @@ router-flood --target 192.168.1.100 --ports 80,443 --threads 6 --rate 1000 --dur
 router-flood --target 192.168.1.100 --ports 80,443 --threads 8 --rate 2000 --duration 30
 
 # 6. Export and analyze results
-router-flood --target 192.168.1.100 --ports 80,443 --threads 4 --rate 500 --duration 60 --export both
+router-flood --target 192.168.1.100 --ports 80,443 --threads 4 --rate 500 --duration 60 --export json
 ```

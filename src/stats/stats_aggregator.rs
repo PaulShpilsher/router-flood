@@ -15,6 +15,10 @@ pub struct Stats {
     packets_sent: Arc<AtomicU64>,
     bytes_sent: Arc<AtomicU64>,
     packets_failed: Arc<AtomicU64>,
+    udp_packets: Arc<AtomicU64>,
+    tcp_packets: Arc<AtomicU64>,
+    icmp_packets: Arc<AtomicU64>,
+    other_packets: Arc<AtomicU64>,
     pub start_time: Instant,
     pub session_id: String,
     pub export_config: Option<Export>,
@@ -26,6 +30,10 @@ impl Default for Stats {
             packets_sent: Arc::new(AtomicU64::new(0)),
             bytes_sent: Arc::new(AtomicU64::new(0)),
             packets_failed: Arc::new(AtomicU64::new(0)),
+            udp_packets: Arc::new(AtomicU64::new(0)),
+            tcp_packets: Arc::new(AtomicU64::new(0)),
+            icmp_packets: Arc::new(AtomicU64::new(0)),
+            other_packets: Arc::new(AtomicU64::new(0)),
             start_time: Instant::now(),
             session_id: format!("session_{}", Utc::now().timestamp()),
             export_config: None,
@@ -43,9 +51,18 @@ impl Stats {
     }
 
     /// Record a sent packet
-    pub fn increment_sent(&self, bytes: u64, _protocol: &str) {
+    pub fn increment_sent(&self, bytes: u64, protocol: &str) {
         self.packets_sent.fetch_add(1, Ordering::Relaxed);
         self.bytes_sent.fetch_add(bytes, Ordering::Relaxed);
+        
+        // Track per-protocol stats
+        match protocol.to_lowercase().as_str() {
+            "udp" => self.udp_packets.fetch_add(1, Ordering::Relaxed),
+            "tcp" | "tcp_syn" | "tcp_ack" | "tcp_fin" | "tcp_rst" => 
+                self.tcp_packets.fetch_add(1, Ordering::Relaxed),
+            "icmp" => self.icmp_packets.fetch_add(1, Ordering::Relaxed),
+            _ => self.other_packets.fetch_add(1, Ordering::Relaxed),
+        };
     }
 
     /// Record a failed packet
@@ -129,21 +146,31 @@ impl Stats {
     pub async fn export_stats(&self) -> Result<()> {
         if let Some(ref config) = self.export_config {
             let elapsed = self.start_time.elapsed().as_secs_f64();
-            let _stats = SessionStats {
+            
+            // Build protocol breakdown
+            let mut protocol_breakdown = HashMap::new();
+            protocol_breakdown.insert("UDP".to_string(), self.udp_packets.load(Ordering::Relaxed));
+            protocol_breakdown.insert("TCP".to_string(), self.tcp_packets.load(Ordering::Relaxed));
+            protocol_breakdown.insert("ICMP".to_string(), self.icmp_packets.load(Ordering::Relaxed));
+            protocol_breakdown.insert("Other".to_string(), self.other_packets.load(Ordering::Relaxed));
+            
+            let stats = SessionStats {
                 session_id: self.session_id.clone(),
                 timestamp: Utc::now(),
                 packets_sent: self.packets_sent(),
                 packets_failed: self.packets_failed(),
                 bytes_sent: self.bytes_sent(),
                 duration_secs: elapsed,
-                packets_per_second: self.packets_sent() as f64 / elapsed,
-                megabits_per_second: (self.bytes_sent() as f64 * 8.0) / (elapsed * 1_000_000.0),
-                protocol_breakdown: HashMap::new(),
+                packets_per_second: if elapsed > 0.0 { self.packets_sent() as f64 / elapsed } else { 0.0 },
+                megabits_per_second: if elapsed > 0.0 { (self.bytes_sent() as f64 * 8.0) / (elapsed * 1_000_000.0) } else { 0.0 },
+                protocol_breakdown,
                 system_stats: None,
             };
             
-            // Export logic would go here
-            println!("📁 Statistics exported to: {}", config.path);
+            // Use the actual exporter
+            use super::export::{DefaultStatsExporter, StatsExporter};
+            let exporter = DefaultStatsExporter::new();
+            exporter.export_stats(&stats, config).await?;
         }
         Ok(())
     }

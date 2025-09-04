@@ -35,7 +35,7 @@ fn get_long_help() -> &'static str {
   High-performance test:
     sudo ./router-flood --target 10.0.0.1 --ports 80,443,22,53 --threads 8 --rate 500 --duration 60
 
-  With configuration file:
+  With configuration file and export:
     sudo ./router-flood --config my_test.yaml --export json
 
   List available interfaces:
@@ -47,7 +47,8 @@ fn get_long_help() -> &'static str {
 
 📊 MONITORING:
   Real-time statistics are displayed during execution.
-  Use --export to save results in JSON or CSV format.
+  Use --export to save results to a file.
+  Supported formats: JSON, CSV, YAML, Text
 
 ⚠️  REQUIREMENTS:
   • Root privileges (unless using --dry-run)
@@ -123,8 +124,8 @@ pub fn parse_arguments() -> ArgMatches {
             Arg::new("export")
                 .long("export")
                 .value_name("FORMAT")
-                .help("Export statistics (json, csv, both)")
-                .value_parser(["json", "csv", "both"]),
+                .help("Export statistics format: json, csv, yaml, or text")
+                .value_parser(["json", "csv", "yaml", "text"]),
         )
         .arg(
             Arg::new("list-interfaces")
@@ -264,7 +265,7 @@ pub fn parse_export_format(format_str: &str) -> Result<ExportFormat> {
         "json" => Ok(ExportFormat::Json),
         "csv" => Ok(ExportFormat::Csv),
         "yaml" => Ok(ExportFormat::Yaml),
-        "text" => Ok(ExportFormat::Text),
+        "text" | "txt" => Ok(ExportFormat::Text),
         _ => Err(ConfigError::new(
             format!("Invalid export format '{}': must be 'json', 'csv', 'yaml', or 'text'", format_str)
         ).into()),

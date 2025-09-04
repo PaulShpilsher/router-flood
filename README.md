@@ -79,7 +79,7 @@ OPTIONS:
     -d, --duration <SECONDS>    Test duration in seconds
     -c, --config <FILE>         Load configuration from YAML file
     -i, --interface <NAME>      Network interface to use
-    --export <FORMAT>           Export statistics (json, csv, both)
+    --export <FORMAT>           Export statistics (json, csv, yaml, text)
     --dry-run                   Test configuration without sending packets
     --perfect-simulation        Use 100% success rate in dry-run mode
     --audit-log <FILE>          Custom audit log file path
