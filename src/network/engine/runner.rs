@@ -134,7 +134,7 @@ impl Engine {
         // Setup
         // Log operation start
         if let Err(e) = self.audit_logger.log_event(
-            EventType::SimulationStart,
+            EventType::Start,
             &self.target_ip,
             &self.config.target.ports,
             self.config.attack.threads,
@@ -240,7 +240,7 @@ impl Engine {
         
         // Log operation stop
         if let Err(e) = self.audit_logger.log_event(
-            EventType::SimulationStop,
+            EventType::Stop,
             &self.target_ip,
             &self.config.target.ports,
             self.config.attack.threads,

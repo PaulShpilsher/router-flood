@@ -12,9 +12,9 @@ pub const DEFAULT_AUDIT_LOG_FILE: &str = "router_flood_audit.log";
 /// Common audit event types
 #[derive(Debug, Clone, Copy)]
 pub enum EventType {
-    SimulationStart,
-    SimulationStop,
-    SimulationError,
+    Start,
+    Stop,
+    Error,
     ConfigChange,
     SecurityViolation,
     RateLimitExceeded,
@@ -23,9 +23,9 @@ pub enum EventType {
 impl EventType {
     pub fn as_str(&self) -> &'static str {
         match self {
-            Self::SimulationStart => "simulation_start",
-            Self::SimulationStop => "simulation_stop",
-            Self::SimulationError => "simulation_error",
+            Self::Start => "engine_start",
+            Self::Stop => "engine_stop",
+            Self::Error => "error",
             Self::ConfigChange => "config_change",
             Self::SecurityViolation => "security_violation",
             Self::RateLimitExceeded => "rate_limit_exceeded",
