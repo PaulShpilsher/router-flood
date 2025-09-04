@@ -2,10 +2,10 @@
 //!
 //! This module handles all CLI argument parsing, validation, and help text generation.
 
-pub mod basic;
+pub mod cli;
 
 // Re-export CLI functions
-pub use basic::{
+pub use cli::{
     parse_arguments, 
     process_cli_config, 
     handle_pre_execution_commands,
