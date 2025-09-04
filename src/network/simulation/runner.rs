@@ -7,7 +7,6 @@ use std::time::Duration;
 use tokio::time;
 use tracing::{error, info, warn};
 
-// Audit logging removed for simplification
 use crate::config::Config;
 use crate::constants::GRACEFUL_SHUTDOWN_TIMEOUT;
 use crate::error::{RouterFloodError, Result};
@@ -16,6 +15,7 @@ use crate::network::{find_interface_by_name, default_interface};
 use crate::stats::Stats;
 use crate::network::target::PortTarget;
 use crate::network::worker_manager::Workers;
+use crate::security::{AuditLogger, EventType};
 
 /// Network interface setup
 pub fn setup_network_interface(config: &Config) -> Result<Option<pnet::datalink::NetworkInterface>> {
@@ -105,6 +105,7 @@ pub struct Simulation {
     selected_interface: Option<pnet::datalink::NetworkInterface>,
     stats: Arc<Stats>,
     running: Arc<AtomicBool>,
+    audit_logger: AuditLogger,
 }
 
 impl Simulation {
@@ -117,6 +118,7 @@ impl Simulation {
             config.export.enabled.then_some(config.export.clone()),
         ));
         let running = Arc::new(AtomicBool::new(true));
+        let audit_logger = AuditLogger::from_config(&config);
         
         Self {
             config,
@@ -124,12 +126,26 @@ impl Simulation {
             selected_interface,
             stats,
             running,
+            audit_logger,
         }
     }
     
     pub async fn run(self) -> Result<()> {
         // Setup
-        // Audit logging removed for simplification
+        // Log simulation start
+        if let Err(e) = self.audit_logger.log_event(
+            EventType::SimulationStart,
+            &self.target_ip,
+            &self.config.target.ports,
+            self.config.attack.threads,
+            self.config.attack.packet_rate as u64,
+            self.config.attack.duration,
+            self.config.target.interface.as_deref(),
+            &self.stats.session_id,
+        ) {
+            warn!("Failed to create audit log entry: {}", e);
+        }
+        
         self.print_simulation_info();
         
         // Start monitoring
@@ -221,6 +237,20 @@ impl Simulation {
     
     async fn finalize_simulation(&self) -> Result<()> {
         time::sleep(GRACEFUL_SHUTDOWN_TIMEOUT).await;
+        
+        // Log simulation stop
+        if let Err(e) = self.audit_logger.log_event(
+            EventType::SimulationStop,
+            &self.target_ip,
+            &self.config.target.ports,
+            self.config.attack.threads,
+            self.config.attack.packet_rate as u64,
+            self.config.attack.duration,
+            self.config.target.interface.as_deref(),
+            &self.stats.session_id,
+        ) {
+            warn!("Failed to create audit log entry: {}", e);
+        }
         
         if self.config.safety.dry_run {
             info!("📈 Final Simulation Statistics (DRY-RUN):");

@@ -42,7 +42,7 @@ pub mod utils;
 pub mod error;
 
 // Re-export key types
-pub use config::{Config, Target, LoadConfig, Safety, Monitoring, Export, ExportFormat, ProtocolMix};
+pub use config::{Config, Target, LoadConfig, Safety, Monitoring, Export, ExportFormat, ProtocolMix, Audit};
 pub use network::simulation::Simulation;
 pub use network::worker_manager::Workers;
 pub use network::target::PortTarget;
@@ -51,6 +51,7 @@ pub use packet::{PacketBuilder, PacketStrategy, PacketType, PacketTarget};
 pub use stats::Stats;
 pub use utils::terminal::{Terminal, TerminalGuard};
 pub use utils::raii::ResourceGuard;
+pub use security::AuditLogger;
 
 use std::sync::Arc;
 

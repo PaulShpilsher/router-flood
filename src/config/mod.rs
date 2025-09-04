@@ -20,6 +20,7 @@ pub struct Config {
     pub safety: Safety,
     pub monitoring: Monitoring,
     pub export: Export,
+    pub audit: Audit,
 }
 
 /// Target configuration
@@ -111,6 +112,13 @@ pub enum ExportFormat {
     Text,
 }
 
+/// Audit configuration
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Audit {
+    pub enabled: bool,
+    pub log_file: String,
+}
+
 impl Default for Config {
     fn default() -> Self {
         default_config()
@@ -174,6 +182,10 @@ pub fn default_config() -> Config {
             path: "./stats".to_string(),
             interval_seconds: DEFAULT_EXPORT_INTERVAL,
             include_system_stats: false,
+        },
+        audit: Audit {
+            enabled: true,
+            log_file: "router_flood_audit.log".to_string(),
         },
     }
 }

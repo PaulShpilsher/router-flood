@@ -146,6 +146,15 @@ pub fn parse_arguments() -> ArgMatches {
                 .action(clap::ArgAction::SetTrue)
                 .requires("dry-run"),
         )
+        .arg(
+            Arg::new("audit-log")
+                .long("audit-log")
+                .short('a')
+                .help("Path to audit log file")
+                .long_help("Specify a custom path for the audit log file.\nDefault: router_flood_audit.log")
+                .value_name("PATH")
+                .action(clap::ArgAction::Set),
+        )
         .get_matches()
 }
 
@@ -179,6 +188,11 @@ pub fn process_cli_config(matches: &ArgMatches, mut config: Config) -> Result<Co
     if let Some(export_format) = matches.get_one::<String>("export") {
         config.export.enabled = true;
         config.export.format = parse_export_format(export_format)?;
+    }
+    
+    // Handle audit log path
+    if let Some(audit_log) = matches.get_one::<String>("audit-log") {
+        config.audit.log_file = audit_log.clone();
     }
 
     // Handle dry-run flag

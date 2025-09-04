@@ -16,6 +16,7 @@ pub mod capabilities;
 pub mod threat_detection;
 pub mod validation;
 
+pub use audit::{AuditLogger, EventType};
 pub use capabilities::{
     Capabilities, 
     SecurityContext, 
