@@ -29,7 +29,7 @@ pub struct WorkerConfig {
 /// Worker with performance optimizations
 pub struct Worker {
     local_stats: BatchStats,
-    target: Arc<PortTarget>,
+    target_port: Arc<PortTarget>,
     target_ip: IpAddr,
     packet_builder: PacketBuilder,
     // Pre-allocated buffer for zero-copy
@@ -47,7 +47,7 @@ impl Worker {
     pub fn new(
         stats: Arc<Stats>,
         target_ip: IpAddr,
-        target: Arc<PortTarget>,
+        target_port: Arc<PortTarget>,
         config: WorkerConfig,
     ) -> Self {
         let packet_rate = config.packet_rate;
@@ -69,7 +69,7 @@ impl Worker {
         
         Self {
             local_stats,
-            target,
+            target_port,
             target_ip,
             packet_builder,
             buffer,
@@ -98,7 +98,7 @@ impl Worker {
     }
     
     async fn process_packet(&mut self) -> Result<()> {
-        let port = self.target.next_port();
+        let port = self.target_port.next_port();
         let packet_type = self.next_packet_type();
         
         // Try zero-copy build first

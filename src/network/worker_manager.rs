@@ -81,7 +81,7 @@ impl Workers {
         for task_id in 0..config.attack.threads {
             let running = running.clone();
             let stats = stats.clone();
-            let target = multi_port_target.clone();
+            let target_port = multi_port_target.clone();
             let packet_size_range = PacketSizeRange::new(config.attack.payload_size, config.attack.payload_size);
             let protocol_mix = config.target.protocol_mix.clone();
             let randomize_timing = false;  // Simplified for now
@@ -99,7 +99,7 @@ impl Workers {
             let mut worker = Worker::new(
                 stats,
                 target_ip,
-                target,
+                target_port,
                 worker_config,
             );
             
