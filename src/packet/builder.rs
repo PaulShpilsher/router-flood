@@ -18,12 +18,13 @@ pub struct PacketBuilder {
 impl PacketBuilder {
     /// Create a new packet builder with the given configuration
     pub fn new(packet_size_range: PacketSizeRange, protocol_mix: ProtocolMix) -> Self {
-        // Clamp packet sizes to reasonable limits (max 9000 bytes for jumbo frames)
+        // Clamp payload sizes to reasonable limits (max 9000 bytes for jumbo frames)
         // This prevents issues with oversized allocations while still supporting jumbo frames
-        const MAX_PACKET_SIZE: usize = 9000;
+        // Note: This is the payload size only; actual packet will include protocol headers
+        const MAX_PAYLOAD_SIZE: usize = 9000;
         let clamped_range = PacketSizeRange::new(
-            packet_size_range.min.min(MAX_PACKET_SIZE),
-            packet_size_range.max.min(MAX_PACKET_SIZE),
+            packet_size_range.min.min(MAX_PAYLOAD_SIZE),
+            packet_size_range.max.min(MAX_PAYLOAD_SIZE),
         );
         
         let mut strategies: HashMap<PacketType, Box<dyn PacketStrategy>> = HashMap::new();
