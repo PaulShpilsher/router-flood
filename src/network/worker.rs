@@ -10,7 +10,7 @@ use std::time::Duration;
 use tokio::time;
 
 use crate::stats::{Stats, BatchStats};
-use crate::network::target::MultiPortTarget;
+use crate::network::target::PortTarget;
 use crate::packet::{PacketBuilder, PacketType};
 use crate::config::ProtocolMix;
 use crate::packet::PacketSizeRange;
@@ -29,7 +29,7 @@ pub struct WorkerConfig {
 /// Worker with performance optimizations
 pub struct Worker {
     local_stats: BatchStats,
-    target: Arc<MultiPortTarget>,
+    target: Arc<PortTarget>,
     target_ip: IpAddr,
     packet_builder: PacketBuilder,
     // Pre-allocated buffer for zero-copy
@@ -47,7 +47,7 @@ impl Worker {
     pub fn new(
         stats: Arc<Stats>,
         target_ip: IpAddr,
-        target: Arc<MultiPortTarget>,
+        target: Arc<PortTarget>,
         config: WorkerConfig,
     ) -> Self {
         let packet_rate = config.packet_rate;

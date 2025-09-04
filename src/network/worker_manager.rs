@@ -12,7 +12,7 @@ use tracing::{info, warn};
 use crate::config::Config;
 use crate::error::{RouterFloodError, Result};
 use crate::stats::Stats;
-use crate::network::target::MultiPortTarget;
+use crate::network::target::PortTarget;
 use crate::network::worker::{Worker, WorkerConfig};
 use crate::packet::PacketSizeRange;
 use crate::performance::cpu_affinity::CpuAffinity;
@@ -29,7 +29,7 @@ impl Workers {
     pub fn new(
         config: &Config,
         stats: Arc<Stats>,
-        multi_port_target: Arc<MultiPortTarget>,
+        multi_port_target: Arc<PortTarget>,
         target_ip: IpAddr,
         _interface: Option<&pnet::datalink::NetworkInterface>,
         _dry_run: bool,
@@ -70,7 +70,7 @@ impl Workers {
         config: &Config,
         stats: Arc<Stats>,
         running: Arc<AtomicBool>,
-        multi_port_target: Arc<MultiPortTarget>,
+        multi_port_target: Arc<PortTarget>,
         target_ip: IpAddr,
         cpu_affinity: Option<Arc<CpuAffinity>>,
     ) -> Result<Vec<JoinHandle<()>>> {

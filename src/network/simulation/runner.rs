@@ -14,7 +14,7 @@ use crate::error::{RouterFloodError, Result};
 use crate::system_monitor::SystemMonitor;
 use crate::network::{find_interface_by_name, default_interface};
 use crate::stats::Stats;
-use crate::network::target::MultiPortTarget;
+use crate::network::target::PortTarget;
 use crate::network::worker_manager::Workers;
 
 /// Network interface setup
@@ -137,7 +137,7 @@ impl Simulation {
         monitoring.spawn_all();
         
         // Create and start workers
-        let multi_port_target = Arc::new(MultiPortTarget::new(self.config.target.ports.clone()));
+        let multi_port_target = Arc::new(PortTarget::new(self.config.target.ports.clone()));
         let worker_manager = Workers::new(
             &self.config,
             Arc::clone(&self.stats),

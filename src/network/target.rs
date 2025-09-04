@@ -1,13 +1,13 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
-/// Multi-port target manager for round-robin port selection
-pub struct MultiPortTarget {
+/// Target port manager for round-robin port selection
+pub struct PortTarget {
     ports: Vec<u16>,
     current_index: Arc<AtomicUsize>,
 }
 
-impl MultiPortTarget {
+impl PortTarget {
     pub fn new(ports: Vec<u16>) -> Self {
         Self {
             ports,

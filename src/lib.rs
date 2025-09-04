@@ -45,7 +45,7 @@ pub mod error;
 pub use config::{Config, Target, LoadConfig, Safety, Monitoring, Export, ExportFormat, ProtocolMix};
 pub use network::simulation::Simulation;
 pub use network::worker_manager::Workers;
-pub use network::target::MultiPortTarget;
+pub use network::target::PortTarget;
 pub use error::{Result, RouterFloodError};
 pub use packet::{PacketBuilder, PacketStrategy, PacketType, PacketTarget};
 pub use stats::Stats;

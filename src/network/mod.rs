@@ -11,7 +11,7 @@ pub mod worker_manager;
 
 // Re-export commonly used types
 pub use simulation::Simulation;
-pub use target::MultiPortTarget;
+pub use target::PortTarget;
 pub use worker_manager::Workers;
 
 // Network interface utilities
