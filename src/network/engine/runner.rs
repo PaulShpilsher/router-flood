@@ -1,4 +1,4 @@
-//! Simulation orchestration and lifecycle management
+//! Engine and lifecycle management for network operations
 
 use std::net::IpAddr;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -98,8 +98,8 @@ impl MonitoringTasks {
     }
 }
 
-/// Main simulation controller
-pub struct Simulation {
+/// Main engine that drives the network operations
+pub struct Engine {
     config: Config,
     target_ip: IpAddr,
     selected_interface: Option<pnet::datalink::NetworkInterface>,
@@ -108,7 +108,7 @@ pub struct Simulation {
     audit_logger: AuditLogger,
 }
 
-impl Simulation {
+impl Engine {
     pub fn new(
         config: Config,
         target_ip: IpAddr,
@@ -132,7 +132,7 @@ impl Simulation {
     
     pub async fn run(self) -> Result<()> {
         // Setup
-        // Log simulation start
+        // Log operation start
         if let Err(e) = self.audit_logger.log_event(
             EventType::SimulationStart,
             &self.target_ip,
@@ -146,7 +146,7 @@ impl Simulation {
             warn!("Failed to create audit log entry: {}", e);
         }
         
-        self.print_simulation_info();
+        self.print_operation_info();
         
         // Start monitoring
         let monitoring = MonitoringTasks::new(Arc::clone(&self.stats), self.config.clone(), Arc::clone(&self.running));
@@ -182,7 +182,7 @@ impl Simulation {
             error!("Worker error: {}", e);
         }
         
-        self.finalize_simulation().await?;
+        self.finalize_operation().await?;
         Ok(())
     }
     
@@ -194,14 +194,14 @@ impl Simulation {
         }
     }
     
-    fn print_simulation_info(&self) {
+    fn print_operation_info(&self) {
         let version = env!("CARGO_PKG_VERSION");
         
         if self.config.safety.dry_run {
-            info!("🔍 Starting Enhanced Router Flood SIMULATION v{} (DRY-RUN)", version);
+            info!("🔍 Starting Router Flood Engine v{} (DRY-RUN)", version);
             info!("   ⚠️  DRY-RUN MODE: No actual packets will be sent!");
         } else {
-            info!("🚀 Starting Enhanced Router Flood Simulation v{}", version);
+            info!("🚀 Starting Router Flood Engine v{}", version);
         }
         
         info!("   Session ID: {}", self.stats.session_id);
@@ -235,10 +235,10 @@ impl Simulation {
         println!();
     }
     
-    async fn finalize_simulation(&self) -> Result<()> {
+    async fn finalize_operation(&self) -> Result<()> {
         time::sleep(GRACEFUL_SHUTDOWN_TIMEOUT).await;
         
-        // Log simulation stop
+        // Log operation stop
         if let Err(e) = self.audit_logger.log_event(
             EventType::SimulationStop,
             &self.target_ip,
@@ -253,7 +253,7 @@ impl Simulation {
         }
         
         if self.config.safety.dry_run {
-            info!("📈 Final Simulation Statistics (DRY-RUN):");
+            info!("📈 Final Operation Statistics (DRY-RUN):");
         } else {
             info!("📈 Final Statistics:");
         }
@@ -271,10 +271,10 @@ impl Simulation {
             }
         
         if self.config.safety.dry_run {
-            info!("✅ Simulation completed successfully (NO PACKETS SENT)");
+            info!("✅ Operation completed successfully (NO PACKETS SENT)");
             info!("📋 Dry-run mode: Configuration validated, packet generation tested");
         } else {
-            info!("✅ Simulation completed successfully");
+            info!("✅ Operation completed successfully");
         }
         
         Ok(())

@@ -1,7 +1,7 @@
 //! Command-line interface handling
 //!
 //! This module handles all CLI argument parsing, validation, and help text
-//! generation, keeping main.rs focused on orchestration.
+//! generation, keeping main.rs focused on engine control.
 
 use clap::{Arg, ArgMatches, Command};
 use std::str::FromStr;

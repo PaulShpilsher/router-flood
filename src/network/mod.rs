@@ -5,12 +5,12 @@
 use pnet::datalink::{self, NetworkInterface};
 
 pub mod worker;
-pub mod simulation;
+pub mod engine;
 pub mod target;
 pub mod worker_manager;
 
 // Re-export commonly used types
-pub use simulation::Simulation;
+pub use engine::Engine;
 pub use target::PortTarget;
 pub use worker_manager::Workers;
 

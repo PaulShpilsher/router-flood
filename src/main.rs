@@ -30,7 +30,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use router_flood::cli::{handle_pre_execution_commands, parse_arguments, process_cli_config};
 use router_flood::config::{default_config, load_config};
 use router_flood::error::{Result, display_user_friendly_error};
-use router_flood::network::simulation::{setup_network_interface, Simulation};
+use router_flood::network::engine::{setup_network_interface, Engine};
 use router_flood::utils::terminal::TerminalGuard;
 use router_flood::ui::display_startup_banner;
 use router_flood::security::validation::{validate_comprehensive_security, validate_system_requirements};
@@ -99,9 +99,9 @@ async fn run_application() -> Result<()> {
         // Continue without terminal control - this is not critical
     }).ok();
 
-    // Create and run simulation
-    let simulation = Simulation::new(config, target_ip, selected_interface);
-    simulation.run().await?;
+    // Create and run engine
+    let engine = Engine::new(config, target_ip, selected_interface);
+    engine.run().await?;
 
     Ok(())
 }

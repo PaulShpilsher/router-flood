@@ -116,6 +116,10 @@ proptest! {
                 interval_seconds: 60,
                 include_system_stats: false,
             },
+            audit: router_flood::config::Audit {
+                enabled: false,
+                log_file: "/tmp/audit.log".to_string(),
+            },
         };
         
         // Validation should handle any input gracefully

@@ -43,7 +43,7 @@ pub mod error;
 
 // Re-export key types
 pub use config::{Config, Target, LoadConfig, Safety, Monitoring, Export, ExportFormat, ProtocolMix, Audit};
-pub use network::simulation::Simulation;
+pub use network::engine::Engine;
 pub use network::worker_manager::Workers;
 pub use network::target::PortTarget;
 pub use error::{Result, RouterFloodError};
