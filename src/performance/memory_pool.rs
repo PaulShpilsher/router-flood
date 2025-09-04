@@ -43,6 +43,7 @@ impl MemoryBlock {
     }
     
     /// Get the data pointer
+    #[inline(always)]
     fn as_ptr(&self) -> *mut u8 {
         self.data.as_ptr()
     }
@@ -252,26 +253,31 @@ pub struct PooledMemory<'a> {
 
 impl<'a> PooledMemory<'a> {
     /// Get the data as a mutable slice
+    #[inline]
     pub fn as_mut_slice(&mut self) -> &mut [u8] {
         unsafe { std::slice::from_raw_parts_mut(self.data, self.size) }
     }
     
     /// Get the data as a slice
+    #[inline]
     pub fn as_slice(&self) -> &[u8] {
         unsafe { std::slice::from_raw_parts(self.data, self.size) }
     }
     
     /// Get the size
+    #[inline(always)]
     pub fn size(&self) -> usize {
         self.size
     }
     
     /// Get the data pointer
+    #[inline(always)]
     pub fn as_ptr(&self) -> *const u8 {
         self.data
     }
     
     /// Get the mutable data pointer
+    #[inline(always)]
     pub fn as_mut_ptr(&mut self) -> *mut u8 {
         self.data
     }
@@ -392,6 +398,7 @@ impl Memory {
     }
     
     /// Find the appropriate size class for the given size
+    #[inline]
     fn find_size_class(&self, size: usize) -> Option<usize> {
         self.size_classes.iter().position(|&class_size| class_size >= size)
     }
@@ -429,6 +436,7 @@ enum MemoryType<'a> {
 
 impl<'a> ManagedMemory<'a> {
     /// Create heap-allocated memory
+    #[inline]
     pub fn heap(size: usize) -> Self {
         Self {
             inner: MemoryType::Heap(vec![0; size]),
@@ -436,6 +444,7 @@ impl<'a> ManagedMemory<'a> {
     }
     
     /// Get the data as a mutable slice
+    #[inline]
     pub fn as_mut_slice(&mut self) -> &mut [u8] {
         match &mut self.inner {
             MemoryType::Pooled(memory) => memory.as_mut_slice(),
@@ -444,6 +453,7 @@ impl<'a> ManagedMemory<'a> {
     }
     
     /// Get the data as a slice
+    #[inline]
     pub fn as_slice(&self) -> &[u8] {
         match &self.inner {
             MemoryType::Pooled(memory) => memory.as_slice(),
@@ -452,6 +462,7 @@ impl<'a> ManagedMemory<'a> {
     }
     
     /// Get the size
+    #[inline]
     pub fn size(&self) -> usize {
         match &self.inner {
             MemoryType::Pooled(memory) => memory.size(),
@@ -460,6 +471,7 @@ impl<'a> ManagedMemory<'a> {
     }
     
     /// Check if this is pooled memory
+    #[inline(always)]
     pub fn is_pooled(&self) -> bool {
         matches!(self.inner, MemoryType::Pooled(_))
     }

@@ -11,12 +11,24 @@ pub use cpu_affinity::{CpuAffinity, CpuTopology};
 pub use memory_pool::{LockFreeMemoryPool, Memory, ManagedMemory, PoolStats};
 
 // Simple SIMD utilities for packet payload generation
+/// 
+/// SIMD (Single Instruction, Multiple Data) optimizations for bulk operations.
+/// These functions use CPU vector instructions to process multiple bytes at once.
 pub mod simd {
     use crate::error::Result;
     
+    // Performance strategy:
+    // - AVX2 processes 32 bytes per instruction (256-bit vectors)
+    // - This is ~8-16x faster than byte-by-byte operations
+    // - Runtime CPU feature detection ensures compatibility
+    // - Fallback to scalar implementation on older CPUs
+    
+    
     /// Fill buffer with random data using SIMD when available
     #[cfg(target_arch = "x86_64")]
+    #[inline]
     pub fn fill_random(buffer: &mut [u8]) -> Result<()> {
+
         // Use AVX2 if available
         if is_x86_feature_detected!("avx2") {
             unsafe { fill_random_avx2(buffer) }
@@ -26,10 +38,12 @@ pub mod simd {
     }
     
     #[cfg(not(target_arch = "x86_64"))]
+    #[inline]
     pub fn fill_random(buffer: &mut [u8]) -> Result<()> {
         fill_random_scalar(buffer)
     }
     
+    #[inline(never)]  // Don't inline - this is the fallback path
     fn fill_random_scalar(buffer: &mut [u8]) -> Result<()> {
         use rand::Rng;
         let mut rng = rand::thread_rng();
@@ -39,6 +53,7 @@ pub mod simd {
     
     #[cfg(target_arch = "x86_64")]
     #[target_feature(enable = "avx2")]
+    #[inline]  // Inline for performance when AVX2 is available
     unsafe fn fill_random_avx2(buffer: &mut [u8]) -> Result<()> {
         use std::arch::x86_64::*;
         use rand::Rng;
