@@ -2,27 +2,63 @@
 //!
 //! This module provides CPU affinity management and NUMA-aware optimizations
 //! for high-performance packet generation workloads.
+//!
+//! ## Key Concepts:
+//!
+//! **CPU Affinity**: Binding a thread to specific CPU cores to reduce context switching
+//! and improve cache locality. This prevents the OS scheduler from moving threads
+//! between cores, which can cause cache misses and performance degradation.
+//!
+//! **NUMA (Non-Uniform Memory Access)**: Modern multi-socket systems where each CPU
+//! socket has its own local memory. Accessing local memory is faster than remote memory.
+//! Proper NUMA awareness can significantly improve performance.
+//!
+//! **Hyperthreading**: Intel's SMT technology where each physical core appears as
+//! two logical cores. For CPU-intensive workloads, using only physical cores
+//! often provides better performance.
 
 use crate::error::{SystemError, Result};
 use std::collections::HashMap;
 use std::fs;
 use std::thread;
 
+// Note on libc usage:
+// We use libc for direct system call access to CPU affinity functions.
+// These are thin wrappers around Linux kernel syscalls:
+// - sched_setaffinity: Binds threads to specific CPUs
+// - CPU_SET/CPU_ZERO: Macros for manipulating CPU bitmasks
+// The 'unsafe' blocks are required because we're directly calling C functions
+// that can potentially violate Rust's memory safety guarantees.
+
 /// CPU topology information
+///
+/// Represents the physical layout of CPUs in the system, including
+/// NUMA topology and hyperthreading configuration.
 #[derive(Debug, Clone)]
 pub struct CpuTopology {
+    /// Total number of logical CPUs (includes hyperthreads)
     pub total_cpus: usize,
+    /// List of NUMA nodes in the system
     pub numa_nodes: Vec<NumaNode>,
+    /// Maps CPU ID to its NUMA node for quick lookups
     pub cpu_to_node: HashMap<usize, usize>,
+    /// Whether SMT/Hyperthreading is enabled (logical cores > physical cores)
     pub hyperthreading_enabled: bool,
 }
 
 /// NUMA node information
+///
+/// Represents a NUMA domain - a group of CPUs with shared local memory.
+/// Memory access within a NUMA node is faster than cross-node access.
 #[derive(Debug, Clone)]
 pub struct NumaNode {
+    /// NUMA node identifier (typically 0, 1, 2, ...)
     pub node_id: usize,
+    /// List of CPU IDs belonging to this NUMA node
     pub cpus: Vec<usize>,
+    /// Total memory available on this node (in bytes)
     pub memory_total: Option<u64>,
+    /// Free memory on this node (in bytes)
     pub memory_free: Option<u64>,
 }
 
@@ -31,6 +67,7 @@ pub struct CpuAffinity {
     topology: CpuTopology,
     worker_assignments: HashMap<usize, usize>, // worker_id -> cpu_id
 }
+
 
 impl CpuAffinity {
     /// Create a new CPU affinity manager
@@ -42,12 +79,24 @@ impl CpuAffinity {
         })
     }
 
+
     /// Get CPU topology information
     pub fn topology(&self) -> &CpuTopology {
         &self.topology
     }
 
+
     /// Assign workers to CPUs for optimal performance
+    ///
+    /// Distribution strategy:
+    /// 1. Prefer physical cores over hyperthreads (better for CPU-intensive work)
+    /// 2. Distribute across NUMA nodes (balance memory bandwidth)
+    /// 3. Round-robin assignment if workers > available CPUs
+    ///
+    /// Example on a 2-socket, 8-core system with hyperthreading:
+    /// - Physical cores: 0,2,4,6 (socket 0), 8,10,12,14 (socket 1)
+    /// - Workers 0-7 get one physical core each
+    /// - Worker 8+ would reuse cores (round-robin)
     pub fn assign_workers(&mut self, num_workers: usize) -> Result<Vec<CpuAssignment>> {
         let mut assignments = Vec::new();
         
@@ -55,11 +104,15 @@ impl CpuAffinity {
             return Ok(assignments);
         }
 
-        // Strategy: Distribute workers across NUMA nodes and avoid hyperthreads
+        // Get optimal CPU list (physical cores first, distributed across NUMA nodes)
         let available_cpus = self.get_optimal_cpu_list();
         
         for worker_id in 0..num_workers {
+           
+            // Round-robin assignment using modulo
             let cpu_id = available_cpus[worker_id % available_cpus.len()];
+            
+            // Lookup which NUMA node this CPU belongs to
             let numa_node = self.topology.cpu_to_node.get(&cpu_id).copied().unwrap_or(0);
             
             self.worker_assignments.insert(worker_id, cpu_id);
@@ -75,6 +128,7 @@ impl CpuAffinity {
         Ok(assignments)
     }
 
+
     /// Set CPU affinity for the current thread
     pub fn set_thread_affinity(&self, cpu_id: usize) -> Result<()> {
         #[cfg(target_os = "linux")]
@@ -89,6 +143,9 @@ impl CpuAffinity {
     }
 
     /// Set CPU affinity on Linux using sched_setaffinity
+    ///
+    /// Uses the Linux sched_setaffinity system call to bind the current thread
+    /// to a specific CPU. This is a direct interface to the kernel scheduler.
     #[cfg(target_os = "linux")]
     fn set_linux_affinity(&self, cpu_id: usize) -> Result<()> {
         use std::mem;
@@ -99,18 +156,22 @@ impl CpuAffinity {
             ).into());
         }
 
-        // Create CPU set with only the specified CPU
+        // Create CPU set - a bitmask where each bit represents a CPU
+        // cpu_set_t is typically 1024 bits, supporting systems with up to 1024 CPUs
         let mut cpu_set: libc::cpu_set_t = unsafe { mem::zeroed() };
+        
+        // Set bit corresponding to our target CPU
+        // CPU_SET is a macro that sets bit 'cpu_id' in the cpu_set bitmask
         unsafe {
             libc::CPU_SET(cpu_id, &mut cpu_set);
         }
 
-        // Set affinity for current thread
+        // tell kernel scheduler to only run this thread on the specified CPU
         let result = unsafe {
             libc::sched_setaffinity(
-                0, // Current thread
-                mem::size_of::<libc::cpu_set_t>(),
-                &cpu_set,
+                0, // PID 0 means current thread/process
+                mem::size_of::<libc::cpu_set_t>(), // Size of the CPU set structure
+                &cpu_set, // Pointer to our CPU bitmask
             )
         };
 
@@ -124,15 +185,23 @@ impl CpuAffinity {
         Ok(())
     }
 
+
     /// Get optimal CPU list avoiding hyperthreads when possible
+    ///
+    /// Strategy: Prefer physical cores over logical cores (hyperthreads)
+    /// because hyperthreads share execution units and can cause contention
+    /// in CPU-intensive workloads like packet generation.
     fn get_optimal_cpu_list(&self) -> Vec<usize> {
         let mut cpus = Vec::new();
         
         if self.topology.hyperthreading_enabled {
-            // Try to use only physical cores (even numbered CPUs typically)
+
+            // Linux typically assigns CPUs as: 0,2,4,6 = physical cores
+            //                                  1,3,5,7 = their hyperthreads
+            // This is a heuristic - actual layout varies by system
             for node in &self.topology.numa_nodes {
                 for &cpu in &node.cpus {
-                    if cpu % 2 == 0 { // Heuristic: even CPUs are often physical cores
+                    if cpu % 2 == 0 { // Even CPUs are typically physical cores
                         cpus.push(cpu);
                     }
                 }
@@ -159,7 +228,13 @@ impl CpuAffinity {
         cpus
     }
 
+
     /// Detect CPU topology from /proc and /sys
+    ///
+    /// Linux exposes CPU topology through virtual filesystems:
+    /// - /proc/cpuinfo: Contains detailed CPU information
+    /// - /sys/devices/system/node/: Contains NUMA topology
+    /// - /sys/devices/system/cpu/: Contains CPU topology details
     fn detect_cpu_topology() -> Result<CpuTopology> {
         let total_cpus = Self::get_cpu_count()?;
         let numa_nodes = Self::detect_numa_nodes(total_cpus)?;
@@ -173,6 +248,7 @@ impl CpuAffinity {
             hyperthreading_enabled,
         })
     }
+
 
     /// Get total CPU count
     fn get_cpu_count() -> Result<usize> {
@@ -191,10 +267,16 @@ impl CpuAffinity {
     }
 
     /// Detect NUMA nodes
+    ///
+    /// NUMA nodes are exposed as directories under /sys/devices/system/node/
+    /// Each nodeN directory contains:
+    /// - cpulist: CPUs belonging to this node
+    /// - meminfo: Memory information for this node
+    /// - distance: NUMA distances to other nodes
     fn detect_numa_nodes(total_cpus: usize) -> Result<Vec<NumaNode>> {
         let mut nodes = Vec::new();
         
-        // Try to read NUMA information from /sys/devices/system/node/
+        // Each NUMA node appears as /sys/devices/system/node/nodeN
         if let Ok(entries) = fs::read_dir("/sys/devices/system/node/") {
             for entry in entries.flatten() {
                 let name = entry.file_name();
@@ -215,7 +297,8 @@ impl CpuAffinity {
             }
         }
         
-        // Fallback: create single node with all CPUs
+        // Fallback for non-NUMA systems (UMA - Uniform Memory Access)
+        // or when NUMA information is not available (e.g., in containers)
         if nodes.is_empty() {
             nodes.push(NumaNode {
                 node_id: 0,
@@ -228,6 +311,7 @@ impl CpuAffinity {
         Ok(nodes)
     }
 
+
     /// Get CPUs for a specific NUMA node
     fn get_node_cpus(node_id: usize) -> Option<Vec<usize>> {
         let cpulist_path = format!("/sys/devices/system/node/node{}/cpulist", node_id);
@@ -236,7 +320,13 @@ impl CpuAffinity {
         Self::parse_cpu_list(cpulist.trim())
     }
 
+
     /// Parse CPU list format (e.g., "0-3,8-11")
+    ///
+    /// Linux uses a compact format for CPU lists:
+    /// - Single CPUs: "0,1,2"
+    /// - Ranges: "0-3" means CPUs 0,1,2,3
+    /// - Mixed: "0-3,8-11" means CPUs 0,1,2,3,8,9,10,11
     fn parse_cpu_list(cpulist: &str) -> Option<Vec<usize>> {
         let mut cpus = Vec::new();
         
@@ -255,6 +345,13 @@ impl CpuAffinity {
     }
 
     /// Get memory information for a NUMA node
+    ///
+    /// Reads from /sys/devices/system/node/nodeN/meminfo which contains:
+    /// - MemTotal: Total memory on this NUMA node
+    /// - MemFree: Currently free memory on this node
+    /// - MemUsed: Memory in use (not always present)
+    ///
+    /// This helps identify memory pressure on specific NUMA nodes.
     fn get_node_memory(node_id: usize) -> (Option<u64>, Option<u64>) {
         let meminfo_path = format!("/sys/devices/system/node/node{}/meminfo", node_id);
         
@@ -299,7 +396,14 @@ impl CpuAffinity {
         map
     }
 
+
     /// Detect if hyperthreading is enabled
+    ///
+    /// Compares physical core count with logical processor count.
+    /// In /proc/cpuinfo:
+    /// - "processor": Logical CPU ID (includes hyperthreads)
+    /// - "core id": Physical core ID (unique per physical core)
+    /// If logical > physical, hyperthreading is enabled.
     fn detect_hyperthreading() -> Result<bool> {
         let cpuinfo = fs::read_to_string("/proc/cpuinfo")
             .map_err(|e| SystemError::resource_unavailable("CPU", format!("Failed to read /proc/cpuinfo: {}", e)))?;
@@ -309,7 +413,7 @@ impl CpuAffinity {
         
         for line in cpuinfo.lines() {
             if line.starts_with("processor") {
-                logical_cores += 1;
+                logical_cores += 1;  // Count logical processors
             } else if line.starts_with("core id")
                 && let Some(core_id) = line.split(':').nth(1)
                     && let Ok(id) = core_id.trim().parse::<usize>() {
@@ -320,10 +424,15 @@ impl CpuAffinity {
         Ok(logical_cores > physical_cores.len())
     }
 
+
     /// Get performance recommendations
+    ///
+    /// Analyzes the system topology and workload configuration to provide
+    /// actionable performance tuning suggestions.
     pub fn get_performance_recommendations(&self, num_workers: usize) -> Vec<String> {
         let mut recommendations = Vec::new();
         
+        // Over-subscription causes context switching overhead
         if num_workers > self.topology.total_cpus {
             recommendations.push(format!(
                 "Consider reducing worker count from {} to {} (number of CPUs)",
@@ -364,7 +473,9 @@ pub struct CpuAssignment {
 }
 
 impl Default for CpuAffinity {
+
     fn default() -> Self {
+
         Self::new().unwrap_or_else(|_| {
             // Fallback if detection fails
             Self {
@@ -384,5 +495,3 @@ impl Default for CpuAffinity {
         })
     }
 }
-
-// Tests moved to tests/ directory
