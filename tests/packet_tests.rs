@@ -141,8 +141,9 @@ fn test_packet_size_constraints() {
     assert!(result.is_ok());
     
     let (packet, _) = result.unwrap();
-    // Packet includes headers, so might be slightly larger than payload size
-    assert!(packet.len() <= 128);  // Allow for headers
+    // Packet includes headers (IP + UDP = 28 bytes)
+    assert!(packet.len() >= 20 + 28);  // min payload + headers
+    assert!(packet.len() <= 64 + 28);  // max payload + headers
     
     // Test large packets
     let protocol_mix = ProtocolMix::default();
@@ -151,8 +152,9 @@ fn test_packet_size_constraints() {
     assert!(result.is_ok());
     
     let (packet, _) = result.unwrap();
-    assert!(packet.len() >= 1000);
-    assert!(packet.len() <= 1400);
+    // PacketSizeRange is for payload size, actual packet includes headers (IP + UDP = 28 bytes)
+    assert!(packet.len() >= 1000 + 28);  // min payload + headers
+    assert!(packet.len() <= 1400 + 28);  // max payload + headers
 }
 
 #[test]
