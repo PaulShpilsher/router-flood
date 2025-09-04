@@ -12,14 +12,19 @@
 //! # Example
 //!
 //! ```no_run
-//! use router_flood::{Config, Simulation};
+//! use router_flood::Config;
+//! use router_flood::network::engine::Engine;
 //! use std::net::IpAddr;
 //!
 //! # async fn example() -> router_flood::Result<()> {
 //! let config = Config::default();
 //! let target_ip: IpAddr = "192.168.1.1".parse().unwrap();
-//! let mut simulation = Simulation::new(config, target_ip, None);
-//! simulation.run().await?;
+//! let interface = pnet::datalink::interfaces()
+//!     .into_iter()
+//!     .find(|i| i.is_up() && !i.is_loopback())
+//!     .unwrap();
+//! let engine = Engine::new(config, target_ip, Some(interface));
+//! engine.run().await?;
 //! # Ok(())
 //! # }
 //! ```

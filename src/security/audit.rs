@@ -36,31 +36,30 @@ impl EventType {
 /// Audit logger with configurable output
 ///
 /// # Example Usage
-/// ```
-/// use router_flood::security::{AuditLogger, EventType};
+/// ```no_run
+/// use router_flood::security::audit::{AuditLogger, EventType};
 /// use router_flood::Config;
+/// use std::net::IpAddr;
 /// 
+/// # fn example() -> std::io::Result<()> {
 /// // Create from config
+/// let config = Config::default();
 /// let audit_logger = AuditLogger::from_config(&config);
 /// 
 /// // Or create with custom settings
 /// let audit_logger = AuditLogger::new(Some("/var/log/audit.log".to_string()), true);
 /// 
 /// // Log with typed event
-/// audit_logger.log_event(
-///     EventType::SimulationStart,
-///     &target_ip,
-///     &ports,
-///     threads,
-///     packet_rate,
-///     duration,
-///     interface,
-///     session_id,
-/// )?;
+/// let target_ip: IpAddr = "192.168.1.1".parse().unwrap();
+/// let ports = vec![80, 443];
+/// let threads = 4;
+/// let packet_rate = 1000;
+/// let duration = Some(60);
+/// let interface = Some("eth0");
+/// let session_id = "test-session";
 /// 
-/// // Or with custom event type
-/// audit_logger.create_entry(
-///     "custom_event",
+/// let _ = audit_logger.log_event(
+///     EventType::Start,
 ///     &target_ip,
 ///     &ports,
 ///     threads,
@@ -68,7 +67,9 @@ impl EventType {
 ///     duration,
 ///     interface,
 ///     session_id,
-/// )?;
+/// );
+/// # Ok(())
+/// # }
 /// ```
 pub struct AuditLogger {
     enabled: bool,
