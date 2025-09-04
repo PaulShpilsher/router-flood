@@ -2,6 +2,36 @@
 //!
 //! This module provides capability-based security instead of requiring full root privileges,
 //! following the principle of least privilege for enhanced security.
+//!
+//! ## libc Integration
+//! 
+//! This module uses libc for low-level system calls:
+//! - `libc::geteuid()` - Get effective user ID (determines current privileges)
+//! - `libc::getuid()` - Get real user ID (who started the process)
+//! 
+//! ## Linux Capabilities
+//! 
+//! Instead of the traditional Unix all-or-nothing superuser model, Linux divides
+//! root privileges into distinct capabilities that can be independently granted.
+//! 
+//! Key capabilities for networking:
+//! - CAP_NET_RAW (13): Create raw sockets, required for packet injection
+//! - CAP_NET_ADMIN (12): Configure network interfaces
+//! - CAP_SYS_ADMIN (21): Various system administration operations
+//! 
+//! Capabilities are stored as bitmasks in /proc/[pid]/status:
+//! - CapInh: Inheritable capabilities
+//! - CapPrm: Permitted capabilities
+//! - CapEff: Effective capabilities (what we can actually use)
+//! - CapBnd: Bounding set
+//! - CapAmb: Ambient capabilities
+//! 
+//! ## Security Model
+//! 
+//! 1. Check effective UID (0 = root, has all capabilities)
+//! 2. If not root, check specific capabilities via /proc
+//! 3. Grant minimal required capabilities: `setcap cap_net_raw+ep binary`
+//! 4. Drop privileges after initialization when possible
 
 use crate::error::{SystemError, ValidationError, Result};
 use std::fs;
@@ -9,11 +39,27 @@ use std::process;
 use tokio::io::AsyncWriteExt;
 
 /// Required Linux capabilities for network operations
+/// 
+/// Linux capabilities are a partitioning of the all-powerful root privilege into
+/// a set of distinct privileges. This allows giving a process some privileges
+/// without giving it all privileges.
+/// 
+/// Capability numbers are defined in /usr/include/linux/capability.h
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RequiredCapability {
-    /// CAP_NET_RAW - Required for raw socket creation
+    /// CAP_NET_RAW (13) - Required for raw socket creation
+    /// Permits:
+    /// - Use of RAW and PACKET sockets
+    /// - Bind to any address for transparent proxying
+    /// - Crafting packets at IP level
     NetRaw,
-    /// CAP_NET_ADMIN - Required for network interface manipulation
+    
+    /// CAP_NET_ADMIN (12) - Required for network interface manipulation  
+    /// Permits:
+    /// - Interface configuration (ifconfig, ip)
+    /// - Setting promiscuous mode
+    /// - Multicast configuration
+    /// - Setting interface MTU
     NetAdmin,
 }
 
@@ -46,7 +92,7 @@ impl Capabilities {
         &self.context
     }
 
-    /// Check if we have the required capabilities for network operations
+    /// Check if wecargo run -p heuristic-inference-engine -- --schema schema.poc.yaml --rules heuristic-inference-engine/rules/default_rules.yaml --plugins  heuristic-inference-engine/plugins/security_plugin.yaml --output schema.api.poc.yaml have the required capabilities for network operations
     pub fn has_required_capabilities(&self, dry_run: bool) -> Result<()> {
         if dry_run {
             // Dry run mode doesn't require any special capabilities
@@ -66,6 +112,12 @@ impl Capabilities {
     }
 
     /// Validate that we're not running as root unnecessarily
+    /// 
+    /// Security principle: Least privilege - processes should run with the minimum
+    /// privileges necessary to accomplish their task.
+    /// 
+    /// Root (UID 0) has ALL capabilities, which is dangerous. Better to grant only
+    /// the specific capability needed (CAP_NET_RAW) to a regular user process.
     pub fn validate_privilege_level(&self, dry_run: bool) -> Result<()> {
         if dry_run {
             // Dry run is safe regardless of privileges
@@ -77,14 +129,24 @@ impl Capabilities {
             eprintln!("⚠️  WARNING: Running as root user. Consider using capabilities instead:");
             eprintln!("   sudo setcap cap_net_raw+ep ./router-flood");
             eprintln!("   Then run as regular user for better security.");
+            eprintln!("   Why? Root can access ALL system resources. CAP_NET_RAW only grants");
+            eprintln!("   the ability to create raw sockets - much safer!");
         }
 
         Ok(())
     }
 
     /// Drop unnecessary privileges after initialization
+    /// 
+    /// Security best practice: After acquiring necessary resources (like raw sockets),
+    /// drop any privileges that are no longer needed to minimize attack surface.
+    /// 
+    /// In a full implementation, this would:
+    /// 1. Drop capabilities from the effective set: prctl(PR_CAPBSET_DROP, ...)
+    /// 2. Switch to a non-privileged user: setuid(non_root_uid)
+    /// 3. Clear the permitted and inheritable sets
     pub fn drop_privileges(&self) -> Result<()> {
-        // In a full implementation, this would drop capabilities we don't need
+        // TODO: Implement actual privilege dropping via libc::setuid() and prctl()
         // For now, we just validate the current state
         if self.context.effective_uid == 0 {
             eprintln!("💡 Consider running with minimal privileges using capabilities");
@@ -94,8 +156,18 @@ impl Capabilities {
 
     /// Detect the current security context
     fn detect_security_context() -> Result<SecurityContext> {
+        // libc::geteuid() - Get effective user ID
+        // The effective UID determines what privileges the process currently has.
+        // When a binary has the setuid bit set, effective_uid may differ from real_uid.
+        // Returns 0 for root, >0 for regular users.
         let effective_uid = unsafe { libc::geteuid() };
+        
+        // libc::getuid() - Get real user ID
+        // The real UID is the actual user who started the process.
+        // This helps detect if we're running with elevated privileges (setuid).
         let real_uid = unsafe { libc::getuid() };
+        
+        // Get the process ID for audit logging
         let process_id = process::id();
 
         // Try to detect capabilities
@@ -112,26 +184,47 @@ impl Capabilities {
     }
 
     /// Detect available Linux capabilities
+    /// 
+    /// Linux capabilities provide fine-grained privilege control, allowing processes
+    /// to have specific privileges without needing full root access.
     fn detect_capabilities() -> (bool, bool, bool) {
-        // Try to read capabilities from /proc/self/status
+        // /proc/self/status contains capability information for the current process
+        // Format: CapEff: <64-bit hex value>
+        // Each bit represents a capability (defined in linux/capability.h)
         if let Ok(status) = fs::read_to_string("/proc/self/status") {
-            let has_net_raw = Self::parse_capability(&status, "CapEff", 13); // CAP_NET_RAW = 13
-            let has_net_admin = Self::parse_capability(&status, "CapEff", 12); // CAP_NET_ADMIN = 12
+            // CAP_NET_RAW (13) - Allows creation of raw sockets and packet sockets
+            // Required for crafting custom network packets at the IP level
+            let has_net_raw = Self::parse_capability(&status, "CapEff", 13);
+            
+            // CAP_NET_ADMIN (12) - Allows network interface configuration
+            // Required for operations like setting promiscuous mode
+            let has_net_admin = Self::parse_capability(&status, "CapEff", 12);
+            
             return (has_net_raw, has_net_admin, true);
         }
 
         // Fallback: check if running as root
+        // If /proc is not available (rare), fall back to UID checking
+        // Root (UID 0) implicitly has all capabilities
         let effective_uid = unsafe { libc::geteuid() };
         let is_root = effective_uid == 0;
         (is_root, is_root, false)
     }
 
     /// Parse capability from /proc/self/status
+    /// 
+    /// The Linux kernel exports capability information as a 64-bit bitmask in hexadecimal.
+    /// Each capability is assigned a number (0-63), and the corresponding bit indicates
+    /// whether that capability is present.
+    /// 
+    /// Example /proc/self/status line:
+    /// CapEff: 0000000000003000  (has CAP_NET_ADMIN and CAP_NET_RAW)
     pub fn parse_capability(status: &str, cap_type: &str, cap_number: u8) -> bool {
         for line in status.lines() {
             if line.starts_with(cap_type)
                 && let Some(hex_caps) = line.split_whitespace().nth(1)
                     && let Ok(caps) = u64::from_str_radix(hex_caps, 16) {
+                        // Check if the bit for this capability is set
                         let cap_bit = 1u64 << cap_number;
                         return (caps & cap_bit) != 0;
                     }
@@ -165,6 +258,10 @@ impl Capabilities {
         if self.context.effective_uid == 0 {
             report.push_str("   • Consider using capabilities instead of root:\n");
             report.push_str("     sudo setcap cap_net_raw+ep ./router-flood\n");
+            report.push_str("     # Explanation of flags:\n");
+            report.push_str("     # cap_net_raw - The capability to grant\n");
+            report.push_str("     # +e - Add to effective set (active immediately)\n");
+            report.push_str("     # +p - Add to permitted set (can be activated)\n");
             report.push_str("   • Run as regular user after setting capabilities\n");
         } else if !self.context.has_net_raw {
             report.push_str("   • Grant CAP_NET_RAW capability:\n");
@@ -182,10 +279,13 @@ impl Default for Capabilities {
     fn default() -> Self {
         Self::new().unwrap_or_else(|_| {
             // Fallback security context if detection fails
+            // Even if capability detection fails, we can still get UIDs via libc
             Self {
                 context: SecurityContext {
                     has_net_raw: false,
                     has_net_admin: false,
+                    // Safe to call: geteuid/getuid are always available on POSIX systems
+                    // These are thin wrappers around system calls that cannot fail
                     effective_uid: unsafe { libc::geteuid() },
                     real_uid: unsafe { libc::getuid() },
                     process_id: process::id(),
