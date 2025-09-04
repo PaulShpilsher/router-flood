@@ -156,10 +156,12 @@ target:
   ip: "192.168.1.100"
   ports: [80, 443, 8080, 8443]
   protocol_mix:
-    udp_ratio: 0.3
-    tcp_syn_ratio: 0.3
-    tcp_ack_ratio: 0.2
-    icmp_ratio: 0.2
+    udp_ratio: 0.25         # 25% UDP packets
+    tcp_syn_ratio: 0.25     # 25% TCP SYN packets (new connections)
+    tcp_ack_ratio: 0.15     # 15% TCP ACK packets (established connections)
+    tcp_fin_ratio: 0.15     # 15% TCP FIN packets (connection closes)
+    tcp_rst_ratio: 0.10     # 10% TCP RST packets (connection resets)
+    icmp_ratio: 0.10        # 10% ICMP packets
 
 attack:
   threads: 8
@@ -185,7 +187,7 @@ audit:
 
 ### Protocol mix configuration
 
-Control the distribution of packet types:
+Control the distribution of packet types. The tool supports comprehensive TCP packet types for realistic network traffic simulation:
 
 ```yaml
 # protocol-mix.yaml
@@ -193,11 +195,26 @@ target:
   ip: "192.168.1.1"
   ports: [80, 443]
   protocol_mix:
-    udp_ratio: 0.4      # 40% UDP packets
-    tcp_syn_ratio: 0.3   # 30% TCP SYN packets
-    tcp_ack_ratio: 0.2   # 20% TCP ACK packets
-    icmp_ratio: 0.1      # 10% ICMP packets
+    udp_ratio: 0.25         # 25% UDP packets
+    tcp_syn_ratio: 0.25     # 25% TCP SYN packets (new connections)
+    tcp_ack_ratio: 0.15     # 15% TCP ACK packets (established connections)
+    tcp_fin_ratio: 0.15     # 15% TCP FIN packets (connection closes)
+    tcp_rst_ratio: 0.10     # 10% TCP RST packets (connection resets)
+    icmp_ratio: 0.10        # 10% ICMP packets
+    custom_ratio: 0.0       # 0% custom packets
 ```
+
+**TCP Packet Types:**
+- **TCP SYN**: Simulates new connection attempts (connection establishment)
+- **TCP ACK**: Simulates established connections with data transfer
+- **TCP FIN**: Simulates graceful connection termination
+- **TCP RST**: Simulates abrupt connection resets (error conditions)
+
+**Use Cases:**
+- **SYN packets**: Test connection handling capacity, SYN flood protection
+- **ACK packets**: Test data processing under established connections
+- **FIN packets**: Test graceful shutdown handling and resource cleanup
+- **RST packets**: Test error handling and resource recovery
 
 ## Common Scenarios
 
@@ -237,8 +254,12 @@ target:
   ip: "192.168.1.53"
   ports: [53]
   protocol_mix:
-    udp_ratio: 0.8
-    tcp_syn_ratio: 0.2
+    udp_ratio: 0.70         # 70% UDP packets (DNS queries)
+    tcp_syn_ratio: 0.15     # 15% TCP SYN packets
+    tcp_ack_ratio: 0.10     # 10% TCP ACK packets
+    tcp_fin_ratio: 0.03     # 3% TCP FIN packets
+    tcp_rst_ratio: 0.02     # 2% TCP RST packets
+    icmp_ratio: 0.0         # 0% ICMP packets
 attack:
   threads: 4
   packet_rate: 3000

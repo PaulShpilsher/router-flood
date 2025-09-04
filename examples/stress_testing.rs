@@ -131,9 +131,11 @@ fn main() -> Result<()> {
     // Scenario 7: Custom Protocol Mix
     println!("7. Custom Protocol Mix for Realistic Traffic:");
     let realistic_mix = ProtocolMix {
-        udp_ratio: 0.3,      // 30% UDP (DNS, streaming)
-        tcp_syn_ratio: 0.4,   // 40% TCP SYN (new connections)
-        tcp_ack_ratio: 0.25,  // 25% TCP ACK (established connections)
+        udp_ratio: 0.25,      // 25% UDP (DNS, streaming)
+        tcp_syn_ratio: 0.25,  // 25% TCP SYN (new connections)
+        tcp_ack_ratio: 0.20,  // 20% TCP ACK (established connections)
+        tcp_fin_ratio: 0.15,  // 15% TCP FIN (connection closes)
+        tcp_rst_ratio: 0.10,  // 10% TCP RST (connection resets)
         icmp_ratio: 0.05,     // 5% ICMP (ping, traceroute)
         custom_ratio: 0.0,
     };
@@ -141,6 +143,8 @@ fn main() -> Result<()> {
     println!("   UDP: {}% - Simulates DNS, VoIP, streaming", (realistic_mix.udp_ratio * 100.0) as u8);
     println!("   TCP SYN: {}% - New connection attempts", (realistic_mix.tcp_syn_ratio * 100.0) as u8);
     println!("   TCP ACK: {}% - Established connections", (realistic_mix.tcp_ack_ratio * 100.0) as u8);
+    println!("   TCP FIN: {}% - Graceful connection closes", (realistic_mix.tcp_fin_ratio * 100.0) as u8);
+    println!("   TCP RST: {}% - Abrupt connection resets", (realistic_mix.tcp_rst_ratio * 100.0) as u8);
     println!("   ICMP: {}% - Network diagnostics", (realistic_mix.icmp_ratio * 100.0) as u8);
     println!();
     

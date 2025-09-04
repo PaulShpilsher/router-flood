@@ -45,6 +45,14 @@ impl PacketBuilder {
             Box::new(super::protocols::TcpStrategy::new_ack(&mut rng)),
         );
         strategies.insert(
+            PacketType::TcpFin,
+            Box::new(super::protocols::TcpStrategy::new_fin(&mut rng)),
+        );
+        strategies.insert(
+            PacketType::TcpRst,
+            Box::new(super::protocols::TcpStrategy::new_rst(&mut rng)),
+        );
+        strategies.insert(
             PacketType::Icmp,
             Box::new(super::protocols::IcmpStrategy::new(&mut rng)),
         );
@@ -173,6 +181,16 @@ impl ProtocolSelector {
                 cumulative += self.protocol_mix.tcp_ack_ratio;
                 if rand_val < cumulative {
                     return PacketType::TcpAck;
+                }
+
+                cumulative += self.protocol_mix.tcp_fin_ratio;
+                if rand_val < cumulative {
+                    return PacketType::TcpFin;
+                }
+
+                cumulative += self.protocol_mix.tcp_rst_ratio;
+                if rand_val < cumulative {
+                    return PacketType::TcpRst;
                 }
 
                 cumulative += self.protocol_mix.icmp_ratio;

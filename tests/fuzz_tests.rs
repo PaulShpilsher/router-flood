@@ -16,16 +16,20 @@ proptest! {
         udp_ratio in 0.0..=1.0f64,
         tcp_syn_ratio in 0.0..=1.0f64,
         tcp_ack_ratio in 0.0..=1.0f64,
+        tcp_fin_ratio in 0.0..=1.0f64,
+        tcp_rst_ratio in 0.0..=1.0f64,
         icmp_ratio in 0.0..=1.0f64,
         custom_ratio in 0.0..=1.0f64,
         ip_octets in prop::array::uniform4(0u8..=255),
         port in 1u16..=65535,
-        packet_type_num in 0u8..=4
+        packet_type_num in 0u8..=6
     ) {
         let protocol_mix = ProtocolMix {
             udp_ratio,
             tcp_syn_ratio,
             tcp_ack_ratio,
+            tcp_fin_ratio,
+            tcp_rst_ratio,
             icmp_ratio,
             custom_ratio,
         };
@@ -198,14 +202,16 @@ proptest! {
 proptest! {
     #[test]
     fn fuzz_protocol_mix_normalization(
-        ratios in prop::collection::vec(prop::num::f64::ANY, 5..=5)
+        ratios in prop::collection::vec(prop::num::f64::ANY, 7..=7)
     ) {
         let protocol_mix = ProtocolMix {
             udp_ratio: ratios[0],
             tcp_syn_ratio: ratios[1],
             tcp_ack_ratio: ratios[2],
-            icmp_ratio: ratios[3],
-            custom_ratio: ratios[4],
+            tcp_fin_ratio: ratios[3],
+            tcp_rst_ratio: ratios[4],
+            icmp_ratio: ratios[5],
+            custom_ratio: ratios[6],
         };
         
         // Create builder - normalization should handle any input

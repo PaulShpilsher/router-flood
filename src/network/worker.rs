@@ -161,6 +161,8 @@ impl Worker {
         let udp_count = (mix.udp_ratio * 100.0) as usize;
         let tcp_syn_count = (mix.tcp_syn_ratio * 100.0) as usize;
         let tcp_ack_count = (mix.tcp_ack_ratio * 100.0) as usize;
+        let tcp_fin_count = (mix.tcp_fin_ratio * 100.0) as usize;
+        let tcp_rst_count = (mix.tcp_rst_ratio * 100.0) as usize;
         let icmp_count = (mix.icmp_ratio * 100.0) as usize;
         // Removed ipv6 and arp for simplification
         
@@ -172,6 +174,12 @@ impl Worker {
         }
         for _ in 0..tcp_ack_count {
             types.push(PacketType::TcpAck);
+        }
+        for _ in 0..tcp_fin_count {
+            types.push(PacketType::TcpFin);
+        }
+        for _ in 0..tcp_rst_count {
+            types.push(PacketType::TcpRst);
         }
         for _ in 0..icmp_count {
             types.push(PacketType::Icmp);

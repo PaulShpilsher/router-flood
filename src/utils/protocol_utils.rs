@@ -16,7 +16,7 @@ impl ProtocolUtils {
     pub const fn packet_type_to_protocol_name(packet_type: PacketType) -> &'static str {
         match packet_type {
             PacketType::Udp => protocols::UDP,
-            PacketType::TcpSyn | PacketType::TcpAck => protocols::TCP,
+            PacketType::TcpSyn | PacketType::TcpAck | PacketType::TcpFin | PacketType::TcpRst => protocols::TCP,
             PacketType::Icmp => protocols::ICMP,
             PacketType::Ipv6Udp | PacketType::Ipv6Tcp | PacketType::Ipv6Icmp => protocols::IPV6,
             PacketType::Arp => protocols::ARP,
@@ -28,7 +28,7 @@ impl ProtocolUtils {
     pub const fn packet_type_to_protocol_index(packet_type: PacketType) -> ProtocolIndex {
         match packet_type {
             PacketType::Udp => ProtocolIndex::Udp,
-            PacketType::TcpSyn | PacketType::TcpAck => ProtocolIndex::Tcp,
+            PacketType::TcpSyn | PacketType::TcpAck | PacketType::TcpFin | PacketType::TcpRst => ProtocolIndex::Tcp,
             PacketType::Icmp => ProtocolIndex::Icmp,
             PacketType::Ipv6Udp | PacketType::Ipv6Tcp | PacketType::Ipv6Icmp => ProtocolIndex::Ipv6,
             PacketType::Arp => ProtocolIndex::Arp,
@@ -87,7 +87,7 @@ impl PacketTypeExt for PacketType {
     fn is_ipv4(&self) -> bool {
         matches!(self, 
             PacketType::Udp | PacketType::TcpSyn | PacketType::TcpAck | 
-            PacketType::Icmp | PacketType::Arp
+            PacketType::TcpFin | PacketType::TcpRst | PacketType::Icmp | PacketType::Arp
         )
     }
     

@@ -8,6 +8,8 @@ pub enum PacketType {
     Udp,
     TcpSyn,
     TcpAck,
+    TcpFin,
+    TcpRst,
     Icmp,
     Ipv6Udp,
     Ipv6Tcp,
@@ -22,6 +24,8 @@ impl PacketType {
             PacketType::Udp,
             PacketType::TcpSyn,
             PacketType::TcpAck,
+            PacketType::TcpFin,
+            PacketType::TcpRst,
             PacketType::Icmp,
             PacketType::Ipv6Udp,
             PacketType::Ipv6Tcp,
@@ -37,14 +41,14 @@ impl PacketType {
     
     /// Check if this packet type is IPv4-based
     pub const fn is_ipv4(&self) -> bool {
-        matches!(self, PacketType::Udp | PacketType::TcpSyn | PacketType::TcpAck | PacketType::Icmp | PacketType::Arp)
+        matches!(self, PacketType::Udp | PacketType::TcpSyn | PacketType::TcpAck | PacketType::TcpFin | PacketType::TcpRst | PacketType::Icmp | PacketType::Arp)
     }
     
     /// Get the protocol name for statistics
     pub const fn protocol_name(&self) -> &'static str {
         match self {
             PacketType::Udp => "UDP",
-            PacketType::TcpSyn | PacketType::TcpAck => "TCP",
+            PacketType::TcpSyn | PacketType::TcpAck | PacketType::TcpFin | PacketType::TcpRst => "TCP",
             PacketType::Icmp => "ICMP",
             PacketType::Ipv6Udp | PacketType::Ipv6Tcp | PacketType::Ipv6Icmp => "IPv6",
             PacketType::Arp => "ARP",
@@ -58,6 +62,8 @@ impl fmt::Display for PacketType {
             PacketType::Udp => "UDP",
             PacketType::TcpSyn => "TCP-SYN",
             PacketType::TcpAck => "TCP-ACK",
+            PacketType::TcpFin => "TCP-FIN",
+            PacketType::TcpRst => "TCP-RST",
             PacketType::Icmp => "ICMP",
             PacketType::Ipv6Udp => "IPv6-UDP",
             PacketType::Ipv6Tcp => "IPv6-TCP",

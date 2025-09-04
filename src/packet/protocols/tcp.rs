@@ -38,6 +38,26 @@ impl TcpStrategy {
         }
     }
 
+    pub fn new_fin(rng: &mut BatchedRng) -> Self {
+        let source_ip = Ipv4Addr::new(192, 168, 1, rng.range(2, 254) as u8);
+        
+        Self {
+            source_ip,
+            tcp_flags: TcpFlags::FIN,
+            rng: BatchedRng::new(),
+        }
+    }
+
+    pub fn new_rst(rng: &mut BatchedRng) -> Self {
+        let source_ip = Ipv4Addr::new(192, 168, 1, rng.range(2, 254) as u8);
+        
+        Self {
+            source_ip,
+            tcp_flags: TcpFlags::RST,
+            rng: BatchedRng::new(),
+        }
+    }
+
     fn setup_ip_header(
         &mut self,
         ip_packet: &mut MutableIpv4Packet,

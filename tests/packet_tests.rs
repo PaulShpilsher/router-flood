@@ -19,10 +19,12 @@ fn test_packet_target_creation() {
 #[test]
 fn test_packet_builder_creation() {
     let protocol_mix = ProtocolMix {
-        udp_ratio: 0.4,
-        tcp_syn_ratio: 0.3,
-        tcp_ack_ratio: 0.2,
-        icmp_ratio: 0.1,
+        udp_ratio: 0.25,
+        tcp_syn_ratio: 0.25,
+        tcp_ack_ratio: 0.15,
+        tcp_fin_ratio: 0.15,
+        tcp_rst_ratio: 0.10,
+        icmp_ratio: 0.10,
         custom_ratio: 0.0,
     };
     

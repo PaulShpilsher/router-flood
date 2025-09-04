@@ -219,10 +219,12 @@ impl Engine {
         
         let mix = &self.config.target.protocol_mix;
         info!(
-            "   Protocols: UDP({:.0}%), TCP-SYN({:.0}%), TCP-ACK({:.0}%), ICMP({:.0}%), Custom({:.0}%)",
+            "   Protocols: UDP({:.0}%), TCP-SYN({:.0}%), TCP-ACK({:.0}%), TCP-FIN({:.0}%), TCP-RST({:.0}%), ICMP({:.0}%), Custom({:.0}%)",
             mix.udp_ratio * 100.0,
             mix.tcp_syn_ratio * 100.0,
             mix.tcp_ack_ratio * 100.0,
+            mix.tcp_fin_ratio * 100.0,
+            mix.tcp_rst_ratio * 100.0,
             mix.icmp_ratio * 100.0,
             mix.custom_ratio * 100.0
         );

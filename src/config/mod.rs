@@ -38,6 +38,8 @@ pub struct ProtocolMix {
     pub udp_ratio: f64,
     pub tcp_syn_ratio: f64,
     pub tcp_ack_ratio: f64,
+    pub tcp_fin_ratio: f64,
+    pub tcp_rst_ratio: f64,
     pub icmp_ratio: f64,
     pub custom_ratio: f64,
 }
@@ -47,8 +49,10 @@ impl Default for ProtocolMix {
         Self {
             udp_ratio: 0.25,
             tcp_syn_ratio: 0.25,
-            tcp_ack_ratio: 0.25,
-            icmp_ratio: 0.25,
+            tcp_ack_ratio: 0.15,
+            tcp_fin_ratio: 0.15,
+            tcp_rst_ratio: 0.10,
+            icmp_ratio: 0.10,
             custom_ratio: 0.0,
         }
     }
@@ -217,6 +221,8 @@ pub fn validate_config(config: &Config) -> Result<()> {
     let total_ratio = config.target.protocol_mix.udp_ratio
         + config.target.protocol_mix.tcp_syn_ratio
         + config.target.protocol_mix.tcp_ack_ratio
+        + config.target.protocol_mix.tcp_fin_ratio
+        + config.target.protocol_mix.tcp_rst_ratio
         + config.target.protocol_mix.icmp_ratio
         + config.target.protocol_mix.custom_ratio;
     

@@ -181,6 +181,14 @@ impl Stats {
         self.bytes_sent.fetch_add(batch.bytes_sent, Ordering::Relaxed);
         self.packets_failed.fetch_add(batch.packets_failed, Ordering::Relaxed);
     }
+    
+    /// Submit batch protocol statistics from a worker
+    pub fn submit_protocol_batch(&self, udp: u64, tcp: u64, icmp: u64, other: u64) {
+        if udp > 0 { self.udp_packets.fetch_add(udp, Ordering::Relaxed); }
+        if tcp > 0 { self.tcp_packets.fetch_add(tcp, Ordering::Relaxed); }
+        if icmp > 0 { self.icmp_packets.fetch_add(icmp, Ordering::Relaxed); }
+        if other > 0 { self.other_packets.fetch_add(other, Ordering::Relaxed); }
+    }
 }
 
 /// Batch statistics for worker threads with auto-flush
@@ -189,6 +197,10 @@ pub struct BatchStats {
     packets_sent: u64,
     bytes_sent: u64,
     packets_failed: u64,
+    udp_packets: u64,
+    tcp_packets: u64,
+    icmp_packets: u64,
+    other_packets: u64,
     batch_size: u64,
     count: u64,
 }
@@ -200,6 +212,10 @@ impl BatchStats {
             packets_sent: 0,
             bytes_sent: 0,
             packets_failed: 0,
+            udp_packets: 0,
+            tcp_packets: 0,
+            icmp_packets: 0,
+            other_packets: 0,
             batch_size,
             count: 0,
         }
@@ -228,8 +244,16 @@ impl BatchStats {
         self.record_failure();
     }
     
-    pub fn increment_sent(&mut self, bytes: u64, _protocol: &str) {
+    pub fn increment_sent(&mut self, bytes: u64, protocol: &str) {
         self.record_success(bytes);
+        
+        // Track per-protocol stats
+        match protocol.to_lowercase().as_str() {
+            "udp" => self.udp_packets += 1,
+            "tcp" | "tcp_syn" | "tcp_ack" | "tcp_fin" | "tcp_rst" => self.tcp_packets += 1,
+            "icmp" => self.icmp_packets += 1,
+            _ => self.other_packets += 1,
+        }
     }
     
     pub fn flush(&mut self) {
@@ -238,10 +262,28 @@ impl BatchStats {
             self.stats.bytes_sent.fetch_add(self.bytes_sent, Ordering::Relaxed);
             self.stats.packets_failed.fetch_add(self.packets_failed, Ordering::Relaxed);
             
+            // Submit protocol-specific counts
+            self.stats.submit_protocol_batch(
+                self.udp_packets,
+                self.tcp_packets,
+                self.icmp_packets,
+                self.other_packets,
+            );
+            
             self.packets_sent = 0;
             self.bytes_sent = 0;
             self.packets_failed = 0;
+            self.udp_packets = 0;
+            self.tcp_packets = 0;
+            self.icmp_packets = 0;
+            self.other_packets = 0;
             self.count = 0;
         }
+    }
+}
+
+impl Drop for BatchStats {
+    fn drop(&mut self) {
+        self.flush();
     }
 }

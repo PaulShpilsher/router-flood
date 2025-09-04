@@ -77,10 +77,12 @@ fn test_config_from_yaml() {
   ip: "192.168.1.100"
   ports: [8080, 8081]
   protocol_mix:
-    udp_ratio: 0.5
-    tcp_syn_ratio: 0.3
-    tcp_ack_ratio: 0.1
-    icmp_ratio: 0.1
+    udp_ratio: 0.25
+    tcp_syn_ratio: 0.25
+    tcp_ack_ratio: 0.20
+    tcp_fin_ratio: 0.15
+    tcp_rst_ratio: 0.10
+    icmp_ratio: 0.05
     custom_ratio: 0.0
 attack:
   threads: 4

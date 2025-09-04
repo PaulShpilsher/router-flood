@@ -14,8 +14,10 @@ fn test_protocol_mix_default() {
     let mix = ProtocolMix::default();
     assert_eq!(mix.udp_ratio, 0.25);
     assert_eq!(mix.tcp_syn_ratio, 0.25);
-    assert_eq!(mix.tcp_ack_ratio, 0.25);
-    assert_eq!(mix.icmp_ratio, 0.25);
+    assert_eq!(mix.tcp_ack_ratio, 0.15);
+    assert_eq!(mix.tcp_fin_ratio, 0.15);
+    assert_eq!(mix.tcp_rst_ratio, 0.10);
+    assert_eq!(mix.icmp_ratio, 0.10);
     assert_eq!(mix.custom_ratio, 0.0);
 }
 

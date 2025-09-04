@@ -11,12 +11,13 @@ target:
   
   # Protocol mix ratios (must sum to approximately 1.0)
   protocol_mix:
-    udp_ratio: 0.60      # 60% UDP packets (most common in floods)
-    tcp_syn_ratio: 0.25  # 25% TCP SYN packets
-    tcp_ack_ratio: 0.05  # 5% TCP ACK packets
-    icmp_ratio: 0.05     # 5% ICMP packets
-    ipv6_ratio: 0.03     # 3% IPv6 packets
-    arp_ratio: 0.02      # 2% ARP packets
+    udp_ratio: 0.25         # 25% UDP packets
+    tcp_syn_ratio: 0.25     # 25% TCP SYN packets (new connections)
+    tcp_ack_ratio: 0.15     # 15% TCP ACK packets (established connections)
+    tcp_fin_ratio: 0.15     # 15% TCP FIN packets (graceful connection closes)
+    tcp_rst_ratio: 0.10     # 10% TCP RST packets (connection resets)
+    icmp_ratio: 0.10        # 10% ICMP packets
+    custom_ratio: 0.0       # 0% custom packets (reserved for future use)
   
   # Optional: Specify network interface (auto-detected if not set)
   interface: null  # e.g., "eth0", "wlan0", etc.

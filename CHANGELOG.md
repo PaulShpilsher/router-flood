@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **TCP FIN and RST packet support**: Extended protocol mix to include TCP FIN (graceful connection termination) and TCP RST (connection reset) packets
+  - Added `TcpFin` and `TcpRst` variants to `PacketType` enum
+  - Extended `ProtocolMix` configuration with `tcp_fin_ratio` and `tcp_rst_ratio` fields
+  - Updated default protocol ratios: UDP(25%), TCP-SYN(25%), TCP-ACK(15%), TCP-FIN(15%), TCP-RST(10%), ICMP(10%)
+  - Enhanced TCP strategy with `new_fin()` and `new_rst()` methods for proper flag setting
+- **Fixed protocol statistics tracking**: Resolved bug where protocol breakdown in exported statistics showed all zeros
+  - Enhanced `BatchStats` to properly track per-protocol packet counts
+  - Added protocol-specific counters and flush logic for accurate statistics
+  - Statistics now correctly report TCP, UDP, ICMP, and other packet counts in exports
 - **Perfect simulation mode**: `--perfect-simulation` flag for 100% success rate in dry-run mode, useful for pure configuration validation without simulated failures
 - **Audit logging system**: Configurable audit logging with `--audit-log` CLI option
   - Encapsulated `AuditLogger` struct with typed event system
