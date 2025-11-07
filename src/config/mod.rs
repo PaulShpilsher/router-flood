@@ -4,10 +4,10 @@
 
 use serde::{Deserialize, Serialize};
 use std::path::Path;
-use tracing::info;
+use tracing::{info, warn};
 
 use crate::constants::{
-    defaults, MAX_THREADS, MAX_PACKET_RATE, MIN_PAYLOAD_SIZE, MAX_PAYLOAD_SIZE,
+    defaults, MAX_THREADS, MAX_PACKET_RATE, RECOMMENDED_MAX_RATE, MIN_PAYLOAD_SIZE, MAX_PAYLOAD_SIZE,
     DEFAULT_CONFIG_FILE, DEFAULT_EXPORT_INTERVAL,
 };
 use crate::error::{ConfigError, Result};
@@ -86,6 +86,8 @@ pub struct Safety {
     pub max_bandwidth_mbps: Option<f64>,
     pub allow_localhost: bool,
     pub require_confirmation: bool,
+    #[serde(default)]
+    pub allow_broadcast: bool,  // Allow targeting broadcast addresses (affects all network devices)
 }
 
 /// Monitoring configuration
@@ -173,6 +175,7 @@ pub fn default_config() -> Config {
             max_bandwidth_mbps: Some(defaults::DEFAULT_MAX_BANDWIDTH_MBPS),
             allow_localhost: false,
             require_confirmation: true,
+            allow_broadcast: false,  // Broadcasts blocked by default for safety
         },
         monitoring: Monitoring {
             enabled: true,
@@ -208,6 +211,15 @@ pub fn validate_config(config: &Config) -> Result<()> {
         return Err(ConfigError::new(
             format!("Packet rate must be between 0 and {}", MAX_PACKET_RATE)
         ).into());
+    }
+
+    // Warn for high packet rates
+    if config.attack.packet_rate > RECOMMENDED_MAX_RATE as f64 {
+        let total_pps = config.attack.packet_rate * config.attack.threads as f64;
+        let estimated_mbps = (total_pps * config.attack.payload_size as f64 * 8.0) / 1_000_000.0;
+        warn!("⚠️  High packet rate configured: {} pps/thread ({} total pps, ~{:.0} Mbps)",
+              config.attack.packet_rate, total_pps as u64, estimated_mbps);
+        warn!("    Ensure your system and network can handle this load!");
     }
     
     // Validate payload size

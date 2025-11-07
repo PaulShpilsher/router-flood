@@ -33,7 +33,7 @@ use router_flood::error::{Result, display_user_friendly_error};
 use router_flood::network::engine::{setup_network_interface, Engine};
 use router_flood::utils::terminal::TerminalGuard;
 use router_flood::ui::display_startup_banner;
-use router_flood::security::validation::{validate_comprehensive_security, validate_system_requirements};
+use router_flood::security::validation::{validate_comprehensive_security, validate_system_requirements, validate_broadcast_permission};
 
 fn setup_logging() {
     let log_level = std::env::var("RUST_LOG").unwrap_or_else(|_| "info".to_string());
@@ -59,13 +59,16 @@ fn parse_target_ip(config: &router_flood::config::Config) -> Result<IpAddr> {
 }
 
 fn perform_validations(config: &router_flood::config::Config, target_ip: &IpAddr) -> Result<()> {
+    // Validate broadcast permission first (provides clear error message)
+    validate_broadcast_permission(target_ip, config.safety.allow_broadcast)?;
+
     validate_comprehensive_security(
         target_ip,
         &config.target.ports,
         config.attack.threads,
         config.attack.packet_rate as u64,
     )?;
-    
+
     validate_system_requirements(config.safety.dry_run)?;
     Ok(())
 }

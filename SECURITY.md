@@ -24,7 +24,7 @@ When reporting, please include:
 
 1. **Use capabilities instead of root**:
    ```bash
-   sudo setcap cap_net_raw+ep ./router-flood
+   sudo setcap cap_net_raw+ep /tmp/cargo-target/release/router-flood
    ```
 
 2. **Test with dry-run first**:

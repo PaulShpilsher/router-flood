@@ -23,7 +23,7 @@ cd router-flood
 # Build in release mode for optimal performance
 cargo build --release
 
-# The binary will be at ./target/release/router-flood
+# The binary will be at /tmp/cargo-target/release/router-flood
 ```
 
 ### Setting up capabilities
@@ -32,21 +32,21 @@ Instead of running as root, grant the necessary network capabilities:
 
 ```bash
 # Grant CAP_NET_RAW capability
-sudo setcap cap_net_raw+ep ./target/release/router-flood
+sudo setcap cap_net_raw+ep /tmp/cargo-target/release/router-flood
 
 # Verify capabilities are set
-getcap ./target/release/router-flood
-# Should output: ./target/release/router-flood = cap_net_raw+ep
+getcap /tmp/cargo-target/release/router-flood
+# Should output: /tmp/cargo-target/release/router-flood = cap_net_raw+ep
 ```
 
 ### First run
 
 ```bash
 # Test the installation with a dry run
-./target/release/router-flood --target 192.168.1.1 --ports 80 --dry-run
+/tmp/cargo-target/release/router-flood --target 192.168.1.1 --ports 80 --dry-run
 
 # List available network interfaces
-./target/release/router-flood --list-interfaces
+/tmp/cargo-target/release/router-flood --list-interfaces
 ```
 
 ## Basic Usage
@@ -443,6 +443,46 @@ nproc
 router-flood --target 192.168.1.1 --ports 80 --threads 6
 ```
 
+### Broadcast address testing
+
+**WARNING:** Broadcast packets affect ALL devices on the network segment!
+
+```bash
+# Test broadcast storm protection (with --allow-broadcast flag)
+# Global broadcast
+router-flood --target 255.255.255.255 --ports 67,68 \
+  --threads 2 --rate 1000 --duration 30 \
+  --allow-broadcast --dry-run
+
+# Subnet-directed broadcast (safer, affects only subnet)
+router-flood --target 192.168.1.255 --ports 137,138 \
+  --threads 4 --rate 5000 --duration 10 \
+  --allow-broadcast --dry-run
+
+# Test DHCP server resilience
+router-flood --target 192.168.1.255 --ports 67 \
+  --threads 2 --rate 500 --duration 60 \
+  --allow-broadcast
+
+# Test router broadcast handling
+router-flood --target 192.168.1.255 --ports 80,443 \
+  --threads 8 --rate 10000 --duration 30 \
+  --allow-broadcast
+```
+
+**Common broadcast testing scenarios:**
+- **DHCP server stress:** Port 67/68, 500-2000 pps
+- **NetBIOS flooding:** Port 137/138, 1000-5000 pps
+- **Broadcast storm simulation:** Mixed ports, 10000+ pps
+- **Router capacity testing:** High rate with multiple ports
+
+**Safety notes:**
+- Always use `--dry-run` first to validate configuration
+- Start with low rates (500-1000 pps) and increase gradually
+- Monitor ALL network devices, not just the target
+- Broadcasts blocked by default - explicit `--allow-broadcast` required
+- Prefer subnet-directed broadcasts over global (255.255.255.255)
+
 ### Rate limiting considerations
 
 ```bash
@@ -469,7 +509,7 @@ router-flood --threads 8 --rate 2000  # 16000 pps total
 ```bash
 # Error: Permission denied (os error 13)
 # Solution: Set capabilities
-sudo setcap cap_net_raw+ep ./target/release/router-flood
+sudo setcap cap_net_raw+ep /tmp/cargo-target/release/router-flood
 ```
 
 #### Cannot create raw socket
@@ -477,10 +517,10 @@ sudo setcap cap_net_raw+ep ./target/release/router-flood
 ```bash
 # Error: Cannot create raw socket
 # Solution 1: Check capabilities
-getcap ./target/release/router-flood
+getcap /tmp/cargo-target/release/router-flood
 
 # Solution 2: Run with sudo (not recommended)
-sudo ./target/release/router-flood --target 192.168.1.1 --ports 80
+sudo /tmp/cargo-target/release/router-flood --target 192.168.1.1 --ports 80
 ```
 
 #### Target not in private range
@@ -564,7 +604,7 @@ router-flood --target 192.168.1.100 --ports 80,443 --threads 2 --rate 100 --dura
 
 # 3. Medium intensity (2 minutes)
 router-flood --target 192.168.1.100 --ports 80,443 --threads 4 --rate 500 --duration 120
-
+  
 # 4. High intensity (1 minute)
 router-flood --target 192.168.1.100 --ports 80,443 --threads 6 --rate 1000 --duration 60
 

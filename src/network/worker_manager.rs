@@ -16,6 +16,7 @@ use crate::network::target::PortTarget;
 use crate::network::worker::{Worker, WorkerConfig};
 use crate::packet::PacketSizeRange;
 use crate::performance::cpu_affinity::CpuAffinity;
+use crate::transport::ChannelFactory;
 
 /// Manages the lifecycle of worker threads with optional CPU affinity
 pub struct Workers {
@@ -31,13 +32,13 @@ impl Workers {
         stats: Arc<Stats>,
         multi_port_target: Arc<PortTarget>,
         target_ip: IpAddr,
-        _interface: Option<&pnet::datalink::NetworkInterface>,
-        _dry_run: bool,
+        interface: Option<&pnet::datalink::NetworkInterface>,
+        dry_run: bool,
     ) -> Result<Self> {
         let running = Arc::new(AtomicBool::new(true));
-        
+
         // Initialize CPU affinity if not in dry-run mode
-        let cpu_affinity = if !_dry_run && config.attack.threads > 1 {
+        let cpu_affinity = if !dry_run && config.attack.threads > 1 {
             match CpuAffinity::new() {
                 Ok(affinity) => {
                     info!("CPU affinity initialized: {} CPUs available", 
@@ -60,6 +61,8 @@ impl Workers {
             multi_port_target,
             target_ip,
             cpu_affinity.clone(),
+            interface,
+            dry_run,
         )?;
 
         Ok(Self { handles, running, cpu_affinity })
@@ -73,11 +76,22 @@ impl Workers {
         multi_port_target: Arc<PortTarget>,
         target_ip: IpAddr,
         cpu_affinity: Option<Arc<CpuAffinity>>,
+        interface: Option<&pnet::datalink::NetworkInterface>,
+        dry_run: bool,
     ) -> Result<Vec<JoinHandle<()>>> {
         let mut handles = Vec::with_capacity(config.attack.threads);
-        
-        let per_worker_rate = (config.attack.packet_rate / config.attack.threads as f64) as u64;
-        
+
+        // Create transport channels for all workers (one channel per worker for lock-free operation)
+        let mut all_channels = if !dry_run {
+            info!("Creating {} transport channels for workers...", config.attack.threads);
+            ChannelFactory::create_worker_channels(config.attack.threads, interface, dry_run)?
+        } else {
+            Vec::new()
+        };
+
+        // Note: packet_rate is already specified as "per thread" in the CLI
+        let per_worker_rate = config.attack.packet_rate as u64;
+
         for task_id in 0..config.attack.threads {
             let running = running.clone();
             let stats = stats.clone();
@@ -85,8 +99,7 @@ impl Workers {
             let packet_size_range = PacketSizeRange::new(config.attack.payload_size, config.attack.payload_size);
             let protocol_mix = config.target.protocol_mix.clone();
             let randomize_timing = false;  // Simplified for now
-            let dry_run = config.safety.dry_run;
-            
+
             let worker_config = WorkerConfig {
                 packet_rate: per_worker_rate,
                 packet_size_range,
@@ -95,12 +108,20 @@ impl Workers {
                 dry_run,
                 perfect_simulation: config.safety.perfect_simulation,
             };
-            
+
+            // Take ownership of channel for this worker (pop from end for efficiency)
+            let worker_channels = if !all_channels.is_empty() {
+                Some(all_channels.pop().unwrap())
+            } else {
+                None
+            };
+
             let mut worker = Worker::new(
                 stats,
                 target_ip,
                 target_port,
                 worker_config,
+                worker_channels,
             );
             
             let affinity = cpu_affinity.clone();

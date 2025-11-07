@@ -148,6 +148,21 @@ pub fn parse_arguments() -> ArgMatches {
                 .requires("dry-run"),
         )
         .arg(
+            Arg::new("allow-broadcast")
+                .long("allow-broadcast")
+                .help("⚠️  Allow targeting broadcast addresses (affects all network devices)")
+                .long_help("Enable targeting of broadcast addresses (e.g., 192.168.1.255, 255.255.255.255).\n\n\
+                            WARNING: Broadcast packets will be received by ALL devices on the network segment!\n\
+                            This can be disruptive and should only be used for authorized infrastructure testing.\n\n\
+                            Common use cases:\n\
+                            - Testing DHCP server resilience (port 67/68)\n\
+                            - Testing NetBIOS services (port 137/138)\n\
+                            - Testing router broadcast handling capacity\n\
+                            - Testing broadcast storm protection\n\n\
+                            Broadcast addresses are blocked by default for safety.")
+                .action(clap::ArgAction::SetTrue),
+        )
+        .arg(
             Arg::new("audit-log")
                 .long("audit-log")
                 .short('a')
@@ -211,6 +226,12 @@ pub fn process_cli_config(matches: &ArgMatches, mut config: Config) -> Result<Co
     if matches.get_flag("perfect-simulation") {
         config.safety.perfect_simulation = true;
         info!("✨ PERFECT SIMULATION MODE - 100% success rate in dry-run");
+    }
+
+    // Handle allow-broadcast flag
+    if matches.get_flag("allow-broadcast") {
+        config.safety.allow_broadcast = true;
+        info!("📡 BROADCAST MODE ENABLED - Broadcast addresses allowed");
     }
 
     Ok(config)

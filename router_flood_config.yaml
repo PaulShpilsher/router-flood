@@ -56,6 +56,7 @@ safety:
   audit_logging: true           # Enable audit log creation
   dry_run: false               # Simulate without sending packets (safe testing)
   perfect_simulation: false     # Use 100% success rate in dry-run mode (no simulated failures)
+  allow_broadcast: false        # ⚠️  Allow broadcast addresses (e.g., 192.168.1.255) - affects ALL network devices!
 
 monitoring:
   # Monitoring and reporting configuration

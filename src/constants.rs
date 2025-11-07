@@ -10,8 +10,9 @@ pub const DEFAULT_CONFIG_FILE: &str = "router_flood_config.yaml";
 pub const STATS_EXPORT_DIR: &str = "exports";
 
 // System limits
-pub const MAX_THREADS: usize = 100;
-pub const MAX_PACKET_RATE: u64 = 10000;
+pub const MAX_THREADS: usize = 256;
+pub const MAX_PACKET_RATE: u64 = 1_000_000;  // 1M pps per thread for high-performance testing
+pub const RECOMMENDED_MAX_RATE: u64 = 100_000; // Warn above this rate
 pub const MIN_FILE_DESCRIPTORS: i64 = 1024;
 
 // Packet size constraints
@@ -91,7 +92,7 @@ pub mod defaults {
     pub const PACKET_RATE: u64 = 100;
     pub const DEFAULT_PAYLOAD_SIZE: usize = 64;
     pub const DEFAULT_DURATION_SECONDS: u64 = 60;
-    pub const DEFAULT_MAX_BANDWIDTH_MBPS: f64 = 100.0;
+    pub const DEFAULT_MAX_BANDWIDTH_MBPS: f64 = 10_000.0;  // 10 Gbps capable
     pub const DEFAULT_STATS_INTERVAL_MS: u64 = 1000;
     pub const STATS_INTERVAL: u64 = DEFAULT_STATS_INTERVAL;
     

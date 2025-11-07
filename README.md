@@ -15,8 +15,9 @@ A high-performance network stress testing tool for authorized testing of network
 ## Features
 
 * **Safety-first design** - Enforces private IP ranges (RFC 1918), includes rate limiting and dry-run mode
-* **High performance** - SIMD-accelerated packet generation (3-5x speedup), lock-free memory pools, CPU affinity
+* **High performance** - Burst-mode packet generation (21x improvement), lock-free memory pools, CPU affinity
 * **Multi-protocol support** - TCP (SYN/ACK/FIN/RST), UDP, ICMP, IPv6 with configurable protocol mix
+* **Broadcast testing** - Optional broadcast address support with explicit opt-in for network-wide stress testing
 * **Zero-allocation hot paths** - Pre-allocated buffers, batched RNG, and Treiber stack memory management
 * **Real-time monitoring** - Live statistics with JSON/CSV export and Prometheus metrics support
 * **Capability-based security** - Runs with CAP_NET_RAW only (no root required), tamper-proof audit logging
@@ -34,7 +35,7 @@ cd router-flood
 cargo build --release
 
 # Grant network capabilities (recommended over running as root)
-sudo setcap cap_net_raw+ep ./target/release/router-flood
+sudo setcap cap_net_raw+ep /tmp/cargo-target/release/router-flood
 ```
 
 ### Prerequisites
@@ -57,6 +58,9 @@ router-flood --target 192.168.1.1 --ports 80 --threads 4 --rate 100
 
 # Time-limited test
 router-flood --target 192.168.1.1 --ports 80,443 --duration 60
+
+# Broadcast stress testing (requires --allow-broadcast)
+router-flood --target 192.168.1.255 --ports 67,68 --threads 2 --rate 1000 --allow-broadcast
 
 # Using configuration file
 router-flood --config stress-test.yaml

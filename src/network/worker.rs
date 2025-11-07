@@ -1,6 +1,6 @@
 //! High-performance packet generation worker
 //!
-//! This worker uses buffer reuse and batched stats updates
+//! This worker uses buffer reuse, batched stats updates, and burst-mode sending
 //! for improved performance under high load.
 
 use std::net::IpAddr;
@@ -9,12 +9,21 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::time;
 
+/// Number of packets to generate in each burst before sleeping
+/// This significantly reduces tokio::time::sleep overhead for high packet rates
+const BURST_SIZE: usize = 100;
+
+/// Minimum sleep duration in microseconds
+/// Below this threshold, we use yield_now() instead to avoid sleep overhead
+const MIN_SLEEP_MICROS: u64 = 50;
+
 use crate::stats::{Stats, BatchStats};
 use crate::network::target::PortTarget;
 use crate::packet::{PacketBuilder, PacketType};
 use crate::config::ProtocolMix;
 use crate::packet::PacketSizeRange;
 use crate::error::Result;
+use crate::transport::{WorkerChannels, ChannelType};
 
 /// Configuration for Worker
 pub struct WorkerConfig {
@@ -41,6 +50,8 @@ pub struct Worker {
     randomize_timing: bool,
     dry_run: bool,
     perfect_simulation: bool,
+    // Transport channels for actual packet sending (None in dry-run mode)
+    channels: Option<WorkerChannels>,
 }
 
 impl Worker {
@@ -49,6 +60,7 @@ impl Worker {
         target_ip: IpAddr,
         target_port: Arc<PortTarget>,
         config: WorkerConfig,
+        channels: Option<WorkerChannels>,
     ) -> Self {
         let packet_rate = config.packet_rate;
         let packet_size_range = config.packet_size_range;
@@ -63,9 +75,11 @@ impl Worker {
         
         // Pre-calculate packet type distribution based on protocol mix
         let packet_types = Self::generate_packet_types(&protocol_mix);
-        
+
         // Pre-allocate buffer for zero-copy operations
-        let buffer = vec![0u8; packet_size_range.max];
+        // Size = max payload + largest possible headers (IPv6 + UDP = 48 bytes)
+        const MAX_HEADER_SIZE: usize = 48;  // IPv6 (40) + UDP (8)
+        let buffer = vec![0u8; packet_size_range.max + MAX_HEADER_SIZE];
         
         Self {
             local_stats,
@@ -79,20 +93,28 @@ impl Worker {
             randomize_timing,
             dry_run,
             perfect_simulation,
+            channels,
         }
     }
     
     pub async fn run(&mut self, running: Arc<AtomicBool>) {
         while running.load(Ordering::Relaxed) {
-            // Process packet
-            if self.process_packet().await.is_err() {
-                self.local_stats.increment_failed();
+            // Process packets in bursts to reduce sleep overhead
+            for _ in 0..BURST_SIZE {
+                if !running.load(Ordering::Relaxed) {
+                    break;
+                }
+
+                // Process single packet
+                if self.process_packet().await.is_err() {
+                    self.local_stats.increment_failed();
+                }
             }
-            
-            // Apply rate limiting
-            self.apply_rate_limiting().await;
+
+            // Apply rate limiting once per burst instead of per packet
+            self.apply_burst_rate_limiting().await;
         }
-        
+
         // Ensure final flush of batched stats
         self.local_stats.flush();
     }
@@ -130,21 +152,40 @@ impl Worker {
     
     fn simulate_or_send(&mut self, size: usize, protocol: &str) {
         if self.dry_run {
-            // Use 100% success rate if perfect_simulation, otherwise 98%
+            // Dry-run simulation mode
             let success = if self.perfect_simulation {
                 true
             } else {
                 self.packet_builder.rng_gen_bool(0.98)
             };
-            
+
             if success {
                 self.local_stats.increment_sent(size as u64, protocol);
             } else {
                 self.local_stats.increment_failed();
             }
         } else {
-            // In real mode, mark as sent
-            self.local_stats.increment_sent(size as u64, protocol);
+            // Real packet sending mode
+            if let Some(ref mut channels) = self.channels {
+                // Determine channel type based on target IP
+                let channel_type = match self.target_ip {
+                    IpAddr::V4(_) => ChannelType::IPv4,
+                    IpAddr::V6(_) => ChannelType::IPv6,
+                };
+
+                // Send the packet using the buffer (already contains packet data)
+                match channels.send_packet(&self.buffer[..size], self.target_ip, channel_type) {
+                    Ok(()) => {
+                        self.local_stats.increment_sent(size as u64, protocol);
+                    }
+                    Err(_) => {
+                        self.local_stats.increment_failed();
+                    }
+                }
+            } else {
+                // No channels available - this shouldn't happen in non-dry-run mode
+                self.local_stats.increment_failed();
+            }
         }
     }
     
@@ -198,14 +239,25 @@ impl Worker {
         types
     }
     
-    async fn apply_rate_limiting(&mut self) {
+    /// Apply rate limiting for an entire burst of packets
+    /// This replaces per-packet sleep with per-burst sleep for much better performance
+    async fn apply_burst_rate_limiting(&mut self) {
+        // Calculate delay for entire burst
+        let burst_delay = self.base_delay.saturating_mul(BURST_SIZE as u32);
+
+        // Apply jitter if randomization is enabled
         let delay = if self.randomize_timing {
             let jitter = self.packet_builder.rng_gen_range(0.8..1.2);
-            Duration::from_nanos((self.base_delay.as_nanos() as f64 * jitter) as u64)
+            Duration::from_nanos((burst_delay.as_nanos() as f64 * jitter) as u64)
         } else {
-            self.base_delay
+            burst_delay
         };
-        
-        time::sleep(delay).await;
+
+        // For very high rates, use yield instead of sleep to avoid overhead
+        if delay.as_micros() < MIN_SLEEP_MICROS as u128 {
+            tokio::task::yield_now().await;
+        } else {
+            time::sleep(delay).await;
+        }
     }
 }

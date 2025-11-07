@@ -56,19 +56,57 @@ pub fn is_loopback_or_multicast(ip: &IpAddr) -> bool {
     }
 }
 
+/// Check if IP is a broadcast address
+pub fn is_broadcast(ip: &IpAddr) -> bool {
+    match ip {
+        IpAddr::V4(ipv4) => ipv4.is_broadcast(),
+        IpAddr::V6(_) => false,  // IPv6 doesn't have broadcast
+    }
+}
+
+/// Validate broadcast permission
+pub fn validate_broadcast_permission(ip: &IpAddr, allow_broadcast: bool) -> Result<()> {
+    if is_broadcast(ip) && !allow_broadcast {
+        return Err(ValidationError::new(
+            "broadcast",
+            "Broadcast addresses are blocked by default. Use --allow-broadcast to enable."
+        ).into());
+    }
+
+    if is_broadcast(ip) && allow_broadcast {
+        warn!("⚠️  BROADCAST MODE ENABLED");
+        warn!("⚠️  This will affect ALL devices on the network segment!");
+        warn!("⚠️  Ensure you have explicit permission for broadcast testing!");
+        info!("Broadcast target validated: {}", ip);
+    }
+
+    Ok(())
+}
+
 pub fn validate_comprehensive_security(
     ip: &IpAddr,
     ports: &[u16],
     threads: usize,
     rate: u64,
 ) -> Result<()> {
-    // Check if targeting loopback or multicast
-    if is_loopback_or_multicast(ip) {
-        return Err(ValidationError::new("ip", "Invalid IP range").into());
+    // Check if targeting loopback or multicast (but not broadcast - handled separately)
+    match ip {
+        IpAddr::V4(ipv4) => {
+            if ipv4.is_loopback() || ipv4.is_multicast() {
+                return Err(ValidationError::new("ip", "Invalid IP range").into());
+            }
+        }
+        IpAddr::V6(ipv6) => {
+            if ipv6.is_loopback() || ipv6.is_multicast() {
+                return Err(ValidationError::new("ip", "Invalid IP range").into());
+            }
+        }
     }
 
-    // Validate private IP
-    validate_target_ip(ip)?;
+    // Validate private IP (unless broadcast)
+    if !is_broadcast(ip) {
+        validate_target_ip(ip)?;
+    }
 
     // Check thread limits
     if threads > MAX_THREADS {
